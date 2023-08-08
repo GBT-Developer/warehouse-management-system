@@ -1,6 +1,9 @@
 # warehouse-management-system
 
-author: 
+author:
+
 - Bernhard Ricardo Putranto
 - Vinsky Strauss TanHanSen
 - Farouq Abdurrahman
+
+TEST PUSH AND COMMIT(VINSKY) XD
