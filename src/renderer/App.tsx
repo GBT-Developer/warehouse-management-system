@@ -1,7 +1,5 @@
 import { MemoryRouter as Router, Routes, Route } from 'react-router-dom';
 import './App.css';
-import { auth } from 'firebase';
-import { signInAnonymously } from 'firebase/auth';
 
 function Hello() {
   return (
@@ -11,7 +9,8 @@ function Hello() {
         type="button"
         className="bg-gray-300 text-black p-2 rounded-lg shadow-md hover:bg-gray-400"
         onClick={() => {
-          signInAnonymously(auth);
+          // eslint-disable-next-line no-console
+          console.log('Hello World!');
         }}
       >
         Click me
