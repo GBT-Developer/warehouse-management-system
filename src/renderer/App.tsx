@@ -1,7 +1,8 @@
 import { MemoryRouter as Router, Routes, Route } from 'react-router-dom';
 import './App.css';
-import { db } from 'firebase';
+import { auth, db } from 'firebase';
 import { collection, getDocs, query } from 'firebase/firestore';
+import { GoogleAuthProvider, signInWithRedirect } from 'firebase/auth';
 
 function Hello() {
   return (
@@ -22,6 +23,25 @@ function Hello() {
         }}
       >
         Click me
+      </button>
+      <button
+        type="button"
+        className="bg-gray-300 text-black p-2 rounded-lg shadow-md hover:bg-gray-400"
+        onClick={() => {
+          const provider = new GoogleAuthProvider();
+          signInWithRedirect(auth, provider)
+            .then((result) => {
+              // eslint-disable-next-line no-console
+              console.log(result);
+              return result;
+            })
+            .catch((error) => {
+              // eslint-disable-next-line no-console
+              console.log(error);
+            });
+        }}
+      >
+        Sign in with Google
       </button>
     </div>
   );
