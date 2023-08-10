@@ -1,6 +1,7 @@
 import { Route, RouteProps, Routes } from 'react-router-dom';
 import { AuthPage } from './pages/AuthPage';
 import { Hello } from './components/Hello';
+import Profile from './components/Profile';
 
 type RouteConfig = RouteProps & {
   isPrivate?: boolean;
@@ -9,7 +10,7 @@ type RouteConfig = RouteProps & {
 export const routes: RouteConfig[] = [
   {
     path: '/',
-    element: <Hello />,
+    element: <AuthPage />,
     index: true,
   },
   {
@@ -17,8 +18,8 @@ export const routes: RouteConfig[] = [
     element: <AuthPage />,
   },
   {
-    path: '/homepage',
-    element: <AuthPage />,
+    path: '/profile',
+    element: <Profile />,
   },
 ];
 

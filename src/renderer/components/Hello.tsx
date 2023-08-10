@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import './App.css';
+import '../App.css';
 import { auth, db } from 'firebase';
 import { collection, getDocs, query } from 'firebase/firestore';
 import { GoogleAuthProvider, signInWithRedirect } from 'firebase/auth';
@@ -43,7 +43,7 @@ export function Hello() {
             });
         }}
       >
-        Sign in with Google
+        Sign In
       </button>
     </div>
   );

@@ -1,14 +1,13 @@
 import React from 'react';
 import { BaseLayout } from 'renderer/layout/BaseLayout';
+import { Routes } from 'react-router-dom';
+import SignIn from 'renderer/components/Signin';
+
 
 export const AuthPage = () => {
   return (
     <BaseLayout>
-      <form>
-        <input type="text" placeholder="Username" />
-        <input type="password" placeholder="Password" />
-        <button type="submit">Login</button>
-      </form>
+      <SignIn />
     </BaseLayout>
   );
 };
