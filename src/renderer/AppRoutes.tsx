@@ -1,5 +1,6 @@
 import { Route, RouteProps, Routes } from 'react-router-dom';
 import { AuthPage } from './pages/AuthPage';
+import { InputPage } from './pages/InputPage';
 import { Hello } from './components/Hello';
 
 type RouteConfig = RouteProps & {
@@ -17,8 +18,8 @@ export const routes: RouteConfig[] = [
     element: <AuthPage />,
   },
   {
-    path: '/homepage',
-    element: <AuthPage />,
+    path: '/inputpage',
+    element: <InputPage />,
   },
 ];
 
