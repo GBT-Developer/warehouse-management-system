@@ -1,7 +1,6 @@
 import React, { FormEvent, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AppLayout } from 'renderer/layout/AppLayout';
-import { BaseLayout } from '../layout/BaseLayout';
 import { AuthCard } from '../components/AuthCard';
 import { useAuth } from '../providers/AuthProvider';
 
@@ -94,20 +93,20 @@ export const AuthPage = () => {
               />
             </label>
           </div>
-          <div className="flex items-start">
+          <div className="flex flex-col gap-2.5">
             <a
               className="text-sm text-blue-700 hover:underline ml-auto dark:text-blue-500"
               href="https://google.com"
             >
               Lost Password?
             </a>
+            <button
+              type="submit"
+              className="w-full text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
+            >
+              Login to your account
+            </button>
           </div>
-          <button
-            type="submit"
-            className="w-full text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
-          >
-            Login to your account
-          </button>
           {error !== '' && (
             <div className="text-red-500 text-sm mt-2">{error}</div>
           )}
