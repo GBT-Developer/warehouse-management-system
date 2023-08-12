@@ -15,6 +15,11 @@ module.exports = {
     '@typescript-eslint/no-unused-vars': 'error',
     'import/prefer-default-export': 'off',
     'react/function-component-definition': 'off',
+    'react/jsx-props-no-spreading': 'off',
+    'promise/always-return': 'off',
+    'react-hooks/exhaustive-deps': 'off',
+    'consistent-return': 'off',
+    'react/no-array-index-key': 'off',
   },
   parserOptions: {
     ecmaVersion: 2020,

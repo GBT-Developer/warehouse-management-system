@@ -43,7 +43,7 @@ export function Hello() {
             });
         }}
       >
-        Sign in with Google
+        Sign In
       </button>
     </div>
   );

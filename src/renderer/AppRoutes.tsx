@@ -1,7 +1,16 @@
-import { Route, RouteProps, Routes } from 'react-router-dom';
-import { AuthPage } from './pages/AuthPage';
+import React from 'react';
+import {
+  Navigate,
+  Route,
+  RouteProps,
+  Routes,
+  useLocation,
+} from 'react-router-dom';
+import { AuthPage } from './pages/LoginPage';
+import Profile from './pages/ProfilePage';
+import { useAuth } from './providers/AuthProvider';
+import ProfilePage from './pages/ProfilePage';
 import { InputPage } from './pages/InputPage';
-import { Hello } from './components/Hello';
 
 type RouteConfig = RouteProps & {
   isPrivate?: boolean;
@@ -10,12 +19,18 @@ type RouteConfig = RouteProps & {
 export const routes: RouteConfig[] = [
   {
     path: '/',
-    element: <Hello />,
+    element: <Navigate to="/profile" replace />,
+    isPrivate: true,
     index: true,
   },
   {
-    path: '/homepage',
+    path: '/auth/login',
     element: <AuthPage />,
+    isPrivate: false,
+  },
+  {
+    path: '/profile',
+    element: <ProfilePage />,
   },
   {
     path: '/inputpage',
@@ -23,8 +38,39 @@ export const routes: RouteConfig[] = [
   },
 ];
 
-const renderRouteMap = ({ element, ...restRoute }: RouteConfig) => {
-  return <Route key={restRoute.path} element={element} {...restRoute} />;
+export type AuthRequiredProps = {
+  children: React.ReactNode;
+  to?: string;
+};
+
+export const AuthRequired = ({
+  children,
+  to = '/auth/login',
+}: AuthRequiredProps) => {
+  const { isLoggedIn } = useAuth();
+  const { search } = useLocation();
+
+  return (
+    <>
+      {isLoggedIn && children}
+      {!isLoggedIn && <Navigate to={to} state={{ from: search }} replace />}
+    </>
+  );
+};
+
+AuthRequired.defaultProps = {
+  to: '/auth/login',
+};
+
+const renderRouteMap = ({ isPrivate, element, ...restRoute }: RouteConfig) => {
+  const authRequiredElement = isPrivate ? (
+    <AuthRequired>{element}</AuthRequired>
+  ) : (
+    element
+  );
+  return (
+    <Route key={restRoute.path} element={authRequiredElement} {...restRoute} />
+  );
 };
 
 export const AppRoutes = () => {

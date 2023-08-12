@@ -4,6 +4,7 @@ import { collection, getDocs, query } from 'firebase/firestore';
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { BaseLayout } from 'renderer/layout/BaseLayout';
+import { AppLayout } from 'renderer/layout/AppLayout';
 
 export const InputPage = () => {
   const [id, setId] = useState('');
@@ -28,7 +29,7 @@ export const InputPage = () => {
   }
 
   return (
-    <BaseLayout>
+    <AppLayout>
       <button
         type="button"
         onClick={() => {
@@ -72,6 +73,6 @@ export const InputPage = () => {
         />
         <button type="submit">Input</button>
       </form>
-    </BaseLayout>
+    </AppLayout>
   );
 };
