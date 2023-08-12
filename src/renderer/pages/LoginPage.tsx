@@ -1,14 +1,16 @@
-import { FormEvent, useState } from 'react';
+import React, { FormEvent, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import '../App.css';
-import { useAuth } from 'renderer/providers/AuthProvider';
+import { AppLayout } from 'renderer/layout/AppLayout';
+import { BaseLayout } from '../layout/BaseLayout';
+import { AuthCard } from '../components/AuthCard';
+import { useAuth } from '../providers/AuthProvider';
 
 const defaultFormFields = {
   email: '',
   password: '',
 };
 
-export const SignIn = () => {
+export const AuthPage = () => {
   const navigate = useNavigate();
   const { login } = useAuth().actions;
   const [formFields, setFormFields] = useState(defaultFormFields);
@@ -42,8 +44,8 @@ export const SignIn = () => {
   };
 
   return (
-    <div className="max-w-2xl mx-auto">
-      <div className="bg-white shadow-md border border-gray-200 rounded-lg max-w-sm p-4 sm:p-6 lg:p-8 dark:bg-gray-800 dark:border-gray-700">
+    <AppLayout>
+      <AuthCard>
         <form className="gap-y-6" onSubmit={handleSubmit}>
           <h3 className="text-xl font-medium text-gray-900 dark:text-white">
             Sign in
@@ -110,7 +112,7 @@ export const SignIn = () => {
             <div className="text-red-500 text-sm mt-2">{error}</div>
           )}
         </form>
-      </div>
-    </div>
+      </AuthCard>
+    </AppLayout>
   );
 };

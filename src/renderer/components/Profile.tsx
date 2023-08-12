@@ -1,20 +1,21 @@
-import { useContext } from 'react'
-import { AuthContext } from '../../../src/context/AuthContext'
-import { SignOutUser } from 'firebase-config'
+import { useAuth } from 'renderer/providers/AuthProvider';
 
 function Profile() {
-  const { currentUser, signOut } = useContext(AuthContext)
-  
-  return(
+  const { user } = useAuth();
+  const { logout } = useAuth().actions;
+
+  return (
     /**
-    * Extract the currrentUser from the context, if you want to
-    * get the User info, like the email, display name, etc.
-    */
+     * Extract the currrentUser from the context, if you want to
+     * get the User info, like the email, display name, etc.
+     */
     <div>
-      <h3>Welcome! {currentUser?.email}</h3>
-      <p>Sign In Status: {currentUser && 'active'}</p>
-      <button onClick={signOut}>Sign Out</button>
+      <h3>Welcome! {user?.email}</h3>
+      <p>Sign In Status: {user && 'active'}</p>
+      <button type="button" onClick={logout}>
+        Sign Out
+      </button>
     </div>
-  )
+  );
 }
-export default Profile
+export default Profile;
