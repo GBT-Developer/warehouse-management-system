@@ -14,7 +14,11 @@ function ProfilePage() {
     <AppLayout>
       <div className="flex flex-col items-center justify-center mt-[1rem]">
         <p className="text-lg">Welcome, {user?.email}</p>
-        <button className="InputButton" onClick={() => navigate('/inputpage')}>
+        <button
+          type="button"
+          className="InputButton"
+          onClick={() => navigate('/inputpage')}
+        >
           Input Stock
         </button>
       </div>

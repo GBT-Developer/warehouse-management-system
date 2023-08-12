@@ -1,31 +1,33 @@
-import { Firestore, addDoc } from 'firebase/firestore';
-import { auth, db } from 'firebase';
-import { collection, getDocs, query } from 'firebase/firestore';
+import { addDoc, collection } from 'firebase/firestore';
+import { db } from 'firebase';
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { BaseLayout } from 'renderer/layout/BaseLayout';
 import { AppLayout } from 'renderer/layout/AppLayout';
+import { Product } from 'renderer/interfaces/Product';
+
+const newProductInitialState = {
+  brand: '',
+  motor_type: '',
+  part: '',
+  available_color: '',
+  price: '',
+  warehouse_position: '',
+  count: '',
+};
 
 export const InputPage = () => {
-  const [id, setId] = useState('');
-  const [name, setName] = useState('');
-  const [price, setPrice] = useState('');
-  const [total, setTotal] = useState('');
+  const [newProduct, setNewProduct] = useState<Product>(newProductInitialState);
   const navigate = useNavigate();
 
-  function handleSubmit(e: { preventDefault: () => void }) {
+  async function handleSubmit(e: { preventDefault: () => void }) {
     e.preventDefault();
-    console.log(id, name, price, total);
-    //make a code to input my data to firebase
-    const productCollection = collection(db, '/Product');
-    const payload = {
-      product_id: id,
-      product: name,
-      price: price,
-      total: total,
-    };
-    const docRef = addDoc(productCollection, payload);
-    console.log(docRef);
+
+    const productCollection = collection(db, '/product');
+
+    addDoc(productCollection, newProduct).catch((error) => {
+      // eslint-disable-next-line no-console
+      console.log(error);
+    });
   }
 
   return (
@@ -42,34 +44,65 @@ export const InputPage = () => {
         <input
           className="text-black"
           type="text"
-          id="Id"
-          placeholder="Item Id"
-          value={id}
-          onChange={(e) => setId(e.target.value)}
+          placeholder="Merek"
+          value={newProduct.brand}
+          onChange={(e) =>
+            setNewProduct({ ...newProduct, brand: e.target.value })
+          }
         />
         <input
           className="text-black"
           type="text"
-          id="Name"
-          placeholder="Item"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
+          placeholder="Jenis motor"
+          value={newProduct.motor_type}
+          onChange={(e) =>
+            setNewProduct({ ...newProduct, motor_type: e.target.value })
+          }
         />
         <input
           className="text-black"
           type="text"
-          id="Price"
-          placeholder="Price"
-          value={price}
-          onChange={(e) => setPrice(e.target.value)}
+          placeholder="Part"
+          value={newProduct.part}
+          onChange={(e) =>
+            setNewProduct({ ...newProduct, part: e.target.value })
+          }
         />
         <input
           className="text-black"
           type="text"
-          id="Total"
-          placeholder="Total"
-          value={total}
-          onChange={(e) => setTotal(e.target.value)}
+          placeholder="Warna tersedia"
+          value={newProduct.available_color}
+          onChange={(e) =>
+            setNewProduct({ ...newProduct, available_color: e.target.value })
+          }
+        />
+        <input
+          className="text-black"
+          type="text"
+          placeholder="Jumlah barang"
+          value={newProduct.count}
+          onChange={(e) =>
+            setNewProduct({ ...newProduct, count: e.target.value })
+          }
+        />
+        <input
+          className="text-black"
+          type="text"
+          placeholder="Harga barang"
+          value={newProduct.price}
+          onChange={(e) =>
+            setNewProduct({ ...newProduct, price: e.target.value })
+          }
+        />
+        <input
+          className="text-black"
+          type="text"
+          placeholder="Posisi gudang"
+          value={newProduct.warehouse_position}
+          onChange={(e) =>
+            setNewProduct({ ...newProduct, warehouse_position: e.target.value })
+          }
         />
         <button type="submit">Input</button>
       </form>
