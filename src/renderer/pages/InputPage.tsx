@@ -38,6 +38,7 @@ export const InputPage = () => {
       >
         Back
       </button>
+      <h1>Input Stock</h1>
       <form onSubmit={handleSubmit}>
         <input
           className="text-black"
@@ -76,3 +77,5 @@ export const InputPage = () => {
     </AppLayout>
   );
 };
+
+export default InputPage;

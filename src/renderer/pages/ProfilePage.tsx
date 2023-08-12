@@ -17,6 +17,12 @@ function ProfilePage() {
         <button className="InputButton" onClick={() => navigate('/inputpage')}>
           Input Stock
         </button>
+        <button
+          className="InputButton"
+          onClick={() => navigate('/inputsupplier')}
+        >
+          Input Supplier
+        </button>
       </div>
     </AppLayout>
   );
