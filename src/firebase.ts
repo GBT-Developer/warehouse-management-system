@@ -17,3 +17,15 @@ const firebaseConfig = {
 export const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
 export const db = getFirestore(app);
+
+export function getFirebaseConfig() {
+  if (!firebaseConfig || !firebaseConfig.apiKey) {
+    throw new Error(
+      'No Firebase configuration object provided.' +
+        '\n' +
+        "Add your web app's configuration object to firebase-config.ts"
+    );
+  } else {
+    return firebaseConfig;
+  }
+}

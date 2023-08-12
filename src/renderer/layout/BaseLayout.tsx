@@ -1,9 +1,16 @@
-import React, { ReactNode } from 'react';
+import { AppHeader, AppHeaderProps } from './AppHeader';
+import { Page, PageProps } from './Page';
 
-export const BaseLayout = ({ children }: { children: ReactNode }) => {
+export type BaseLayoutProps = AppHeaderProps & PageProps;
+
+export const BaseLayout = ({
+  headerRightMenu,
+  ...pageProps
+}: BaseLayoutProps) => {
   return (
-    <div className="min-h-screen min-w-screen flex flex-col items-center bg-[#03001C] text-white p-3 gap-2">
-      {children}
+    <div className="flex flex-col w-screen h-screen bg-gray-100 dark:bg-gray-900 text-black dark:text-white">
+      <AppHeader headerRightMenu={headerRightMenu} />
+      <Page {...pageProps} />
     </div>
   );
 };
