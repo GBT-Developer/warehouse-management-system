@@ -19,6 +19,7 @@ module.exports = {
     'promise/always-return': 'off',
     'react-hooks/exhaustive-deps': 'off',
     'consistent-return': 'off',
+    'react/no-array-index-key': 'off',
   },
   parserOptions: {
     ecmaVersion: 2020,
