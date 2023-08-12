@@ -1,8 +1,10 @@
+import { useNavigate } from 'react-router-dom';
 import { AppLayout } from 'renderer/layout/AppLayout';
 import { useAuth } from 'renderer/providers/AuthProvider';
 
-function Profile() {
+function ProfilePage() {
   const { user } = useAuth();
+  const navigate = useNavigate();
 
   return (
     /**
@@ -12,8 +14,11 @@ function Profile() {
     <AppLayout>
       <div className="flex flex-col items-center justify-center mt-[1rem]">
         <p className="text-lg">Welcome, {user?.email}</p>
+        <button className="InputButton" onClick={() => navigate('/inputpage')}>
+          Input Stock
+        </button>
       </div>
     </AppLayout>
   );
 }
-export default Profile;
+export default ProfilePage;

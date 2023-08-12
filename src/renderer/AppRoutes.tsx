@@ -7,8 +7,10 @@ import {
   useLocation,
 } from 'react-router-dom';
 import { AuthPage } from './pages/LoginPage';
-import Profile from './components/Profile';
+import Profile from './pages/ProfilePage';
 import { useAuth } from './providers/AuthProvider';
+import ProfilePage from './pages/ProfilePage';
+import { InputPage } from './pages/InputPage';
 
 type RouteConfig = RouteProps & {
   isPrivate?: boolean;
@@ -28,7 +30,11 @@ export const routes: RouteConfig[] = [
   },
   {
     path: '/profile',
-    element: <Profile />,
+    element: <ProfilePage />,
+  },
+  {
+    path: '/inputpage',
+    element: <InputPage />,
   },
 ];
 
