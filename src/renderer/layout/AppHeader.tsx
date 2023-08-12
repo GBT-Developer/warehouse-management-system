@@ -8,7 +8,7 @@ export type AppHeaderProps = {
 
 export const AppHeader = ({ headerRightMenu }: AppHeaderProps) => {
   return (
-    <div className="flex py-2 px-3 bg-gray-300 dark:bg-gray-800 justify-between items-center">
+    <div className="flex py-2 px-3 bg-gray-300 dark:bg-gray-800 justify-between items-center mb-2">
       <Link to="/">
         <p className="text-2xl font-bold text-white">WMS</p>
       </Link>

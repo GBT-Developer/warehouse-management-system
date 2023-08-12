@@ -8,7 +8,7 @@ export const BaseLayout = ({
   ...pageProps
 }: BaseLayoutProps) => {
   return (
-    <div className="flex flex-col w-screen h-screen bg-gray-100 dark:bg-gray-900 text-black dark:text-white">
+    <div className="flex flex-col w-screen h-screen bg-gray-100 dark:bg-gray-900 text-black dark:text-white overflow-y-auto">
       <AppHeader headerRightMenu={headerRightMenu} />
       <Page {...pageProps} />
     </div>
