@@ -1,5 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import { Nav } from './Nav';
 
 export type AppHeaderProps = {
   headerRightMenu: React.ReactNode;
@@ -11,7 +12,7 @@ export const AppHeader = ({ headerRightMenu }: AppHeaderProps) => {
       <Link to="/">
         <p className="text-2xl font-bold text-white">WMS</p>
       </Link>
-      <a href="/">{headerRightMenu}</a>
+      <Nav className="flex space-x-2">{headerRightMenu}</Nav>
     </div>
   );
 };
