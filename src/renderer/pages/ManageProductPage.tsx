@@ -17,7 +17,7 @@ const newProductInitialState = {
   count: '',
 };
 
-export const InputPage = () => {
+export const ManageProductPage = () => {
   const [newProduct, setNewProduct] = useState<Product>(newProductInitialState);
   const navigate = useNavigate();
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -71,7 +71,7 @@ export const InputPage = () => {
   return (
     <PageLayout>
       <h1 className="mb-4 text-4xl font-extrabold tracking-tight text-gray-900 md:text-5xl dark:text-white">
-        Input Stock
+        Kelola Produk
       </h1>
       <form
         onSubmit={handleSubmit}

@@ -2,11 +2,12 @@ import React, { ReactNode } from 'react';
 import { GoPackageDependents } from 'react-icons/go';
 import { AiOutlineHome } from 'react-icons/ai';
 import { useNavigate } from 'react-router-dom';
+import { BsChevronDown, BsChevronUp } from 'react-icons/bs';
 
 interface SidebarItemProps {
   children: ReactNode;
   onClick?: () => void;
-  icon: ReactNode;
+  icon?: ReactNode;
   isSidebarOpen: boolean;
 }
 
@@ -20,15 +21,13 @@ const SidebarItem = ({
     <li>
       <button
         type="button"
-        className={`flex w-full items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 group duration-500 transition-transform ${
+        className={`flex gap-2 w-full items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 group duration-500 transition-transform ${
           isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
         onClick={onClick}
       >
         {icon}
-        <span className="flex-1 ml-3 text-start whitespace-nowrap">
-          {children}
-        </span>
+        <span className="flex-1 text-start whitespace-nowrap">{children}</span>
       </button>
     </li>
   );
@@ -39,13 +38,10 @@ export const SidebarButton = ({ onClick }: { onClick?: () => void }) => {
     <button
       type="button"
       className="inline-flex items-center p-2 text-sm text-gray-500 rounded-lg hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700"
-      aria-controls="sidebar-multi-level"
-      aria-expanded="false"
       onClick={onClick}
     >
       <svg
         className="w-6 h-6"
-        aria-hidden="true"
         fill="currentColor"
         viewBox="0 0 20 20"
         xmlns="http://www.w3.org/2000/svg"
@@ -70,6 +66,7 @@ export const AppSidebar = ({
   setIsSidebarOpen,
 }: SidebarProps) => {
   const navigate = useNavigate();
+  const [isDropdownOpen, setIsDropdownOpen] = React.useState(false);
 
   return (
     <aside
@@ -77,7 +74,6 @@ export const AppSidebar = ({
       className={` fixed top-12 left-0 z-40 w-64 h-screen bg-gray-50 dark:bg-gray-900 duration-300 transition-transform ${
         isSidebarOpen ? 'translate-x-0' : '-translate-x-48'
       } border-r border-gray-200 dark:border-gray-700`}
-      aria-label="Sidebar"
     >
       <div className="h-full px-3 py-4 overflow-y-auto bg-gray-50 dark:bg-gray-900">
         <div className="flex justify-end">
@@ -94,15 +90,42 @@ export const AppSidebar = ({
             icon={<AiOutlineHome />}
             isSidebarOpen={isSidebarOpen}
           >
-            Home
+            Beranda
           </SidebarItem>
-          <SidebarItem
-            onClick={() => navigate('/inputpage')}
-            icon={<GoPackageDependents />}
-            isSidebarOpen={isSidebarOpen}
+          <li
+            className={`duration-500 transition-transform ${
+              isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
+            }`}
           >
-            Input Stock
-          </SidebarItem>
+            <button
+              type="button"
+              className="flex gap-2 mb-2 items-center w-full p-2 text-base text-gray-900 transition duration-75 rounded-lg group hover:bg-gray-100 dark:text-white dark:hover:bg-gray-700"
+              onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+            >
+              <p>
+                <GoPackageDependents />
+              </p>
+              <span className="text-left whitespace-nowrap">Input Stock</span>
+              <div className="flex justify-end w-full">
+                {isDropdownOpen ? <BsChevronUp /> : <BsChevronDown />}
+              </div>
+            </button>
+
+            <ul className={`${isDropdownOpen ? '' : 'hidden'} space-y-2 pl-5`}>
+              <SidebarItem
+                isSidebarOpen={isSidebarOpen}
+                onClick={() => navigate('/manage-product')}
+              >
+                Kelola Produk
+              </SidebarItem>
+              <SidebarItem
+                isSidebarOpen={isSidebarOpen}
+                onClick={() => navigate('/manage-stock')}
+              >
+                Penyesuaian Stock
+              </SidebarItem>
+            </ul>
+          </li>
         </ul>
       </div>
     </aside>
