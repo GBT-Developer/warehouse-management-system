@@ -5,6 +5,7 @@ interface StockInputFieldProps {
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   labelFor: string;
   label: string;
+  loading?: boolean;
 }
 
 export const StockInputField = ({
@@ -12,6 +13,7 @@ export const StockInputField = ({
   onChange,
   labelFor,
   label,
+  loading,
 }: StockInputFieldProps) => {
   return (
     <div>
@@ -21,6 +23,7 @@ export const StockInputField = ({
       >
         {label}
         <input
+          disabled={loading}
           id={labelFor}
           name={labelFor}
           type="text"
