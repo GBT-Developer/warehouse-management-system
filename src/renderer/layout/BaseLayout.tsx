@@ -26,7 +26,7 @@ export const BaseLayout = ({ headerRightMenu, children }: BaseLayoutProps) => {
 
       <div
         className={`mt-14 ml-16 ${
-          isSidebarOpen && 'sm:ml-64'
+          isLoggedIn && isSidebarOpen && 'sm:ml-64'
         } transform duration-300`}
       >
         {children}
