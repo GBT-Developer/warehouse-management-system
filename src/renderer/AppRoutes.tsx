@@ -7,7 +7,6 @@ import {
   useLocation,
 } from 'react-router-dom';
 import { AuthPage } from './pages/LoginPage';
-import Profile from './pages/ProfilePage';
 import { useAuth } from './providers/AuthProvider';
 import ProfilePage from './pages/ProfilePage';
 import { InputPage } from './pages/InputPage';
