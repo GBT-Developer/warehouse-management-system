@@ -9,7 +9,8 @@ import {
 import { AuthPage } from './pages/LoginPage';
 import { useAuth } from './providers/AuthProvider';
 import ProfilePage from './pages/ProfilePage';
-import { InputPage } from './pages/InputPage';
+import { ManageProductPage } from './pages/ManageProductPage';
+import { ManageStockPage } from './pages/ManageStockPage';
 
 type RouteConfig = RouteProps & {
   isPrivate?: boolean;
@@ -32,8 +33,12 @@ export const routes: RouteConfig[] = [
     element: <ProfilePage />,
   },
   {
-    path: '/inputpage',
-    element: <InputPage />,
+    path: '/manage-product',
+    element: <ManageProductPage />,
+  },
+  {
+    path: '/manage-stock',
+    element: <ManageStockPage />,
   },
 ];
 
