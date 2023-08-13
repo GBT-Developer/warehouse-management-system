@@ -1,7 +1,7 @@
 import React, { FormEvent, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { AppLayout } from 'renderer/layout/AppLayout';
 import { AiOutlineLoading3Quarters } from 'react-icons/ai';
+import { PageLayout } from 'renderer/layout/PageLayout';
 import { AuthCard } from '../components/AuthCard';
 import { useAuth } from '../providers/AuthProvider';
 
@@ -48,7 +48,7 @@ export const AuthPage = () => {
   };
 
   return (
-    <AppLayout>
+    <PageLayout>
       <AuthCard>
         <form className="flex flex-col gap-[0.5rem]" onSubmit={handleSubmit}>
           <h3 className="text-xl font-medium text-gray-900 dark:text-white">
@@ -123,6 +123,6 @@ export const AuthPage = () => {
           )}
         </form>
       </AuthCard>
-    </AppLayout>
+    </PageLayout>
   );
 };
