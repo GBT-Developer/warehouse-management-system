@@ -31,6 +31,7 @@ export const InputPage = () => {
   return (
     <AppLayout>
       <button
+        className="px-3 py-2 rounded hover:bg-gray-200 dark:hover:bg-gray-700"
         type="button"
         onClick={() => {
           navigate(-1);
@@ -72,7 +73,12 @@ export const InputPage = () => {
           value={total}
           onChange={(e) => setTotal(e.target.value)}
         />
-        <button type="submit">Input</button>
+        <button
+          type="submit"
+          className="px-3 py-2 rounded hover:bg-gray-200 dark:hover:bg-gray-700"
+        >
+          Input
+        </button>
       </form>
     </AppLayout>
   );
