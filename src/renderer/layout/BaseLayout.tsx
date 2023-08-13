@@ -1,15 +1,13 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { useAuth } from 'renderer/providers/AuthProvider';
 import { AppHeader, AppHeaderProps } from './AppHeader';
 import { AppSidebar } from './AppSidebar';
-import { Page, PageProps } from './Page';
 
-export type BaseLayoutProps = AppHeaderProps & PageProps;
+export type BaseLayoutProps = AppHeaderProps & {
+  children: React.ReactNode;
+};
 
-export const BaseLayout = ({
-  headerRightMenu,
-  ...pageProps
-}: BaseLayoutProps) => {
+export const BaseLayout = ({ headerRightMenu, children }: BaseLayoutProps) => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   const { isLoggedIn } = useAuth();
@@ -26,7 +24,13 @@ export const BaseLayout = ({
         </div>
       )}
 
-      <Page {...pageProps} isSidebarOpen={isSidebarOpen} />
+      <div
+        className={`mt-14 sm:ml-16 ${
+          isSidebarOpen && 'sm:ml-64'
+        } transform duration-300`}
+      >
+        {children}
+      </div>
     </div>
   );
 };

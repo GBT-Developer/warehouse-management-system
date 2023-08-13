@@ -1,5 +1,6 @@
 import React, { ReactNode } from 'react';
 import { GoPackageDependents } from 'react-icons/go';
+import { AiOutlineHome } from 'react-icons/ai';
 import { useNavigate } from 'react-router-dom';
 
 interface SidebarItemProps {
@@ -70,11 +71,6 @@ export const AppSidebar = ({
 }: SidebarProps) => {
   const navigate = useNavigate();
 
-  const handleClickItem = () => {
-    setIsSidebarOpen(false);
-    navigate('/inputpage');
-  };
-
   return (
     <aside
       id="sidebar-multi-level-sidebar"
@@ -94,7 +90,14 @@ export const AppSidebar = ({
         />
         <ul className="space-y-2 font-medium">
           <SidebarItem
-            onClick={handleClickItem}
+            onClick={() => navigate('/profile')}
+            icon={<AiOutlineHome />}
+            isSidebarOpen={isSidebarOpen}
+          >
+            Home
+          </SidebarItem>
+          <SidebarItem
+            onClick={() => navigate('/inputpage')}
             icon={<GoPackageDependents />}
             isSidebarOpen={isSidebarOpen}
           >

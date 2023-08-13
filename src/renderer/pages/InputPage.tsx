@@ -1,11 +1,11 @@
 import { addDoc, collection } from 'firebase/firestore';
 import { db } from 'firebase';
 import { useState } from 'react';
-import { AppLayout } from 'renderer/layout/AppLayout';
 import { Product } from 'renderer/interfaces/Product';
 import { StockInputField } from 'renderer/components/StockInputField';
 import { useNavigate } from 'react-router-dom';
 import { AiOutlineLoading3Quarters } from 'react-icons/ai';
+import { PageLayout } from 'renderer/layout/PageLayout';
 
 const newProductInitialState = {
   brand: '',
@@ -69,7 +69,7 @@ export const InputPage = () => {
   }
 
   return (
-    <AppLayout>
+    <PageLayout>
       <h1 className="mb-4 text-4xl font-extrabold tracking-tight text-gray-900 md:text-5xl dark:text-white">
         Input Stock
       </h1>
@@ -176,6 +176,6 @@ export const InputPage = () => {
           </button>
         </div>
       </form>
-    </AppLayout>
+    </PageLayout>
   );
 };

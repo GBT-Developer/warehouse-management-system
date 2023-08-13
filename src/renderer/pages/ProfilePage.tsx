@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import { AppLayout } from 'renderer/layout/AppLayout';
+import { PageLayout } from 'renderer/layout/PageLayout';
 import { useAuth } from 'renderer/providers/AuthProvider';
 
 function ProfilePage() {
@@ -11,7 +11,7 @@ function ProfilePage() {
      * Extract the currrentUser from the context, if you want to
      * get the User info, like the email, display name, etc.
      */
-    <AppLayout>
+    <PageLayout>
       <div className="flex flex-col items-center justify-center mt-[1rem]">
         <p className="text-lg">Welcome, {user?.email}</p>
         <button
@@ -22,7 +22,7 @@ function ProfilePage() {
           Input Stock
         </button>
       </div>
-    </AppLayout>
+    </PageLayout>
   );
 }
 export default ProfilePage;
