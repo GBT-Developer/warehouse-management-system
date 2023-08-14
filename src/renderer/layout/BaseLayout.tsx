@@ -8,7 +8,7 @@ export type BaseLayoutProps = AppHeaderProps & {
 };
 
 export const BaseLayout = ({ headerRightMenu, children }: BaseLayoutProps) => {
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
   const { isLoggedIn } = useAuth();
 
@@ -25,7 +25,7 @@ export const BaseLayout = ({ headerRightMenu, children }: BaseLayoutProps) => {
       )}
 
       <div
-        className={`mt-14 ml-16 ${
+        className={`min-h-screen pt-14 ${isLoggedIn && 'ml-16'} ${
           isLoggedIn && isSidebarOpen && 'sm:ml-64'
         } transform duration-300`}
       >
