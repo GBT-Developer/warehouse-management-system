@@ -11,6 +11,7 @@ import Profile from './pages/ProfilePage';
 import { useAuth } from './providers/AuthProvider';
 import ProfilePage from './pages/ProfilePage';
 import { InputPage } from './pages/InputPage';
+import { CreateAdminPage } from './pages/CreateAdminPage';
 
 type RouteConfig = RouteProps & {
   isPrivate?: boolean;
@@ -36,6 +37,10 @@ export const routes: RouteConfig[] = [
     path: '/inputpage',
     element: <InputPage />,
   },
+  {
+    path: '/adminpage',
+    element: <CreateAdminPage />,
+  }
 ];
 
 export type AuthRequiredProps = {
