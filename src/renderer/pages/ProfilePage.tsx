@@ -17,7 +17,7 @@ function ProfilePage() {
         <button className="InputButton" onClick={() => navigate('/inputpage')}>
           Input Stock
         </button>
-        <button className='user-button' onClick={() => navigate('/adminpage')}>
+        <button className='user-button' onClick={() => navigate('/adminlistpage')}>
           Users
         </button>
       </div>
