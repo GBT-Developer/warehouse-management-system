@@ -1,6 +1,6 @@
 import { addDoc, collection } from 'firebase/firestore';
 import { db } from 'firebase';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { Product } from 'renderer/interfaces/Product';
 import { StockInputField } from 'renderer/components/StockInputField';
 import { useNavigate } from 'react-router-dom';
@@ -21,6 +21,7 @@ export const ManageProductPage = () => {
   const [newProduct, setNewProduct] = useState<Product>(newProductInitialState);
   const navigate = useNavigate();
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const selectRef = useRef<HTMLSelectElement>(null);
   const [loading, setLoading] = useState(false);
 
   async function handleSubmit(e: { preventDefault: () => void }) {
@@ -30,7 +31,8 @@ export const ManageProductPage = () => {
     if (
       Object.values(newProduct).some(
         (value) => value === '' || value === undefined
-      )
+      ) ||
+      newProduct.warehouse_position === ''
     ) {
       setErrorMessage('Mohon isi semua kolom');
       setTimeout(() => {
@@ -59,6 +61,10 @@ export const ManageProductPage = () => {
     addDoc(productCollection, newProduct)
       .then(() => {
         setNewProduct(newProductInitialState);
+        // set the select value back to default
+        if (selectRef.current) {
+          selectRef.current.value = '';
+        }
         setLoading(false);
       })
       .catch((error) => {
@@ -143,18 +149,32 @@ export const ManageProductPage = () => {
             }
           />
         </div>
-        <StockInputField
-          loading={loading}
-          labelFor="warehouse_position"
-          label="Posisi gudang"
-          value={newProduct.warehouse_position}
-          onChange={(e) =>
-            setNewProduct({
-              ...newProduct,
-              warehouse_position: e.target.value,
-            })
-          }
-        />
+        <label
+          htmlFor="countries"
+          className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+        >
+          Posisi barang di gudang
+          <select
+            ref={selectRef}
+            disabled={loading}
+            id="countries"
+            name="countries"
+            onChange={(e) => {
+              setNewProduct({
+                ...newProduct,
+                warehouse_position: e.target.value,
+              });
+            }}
+            className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+          >
+            <option value="" selected>
+              Pilih gudang
+            </option>
+            <option value="gudang_jadi">Gudang Jadi</option>
+            <option value="gudang_bahan">Gudang Bahan</option>
+          </select>
+        </label>
+
         {errorMessage && (
           <p className="text-red-500 text-sm ">{errorMessage}</p>
         )}
