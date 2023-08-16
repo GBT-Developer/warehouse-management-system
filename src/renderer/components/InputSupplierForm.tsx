@@ -49,6 +49,7 @@ function InputSupplierForm() {
         placeholder="Company Name"
         value={company_name}
         onChange={(e) => setCompany_name(e.target.value)}
+        required
       />
       <input
         className="text-black"
@@ -56,6 +57,7 @@ function InputSupplierForm() {
         placeholder="Address"
         value={address}
         onChange={(e) => setAddress(e.target.value)}
+        required
       />
       <input
         className="text-black"
@@ -63,6 +65,7 @@ function InputSupplierForm() {
         placeholder="City"
         value={city}
         onChange={(e) => setCity(e.target.value)}
+        required
       />
       <input
         className="text-black"
@@ -70,6 +73,7 @@ function InputSupplierForm() {
         placeholder="Phone Number"
         value={phoneNum}
         onChange={(e) => setPhoneNum(e.target.value)}
+        required
       />
       <input
         className="text-black"
@@ -77,6 +81,7 @@ function InputSupplierForm() {
         placeholder="account number"
         value={accountNum}
         onChange={(e) => setAccountNum(e.target.value)}
+        required
       />
       <input
         className="text-black"
@@ -84,6 +89,7 @@ function InputSupplierForm() {
         placeholder="Product"
         value={product}
         onChange={(e) => setProduct(e.target.value)}
+        required
       />
       <input
         className="text-black"
@@ -91,6 +97,7 @@ function InputSupplierForm() {
         placeholder="Factory"
         value={factory}
         onChange={(e) => setFactory(e.target.value)}
+        required
       />
       <input
         className="text-black"
@@ -98,6 +105,7 @@ function InputSupplierForm() {
         placeholder="Payment Status"
         value={status}
         onChange={(e) => setStatus(e.target.value)}
+        required
       />
 
       <button
