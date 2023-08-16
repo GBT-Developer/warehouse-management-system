@@ -1,15 +1,15 @@
-import { AppLayout } from "renderer/layout/AppLayout"
 import Datatable from "../components/DataTable"
+import { PageLayout } from "renderer/layout/PageLayout"
 
 const List = () => {
   return (
-    <AppLayout>
+    <PageLayout>
         <div className="list">
             <div className="listContainer">
                 <Datatable/>
             </div>
         </div>
-    </AppLayout>
+    </PageLayout>
   )
 }
 

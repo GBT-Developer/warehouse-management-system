@@ -2,9 +2,9 @@ import { updatePassword,
     reauthenticateWithCredential,
     EmailAuthProvider, } from "firebase/auth";
 import { FormEvent, useState } from "react";
-import { AppLayout } from "renderer/layout/AppLayout";
 import { auth } from 'firebase';
 import { AuthCard } from "renderer/components/AuthCard";
+import { PageLayout } from "renderer/layout/PageLayout";
 
 export const ChangePasswordPage = () => {
     const [error, setError] = useState('');
@@ -41,7 +41,7 @@ export const ChangePasswordPage = () => {
     }
     
     return (
-        <AppLayout>
+        <PageLayout>
             <AuthCard>
                 <div className="changePassword">
                     <form className="flex flex-col gap-[0.5rem]" onSubmit={handleSubmit}>
@@ -87,6 +87,6 @@ export const ChangePasswordPage = () => {
                     </form>
                 </div>
             </AuthCard>
-        </AppLayout>
+        </PageLayout>
     );
 }

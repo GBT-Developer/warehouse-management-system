@@ -8,8 +8,8 @@ import {
   } from "firebase/firestore";
 import {auth, db} from 'firebase'
 import {createUserWithEmailAndPassword} from 'firebase/auth'
-import { AppLayout } from 'renderer/layout/AppLayout';
 import { AuthCard } from 'renderer/components/AuthCard';
+import { PageLayout } from 'renderer/layout/PageLayout';
 
 export const CreateAdminPage = () => { 
     const navigate = useNavigate();
@@ -36,7 +36,7 @@ export const CreateAdminPage = () => {
     }
 
     return (
-        <AppLayout>
+        <PageLayout>
             <AuthCard>
             <div className="flex flex-col gap-[0.5rem]">
                 <form className="flex flex-col gap-[0.5rem]" onSubmit={signUp}>
@@ -66,11 +66,11 @@ export const CreateAdminPage = () => {
                 <button
                     type='button'
                     onClick={() => navigate('/adminlistpage')}
-                    className="w-full text-white bg-red-700 hover:bg-red-800 focus:ring-4 focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-800 flex justify-center"
+                    className="py-2.5 px-5 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700"
                     >Cancel
                 </button>
             </div>
             </AuthCard>
-        </AppLayout>
+        </PageLayout>
     )
 }
