@@ -7,13 +7,14 @@ import {
   useLocation,
 } from 'react-router-dom';
 import { AuthPage } from './pages/LoginPage';
-import Profile from './pages/ProfilePage';
 import { useAuth } from './providers/AuthProvider';
 import ProfilePage from './pages/ProfilePage';
-import { InputPage } from './pages/InputPage';
 import { CreateAdminPage } from './pages/CreateAdminPage';
 import List from './pages/AdminListPage';
 import { ChangePasswordPage } from './pages/ChangePasswordPage';
+import InputSupplier from './pages/InputSupplier';
+import { ManageProductPage } from './pages/ManageProductPage';
+import { ManageStockPage } from './pages/ManageStockPage';
 
 type RouteConfig = RouteProps & {
   isPrivate?: boolean;
@@ -36,8 +37,16 @@ export const routes: RouteConfig[] = [
     element: <ProfilePage />,
   },
   {
-    path: '/inputpage',
-    element: <InputPage />,
+    path: '/manage-product',
+    element: <ManageProductPage />,
+  },
+  {
+    path: '/manage-stock',
+    element: <ManageStockPage />,
+  },
+  {
+    path: '/inputsupplier',
+    element: <InputSupplier />,
   },
   {
     path: '/createadminpage',

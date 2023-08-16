@@ -21,7 +21,7 @@ const HeaderMenu = () => {
   );
 };
 
-export const AppLayout = (props: AppLayoutProps) => {
+export const AppLayout = ({ children }: AppLayoutProps) => {
   React.useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
@@ -30,9 +30,8 @@ export const AppLayout = (props: AppLayoutProps) => {
   const { isLoggedIn } = useAuth();
 
   return (
-    <BaseLayout
-      headerRightMenu={isLoggedIn ? <HeaderMenu /> : <div />}
-      {...props}
-    />
+    <BaseLayout headerRightMenu={isLoggedIn ? <HeaderMenu /> : <div />}>
+      {children}
+    </BaseLayout>
   );
 };
