@@ -1,6 +1,7 @@
 import React, { ReactNode } from 'react';
 import { GoPackageDependents } from 'react-icons/go';
 import { AiOutlineHome } from 'react-icons/ai';
+import { MdFactory } from 'react-icons/md';
 import { useNavigate } from 'react-router-dom';
 import { BsChevronDown, BsChevronUp } from 'react-icons/bs';
 
@@ -126,6 +127,13 @@ export const AppSidebar = ({
               </SidebarItem>
             </ul>
           </li>
+          <SidebarItem
+            onClick={() => navigate('/inputsupplier')}
+            icon={<MdFactory />}
+            isSidebarOpen={isSidebarOpen}
+          >
+            Input Supplier
+          </SidebarItem>
         </ul>
       </div>
     </aside>

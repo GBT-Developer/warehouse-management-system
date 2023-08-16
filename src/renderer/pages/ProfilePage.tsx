@@ -14,18 +14,6 @@ function ProfilePage() {
     <PageLayout>
       <div className="flex flex-col items-center justify-center mt-[1rem]">
         <p className="text-lg">Welcome, {user?.email}</p>
-        <button
-          className="px-3 py-2 rounded hover:bg-gray-200 dark:hover:bg-gray-700"
-          onClick={() => navigate('/inputpage')}
-        >
-          Input Stock
-        </button>
-        <button
-          className="px-3 py-2 rounded hover:bg-gray-200 dark:hover:bg-gray-700"
-          onClick={() => navigate('/inputsupplier')}
-        >
-          Input Supplier
-        </button>
       </div>
     </PageLayout>
   );
