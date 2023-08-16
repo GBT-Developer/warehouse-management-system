@@ -9,6 +9,7 @@ import {
 import {auth, db} from 'firebase'
 import {createUserWithEmailAndPassword} from 'firebase/auth'
 import { AppLayout } from 'renderer/layout/AppLayout';
+import { AuthCard } from 'renderer/components/AuthCard';
 
 export const CreateAdminPage = () => { 
     const navigate = useNavigate();
@@ -35,8 +36,9 @@ export const CreateAdminPage = () => {
 
     return (
         <AppLayout>
-            <div className="admin-page">
-                <form onSubmit={signUp}>
+            <AuthCard>
+            <div className="flex flex-col gap-[0.5rem]">
+                <form className="flex flex-col gap-[0.5rem]" onSubmit={signUp}>
                     <input type="email" 
                         name = "email"
                         id = 'email'
@@ -67,6 +69,7 @@ export const CreateAdminPage = () => {
                     >Cancel
                 </button>
             </div>
+            </AuthCard>
         </AppLayout>
     )
 }
