@@ -1,7 +1,7 @@
 import React, { ReactNode } from 'react';
 import { GoPackageDependents } from 'react-icons/go';
 import { AiOutlineHome } from 'react-icons/ai';
-import { MdFactory } from 'react-icons/md';
+import { MdInventory2 } from 'react-icons/md';
 import { useNavigate } from 'react-router-dom';
 import { BsChevronDown, BsChevronUp } from 'react-icons/bs';
 
@@ -68,6 +68,7 @@ export const AppSidebar = ({
 }: SidebarProps) => {
   const navigate = useNavigate();
   const [isDropdownOpen, setIsDropdownOpen] = React.useState(false);
+  const [isDropdownOpen2, setIsDropdownOpen2] = React.useState(false);
 
   return (
     <aside
@@ -127,13 +128,34 @@ export const AppSidebar = ({
               </SidebarItem>
             </ul>
           </li>
-          <SidebarItem
-            onClick={() => navigate('/inputsupplier')}
-            icon={<MdFactory />}
-            isSidebarOpen={isSidebarOpen}
+          <li
+            className={`duration-500 transition-transform ${
+              isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
+            }`}
           >
-            Input Supplier
-          </SidebarItem>
+            <button
+              type="button"
+              className="flex gap-2 mb-2 items-center w-full p-2 text-base text-gray-900 transition duration-75 rounded-lg group hover:bg-gray-100 dark:text-white dark:hover:bg-gray-700"
+              onClick={() => setIsDropdownOpen2(!isDropdownOpen2)}
+            >
+              <p>
+                <MdInventory2 />
+              </p>
+              <span className="text-left whitespace-nowrap">Inventaris</span>
+              <div className="flex justify-end w-full">
+                {isDropdownOpen2 ? <BsChevronUp /> : <BsChevronDown />}
+              </div>
+            </button>
+
+            <ul className={`${isDropdownOpen2 ? '' : 'hidden'} space-y-2 pl-5`}>
+              <SidebarItem
+                onClick={() => navigate('/inputsupplier')}
+                isSidebarOpen={isSidebarOpen}
+              >
+                Input Supplier
+              </SidebarItem>
+            </ul>
+          </li>
         </ul>
       </div>
     </aside>
