@@ -20,6 +20,7 @@ function ProfilePage() {
         <button className='user-button' onClick={() => navigate('/adminlistpage')}>
           Users
         </button>
+        <button className='button' onClick={() => navigate('/changepassword')}>Change Password</button>
       </div>
     </AppLayout>
   );
