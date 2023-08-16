@@ -13,6 +13,7 @@ import ProfilePage from './pages/ProfilePage';
 import { InputPage } from './pages/InputPage';
 import { CreateAdminPage } from './pages/CreateAdminPage';
 import List from './pages/AdminListPage';
+import { ChangePasswordPage } from './pages/ChangePasswordPage';
 
 type RouteConfig = RouteProps & {
   isPrivate?: boolean;
@@ -45,6 +46,10 @@ export const routes: RouteConfig[] = [
   {
     path: '/adminlistpage',
     element: <List />,
+  },
+  {
+    path: '/changepassword',
+    element: <ChangePasswordPage />,
   }
 ];
 
