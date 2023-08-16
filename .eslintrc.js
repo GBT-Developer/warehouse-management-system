@@ -20,6 +20,7 @@ module.exports = {
     'react-hooks/exhaustive-deps': 'off',
     'consistent-return': 'off',
     'react/no-array-index-key': 'off',
+    'react/require-default-props': 'off',
   },
   parserOptions: {
     ecmaVersion: 2020,
