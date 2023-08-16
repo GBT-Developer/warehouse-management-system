@@ -68,7 +68,7 @@ export const AppSidebar = ({
 }: SidebarProps) => {
   const navigate = useNavigate();
   const [isDropdownOpen, setIsDropdownOpen] = React.useState(false);
-  const [isDropdownOpen2, setIsDropdownOpen2] = React.useState(false);
+  const [isInventDropdownOpen, setIsInventDropdownOpen] = React.useState(false);
 
   return (
     <aside
@@ -120,12 +120,6 @@ export const AppSidebar = ({
               >
                 Kelola Produk
               </SidebarItem>
-              <SidebarItem
-                isSidebarOpen={isSidebarOpen}
-                onClick={() => navigate('/manage-stock')}
-              >
-                Penyesuaian Stock
-              </SidebarItem>
             </ul>
           </li>
           <li
@@ -136,23 +130,34 @@ export const AppSidebar = ({
             <button
               type="button"
               className="flex gap-2 mb-2 items-center w-full p-2 text-base text-gray-900 transition duration-75 rounded-lg group hover:bg-gray-100 dark:text-white dark:hover:bg-gray-700"
-              onClick={() => setIsDropdownOpen2(!isDropdownOpen2)}
+              onClick={() => setIsInventDropdownOpen(!isInventDropdownOpen)}
             >
               <p>
                 <MdInventory2 />
               </p>
               <span className="text-left whitespace-nowrap">Inventaris</span>
               <div className="flex justify-end w-full">
-                {isDropdownOpen2 ? <BsChevronUp /> : <BsChevronDown />}
+                {isInventDropdownOpen ? <BsChevronUp /> : <BsChevronDown />}
               </div>
             </button>
 
-            <ul className={`${isDropdownOpen2 ? '' : 'hidden'} space-y-2 pl-5`}>
+            <ul
+              className={`${
+                isInventDropdownOpen ? '' : 'hidden'
+              } space-y-2 pl-5`}
+            >
               <SidebarItem
                 onClick={() => navigate('/inputsupplier')}
                 isSidebarOpen={isSidebarOpen}
               >
                 Input Supplier
+              </SidebarItem>
+
+              <SidebarItem
+                isSidebarOpen={isSidebarOpen}
+                onClick={() => navigate('/manage-stock')}
+              >
+                Penyesuaian Stock
               </SidebarItem>
             </ul>
           </li>
