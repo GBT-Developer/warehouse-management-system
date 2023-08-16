@@ -21,7 +21,11 @@ export const ChangePasswordPage = () => {
         }
         try {
             await reauthenticateWithCredential(user, EmailAuthProvider.credential(user.email!, password));
-            await updatePassword(user, newPassword);
+            if (newPassword === confirmNewPassword) {
+                await updatePassword(user, newPassword);
+            }else{
+                throw new Error('Passwords do not match');
+            }
             setSuccess(true);
             setPassword("");
             setNewPassword("");

@@ -24,8 +24,9 @@ export const CreateAdminPage = () => {
             console.log(user);
             setDoc(doc(collection(db, "users"), user.uid), {
                 email: user.email,
-            });
-            navigate('/adminlistpage')
+            }).then(() => {
+                navigate('/adminlistpage')
+            })
         })
         .catch((error) => {
             const errorCode = error.code;
