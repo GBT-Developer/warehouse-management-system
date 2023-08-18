@@ -1,16 +1,12 @@
-import Datatable from "../components/DataTable"
-import { PageLayout } from "renderer/layout/PageLayout"
+import { PageLayout } from 'renderer/layout/PageLayout';
+import Datatable from '../components/DataTable';
 
 const List = () => {
   return (
     <PageLayout>
-        <div className="list">
-            <div className="listContainer">
-                <Datatable/>
-            </div>
-        </div>
+      <Datatable />
     </PageLayout>
-  )
-}
+  );
+};
 
-export default List
+export default List;
