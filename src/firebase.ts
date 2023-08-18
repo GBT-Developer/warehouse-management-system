@@ -2,6 +2,7 @@
 import { initializeApp } from 'firebase/app';
 import { getFirestore } from 'firebase/firestore';
 import { getAuth } from 'firebase/auth';
+import { getFunctions } from 'firebase/functions';
 
 const firebaseConfig = {
   apiKey: window.process.env.FIREBASE_API_KEY,
@@ -17,6 +18,7 @@ const firebaseConfig = {
 export const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
 export const db = getFirestore(app);
+export const functions = getFunctions(app);
 
 export function getFirebaseConfig() {
   if (!firebaseConfig || !firebaseConfig.apiKey) {
