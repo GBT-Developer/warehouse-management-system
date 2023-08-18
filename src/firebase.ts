@@ -26,12 +26,9 @@ export const functions = getFunctions(app, 'asia-southeast2');
 export const callable = (name: string) => httpsCallable(functions, name);
 
 if (window.process.env.NODE_ENV === 'development') {
-  console.log('Connecting to local emulators');
   connectFirestoreEmulator(db, 'localhost', 8080);
   connectAuthEmulator(auth, 'http://localhost:9099');
   connectFunctionsEmulator(functions, 'localhost', 5001);
-} else {
-  console.log('Connecting to production');
 }
 
 export function getFirebaseConfig() {
