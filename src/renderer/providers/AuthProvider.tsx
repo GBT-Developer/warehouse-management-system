@@ -7,7 +7,6 @@ import {
 } from 'firebase/auth';
 import { auth } from 'firebase';
 import { CustomUser } from 'renderer/interfaces/CustomUser';
-import { useLocalStorage } from '../hooks/useLocalStorage';
 
 export type LoginData = {
   password: string;
@@ -42,10 +41,7 @@ export type AuthProviderProps = { children: React.ReactNode };
 export const AuthProvider = ({ children }: AuthProviderProps) => {
   const navigate = useNavigate();
 
-  const [accessToken, setAccessToken] = useLocalStorage<string | null>(
-    'accessToken',
-    null
-  );
+  const [accessToken, setAccessToken] = useState<string | null>(null); // Store token in memory
   const [user, setUser] = useState<CustomUser | null>(null);
 
   useEffect(() => {
@@ -92,8 +88,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         loginData.email,
         loginData.password
       );
-      const firebaseUser = userCredential.user;
-      return firebaseUser as CustomUser;
+      return userCredential.user as CustomUser;
     } catch (error) {
       // TODO: Handle error
     }

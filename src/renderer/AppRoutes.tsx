@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Navigate,
   Route,
@@ -6,6 +6,8 @@ import {
   Routes,
   useLocation,
 } from 'react-router-dom';
+import { onAuthStateChanged } from 'firebase/auth';
+import { auth } from 'firebase';
 import { AuthPage } from './pages/LoginPage';
 import { useAuth } from './providers/AuthProvider';
 import ProfilePage from './pages/ProfilePage';
@@ -59,7 +61,7 @@ export const routes: RouteConfig[] = [
   {
     path: '/changepassword',
     element: <ChangePasswordPage />,
-  }
+  },
 ];
 
 export type AuthRequiredProps = {
@@ -73,6 +75,22 @@ export const AuthRequired = ({
 }: AuthRequiredProps) => {
   const { isLoggedIn } = useAuth();
   const { search } = useLocation();
+
+  // Add a loading state to handle initial Firebase authentication
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    // Set isLoading to false when Firebase authentication is done
+    const unsubscribe = onAuthStateChanged(auth, () => {
+      setIsLoading(false);
+    });
+
+    return unsubscribe;
+  }, []);
+
+  if (isLoading) {
+    return null; // Or a loading spinner, or any other loading indicator
+  }
 
   return (
     <>
