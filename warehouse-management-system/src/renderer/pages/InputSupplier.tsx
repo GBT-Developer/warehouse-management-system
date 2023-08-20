@@ -1,13 +1,11 @@
-import React from 'react';
+import { db } from 'firebase';
+import { addDoc, collection } from 'firebase/firestore';
 import { useState } from 'react';
-import { collection, addDoc } from 'firebase/firestore';
-import { auth, db } from 'firebase';
-import { stat } from 'fs';
-import { Supplier } from 'renderer/interfaces/Supplier';
-import { StockInputField } from 'renderer/components/StockInputField';
-import { useNavigate } from 'react-router-dom';
-import { PageLayout } from 'renderer/layout/PageLayout';
 import { AiOutlineLoading3Quarters } from 'react-icons/ai';
+import { useNavigate } from 'react-router-dom';
+import { StockInputField } from 'renderer/components/StockInputField';
+import { Supplier } from 'renderer/interfaces/Supplier';
+import { PageLayout } from 'renderer/layout/PageLayout';
 
 const newSupplierInitialState = {
   company_name: '',
@@ -44,7 +42,7 @@ function InputSupplier() {
       return;
     }
 
-    //check data type
+    // check data type
     if (
       Number.isNaN(Number(newSupplier.bank_number)) ||
       Number.isNaN(Number(newSupplier.phone_number))
@@ -56,21 +54,20 @@ function InputSupplier() {
       return;
     }
 
-    //make a code to input my data to firebase
+    // make a code to input my data to firebase
     const productCollection = collection(db, '/supplier');
     setLoading(true);
-    const docRef = addDoc(productCollection, newSupplier)
+    addDoc(productCollection, newSupplier)
       .then(() => {
         setNewSupplier(newSupplierInitialState);
         setLoading(false);
         // set the select value back to default
       })
       .catch((error) => {
-        // eslint-disable-next-line no-console
         setLoading(false);
+        // eslint-disable-next-line no-console
         console.log(error);
       });
-    console.log(docRef);
   }
   return (
     <PageLayout>

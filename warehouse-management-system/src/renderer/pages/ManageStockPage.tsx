@@ -1,17 +1,16 @@
 import { AiFillEdit } from 'react-icons/ai';
 import { BsChevronLeft, BsChevronRight, BsSearch } from 'react-icons/bs';
 import { PageLayout } from 'renderer/layout/PageLayout';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Product } from 'renderer/interfaces/Product';
-import { collection, query, orderBy, getDocs } from 'firebase/firestore';
+import { collection, query, getDocs } from 'firebase/firestore';
 import { db } from 'firebase';
-import { useEffect } from 'react';
 
 export const ManageStockPage = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [total, setTotal] = useState('100');
-  //take product from firebase
+  // take product from firebase
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -77,7 +76,7 @@ export const ManageStockPage = () => {
                       scope="row"
                       className="px-4 py-3 flex-1 font-medium text-gray-900 dark:text-white max-w-xs"
                     >
-                      {product.part + ' ' + product.brand}
+                      {`${product.part} ${product.brand}`}
                     </th>
                     <td className="px-4 py-3 flex-1 max-w-xs">
                       <div className="flex items-center gap-6 justify-end">
@@ -90,6 +89,7 @@ export const ManageStockPage = () => {
                           onBlur={() => setLoading(true)}
                         />
                         <button
+                          type="button"
                           className="text-gray-500 dark:text-gray-400 p-2 hover:text-gray-700 dark:hover:text-white cursor-pointer bg-gray-100 dark:bg-gray-700 rounded-md"
                           onClick={() => setLoading(false)}
                         >
