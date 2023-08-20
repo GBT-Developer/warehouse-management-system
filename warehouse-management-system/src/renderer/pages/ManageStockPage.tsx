@@ -18,6 +18,7 @@ export const ManageStockPage = () => {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [search, setSearch] = useState('');
   const { user } = useAuth();
+  const [updatedProduct, setUpdatedProduct] = useState('');
 
   // take product from firebase
   useEffect(() => {
@@ -61,6 +62,8 @@ export const ManageStockPage = () => {
 
   function handleSubmit(e: { preventDefault: () => void }) {
     e.preventDefault();
+    //declare the index
+    var index = 0;
     // Check for invalid values in the total array
     total.forEach((value) => {
       if (Number.isNaN(Number(value))) {
@@ -68,20 +71,23 @@ export const ManageStockPage = () => {
         setTimeout(() => {
           setErrorMessage(null);
         }, 3000);
+        return;
       }
     });
     // Update the data in Firebase
-    products.forEach((product, index) => {
-      const collectionRef = collection(db, 'product');
-      const docRef = doc(collectionRef, product.id);
-      updateDoc(docRef, { count: total[index] })
-        .then(() => {
-          console.log(`Document ${product.id} successfully updated!`);
-        })
-        .catch((error) => {
-          console.error(`Error updating document ${product.id}:`, error);
-        });
+    products.forEach((product) => {
+      if (product.id === updatedProduct)
+        index = products.findIndex((product) => product.id === updatedProduct);
     });
+    const collectionRef = collection(db, 'product');
+    const docRef = doc(collectionRef, updatedProduct);
+    updateDoc(docRef, { count: total[index] })
+      .then(() => {
+        console.log(`Document ${updatedProduct} successfully updated!`);
+      })
+      .catch((error) => {
+        console.error(`Error updating document ${updatedProduct}:`, error);
+      });
 
     setEditingIndex(null);
     inputRef.current?.blur();
@@ -104,7 +110,7 @@ export const ManageStockPage = () => {
                 {products.map((product: Product, index) => (
                   <tr key={index} className="border-b dark:border-gray-700">
                     <SingleTableItem>{index + 1}</SingleTableItem>
-                    <SingleTableItem>{`${product.part}`}</SingleTableItem>
+                    <SingleTableItem>{`${product.brand}`}</SingleTableItem>
                     <SingleTableItem>{`${product.part}`}</SingleTableItem>
                     <SingleTableItem>
                       <form
@@ -125,7 +131,10 @@ export const ManageStockPage = () => {
                         <button
                           type="button"
                           className="text-gray-500 dark:text-gray-400 p-2 hover:text-gray-700 dark:hover:text-white cursor-pointer bg-gray-100 dark:bg-gray-700 rounded-md"
-                          onClick={() => handleEditClick(index)}
+                          onClick={() => {
+                            handleEditClick(index);
+                            if (product.id) setUpdatedProduct(product.id);
+                          }}
                         >
                           <AiFillEdit />
                         </button>
@@ -135,6 +144,9 @@ export const ManageStockPage = () => {
                 ))}
               </tbody>
             </table>
+            {errorMessage && (
+              <p className="text-red-500 text-sm ">{errorMessage}</p>
+            )}
           </div>
         </div>
       </div>
