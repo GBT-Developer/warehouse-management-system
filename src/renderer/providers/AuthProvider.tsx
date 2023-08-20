@@ -1,12 +1,14 @@
 import React, { useContext, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-  User,
+  UserCredential,
   onAuthStateChanged,
   signInWithEmailAndPassword,
   signOut,
 } from 'firebase/auth';
-import { auth } from 'firebase';
+import { auth, db } from 'firebase';
+import { doc, getDoc } from 'firebase/firestore';
+import { CustomUser } from 'renderer/interfaces/CustomUser';
 import { useLocalStorage } from '../hooks/useLocalStorage';
 
 export type LoginData = {
@@ -16,10 +18,10 @@ export type LoginData = {
 
 export type AuthContext = {
   accessToken: string | null;
-  user: User | null;
+  user: CustomUser | null;
   isLoggedIn: boolean;
   actions: {
-    login: (loginData: LoginData) => Promise<User | void>;
+    login: (loginData: LoginData) => Promise<UserCredential | void>;
     logout: () => void;
   };
 };
@@ -46,20 +48,34 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     'accessToken',
     null
   );
+  const [user, setUser] = React.useState<CustomUser | null>(null);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      if (user) {
-        user
+    const unsubscribe = onAuthStateChanged(auth, async (newUser) => {
+      if (newUser) {
+        const docRef = doc(db, '/users', newUser.uid);
+
+        const docSnap = await getDoc(docRef);
+        if (docSnap.exists()) {
+          setUser(docSnap.data() as CustomUser);
+        } else {
+          signOut(auth).catch(() => {
+            // TODO: Handle error
+          });
+          throw new Error('CustomUser not found');
+        }
+
+        newUser
           .getIdToken()
           .then((newToken) => {
             setAccessToken(newToken);
           })
-          .catch((error) => {
+          .catch(() => {
             // TODO: Handle error
           });
       } else {
         setAccessToken(null); // To be changed to a toast
+        setUser(null);
         navigate('/');
       }
     });
@@ -67,16 +83,8 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     return unsubscribe;
   }, []);
 
-  const user = React.useMemo(
-    () =>
-      accessToken
-        ? (JSON.parse(atob(accessToken.split('.')[1])) as User)
-        : null,
-    [accessToken]
-  );
-
   const onLogout = React.useCallback(() => {
-    signOut(auth).catch((error) => {
+    signOut(auth).catch(() => {
       // TODO: Handle error
     });
   }, []);
@@ -87,13 +95,15 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     }
 
     try {
-      const userCredential = await signInWithEmailAndPassword(
+      const signInRes = await signInWithEmailAndPassword(
         auth,
         loginData.email,
         loginData.password
-      );
-      const firebaseUser = userCredential.user;
-      return firebaseUser;
+      ).catch(() => {
+        // TODO: Handle error
+      });
+
+      return signInRes;
     } catch (error) {
       // TODO: Handle error
     }
