@@ -2,10 +2,38 @@ import { AiFillEdit } from 'react-icons/ai';
 import { BsChevronLeft, BsChevronRight, BsSearch } from 'react-icons/bs';
 import { PageLayout } from 'renderer/layout/PageLayout';
 import { useState } from 'react';
+import { Product } from 'renderer/interfaces/Product';
+import { collection, query, orderBy, getDocs } from 'firebase/firestore';
+import { db } from 'firebase';
+import { useEffect } from 'react';
 
 export const ManageStockPage = () => {
   const [loading, setLoading] = useState(true);
   const [total, setTotal] = useState('100');
+  const [products, setProducts] = useState<Product[]>([]);
+  //take product from firebase
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const q = query(collection(db, 'product'));
+        const querySnapshot = await getDocs(q);
+
+        const productData: Product[] = [];
+        querySnapshot.forEach((doc) => {
+          productData.push(doc.data() as Product);
+        });
+
+        setProducts(productData);
+        setLoading(false);
+      } catch (error) {
+        console.error('Error fetching data:', error);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  console.log(products);
 
   return (
     <PageLayout>
@@ -48,32 +76,34 @@ export const ManageStockPage = () => {
                 </tr>
               </thead>
               <tbody className="overflow-y-auto">
-                <tr className="border-b dark:border-gray-700">
-                  <th
-                    scope="row"
-                    className="px-4 py-3 flex-1 font-medium text-gray-900 dark:text-white max-w-xs"
-                  >
-                    Knalpot Honda Beat
-                  </th>
-                  <td className="px-4 py-3 flex-1 max-w-xs">
-                    <div className="flex items-center gap-6 justify-end">
-                      <input
-                        type="text"
-                        className="w-20 text-center text-gray-900 dark:text-white bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md focus:border-primary-500 focus:ring-primary-500"
-                        value={total}
-                        onChange={(e) => setTotal(e.target.value)}
-                        disabled={loading}
-                        onBlur={() => setLoading(true)}
-                      />
-                      <button
-                        className="text-gray-500 dark:text-gray-400 p-2 hover:text-gray-700 dark:hover:text-white cursor-pointer bg-gray-100 dark:bg-gray-700 rounded-md"
-                        onClick={() => setLoading(false)}
-                      >
-                        <AiFillEdit />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
+                {products.map((product: Product) => (
+                  <tr className="border-b dark:border-gray-700">
+                    <th
+                      scope="row"
+                      className="px-4 py-3 flex-1 font-medium text-gray-900 dark:text-white max-w-xs"
+                    >
+                      {product.part + ' ' + product.brand}
+                    </th>
+                    <td className="px-4 py-3 flex-1 max-w-xs">
+                      <div className="flex items-center gap-6 justify-end">
+                        <input
+                          type="text"
+                          className="w-20 text-center text-gray-900 dark:text-white bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md focus:border-primary-500 focus:ring-primary-500"
+                          value={total}
+                          onChange={(e) => setTotal(e.target.value)}
+                          disabled={loading}
+                          onBlur={() => setLoading(true)}
+                        />
+                        <button
+                          className="text-gray-500 dark:text-gray-400 p-2 hover:text-gray-700 dark:hover:text-white cursor-pointer bg-gray-100 dark:bg-gray-700 rounded-md"
+                          onClick={() => setLoading(false)}
+                        >
+                          <AiFillEdit />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
               </tbody>
             </table>
           </div>
