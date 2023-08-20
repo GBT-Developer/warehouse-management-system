@@ -1,9 +1,9 @@
+import { functions } from 'firebase';
+import { httpsCallable } from 'firebase/functions';
 import React, { FormEvent, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { functions } from 'firebase';
 import { AuthCard } from 'renderer/components/AuthCard';
 import { PageLayout } from 'renderer/layout/PageLayout';
-import { httpsCallable } from 'firebase/functions';
 
 export const CreateAdminPage = () => {
   const navigate = useNavigate();
@@ -12,20 +12,20 @@ export const CreateAdminPage = () => {
 
   const signUp = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    httpsCallable(
+    const res = await httpsCallable(
       functions,
-      'createUserCallable'
+      'createUser'
     )({
       email,
       password,
-    })
-      .then(() => {
-        navigate('/adminlistpage');
-      })
-      .catch((error) => {
-        // eslint-disable-next-line no-console
-        console.error(error);
-      });
+    });
+
+    if (res.data) {
+      navigate('/adminlistpage');
+    }
+
+    setEmail('');
+    setPassword('');
   };
 
   return (
