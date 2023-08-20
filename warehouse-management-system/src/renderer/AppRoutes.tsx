@@ -1,3 +1,5 @@
+import { auth } from 'firebase';
+import { onAuthStateChanged } from 'firebase/auth';
 import React, { useEffect, useState } from 'react';
 import {
   Navigate,
@@ -6,17 +8,15 @@ import {
   Routes,
   useLocation,
 } from 'react-router-dom';
-import { onAuthStateChanged } from 'firebase/auth';
-import { auth } from 'firebase';
-import { AuthPage } from './pages/LoginPage';
-import { useAuth } from './providers/AuthProvider';
-import ProfilePage from './pages/ProfilePage';
-import { CreateAdminPage } from './pages/CreateAdminPage';
-import List from './pages/AdminListPage';
+import { AdminListPage } from './pages/AdminListPage';
 import { ChangePasswordPage } from './pages/ChangePasswordPage';
+import { CreateAdminPage } from './pages/CreateAdminPage';
 import InputSupplier from './pages/InputSupplier';
+import { AuthPage } from './pages/LoginPage';
 import { ManageProductPage } from './pages/ManageProductPage';
 import { ManageStockPage } from './pages/ManageStockPage';
+import ProfilePage from './pages/ProfilePage';
+import { useAuth } from './providers/AuthProvider';
 
 type RouteConfig = RouteProps & {
   isPrivate?: boolean;
@@ -56,7 +56,7 @@ export const routes: RouteConfig[] = [
   },
   {
     path: '/adminlistpage',
-    element: <List />,
+    element: <AdminListPage />,
   },
   {
     path: '/changepassword',
