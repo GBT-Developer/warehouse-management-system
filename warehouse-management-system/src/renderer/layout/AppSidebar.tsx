@@ -124,9 +124,9 @@ export const AppSidebar = ({
               <SidebarItem
                 isSidebarOpen={isSidebarOpen}
                 onClick={() => {
-                  navigate('/input-stock');
+                  navigate('/manage-product');
                 }}
-                selected={location.pathname === '/input-stock'}
+                selected={location.pathname === '/manage-product'}
               >
                 Kelola Produk
               </SidebarItem>
@@ -177,16 +177,7 @@ export const AppSidebar = ({
               </SidebarItem>
             </ul>
           </li>
-          <SidebarItem
-            onClick={() => {
-              navigate('/inputsupplier');
-            }}
-            selected={location.pathname === '/inputsupplier'}
-            icon={<MdFactory />}
-            isSidebarOpen={isSidebarOpen}
-          >
-            Input Supplier
-          </SidebarItem>
+
           <li
             className={`duration-500 transition-transform ${
               isSidebarOpen ? 'translate-x-0' : '-translate-x-full'

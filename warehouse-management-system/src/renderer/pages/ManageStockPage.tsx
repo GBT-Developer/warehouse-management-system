@@ -3,14 +3,16 @@ import { BsChevronLeft, BsChevronRight, BsSearch } from 'react-icons/bs';
 import { PageLayout } from 'renderer/layout/PageLayout';
 import { useState } from 'react';
 import { Product } from 'renderer/interfaces/Product';
-import { collection, query, orderBy, getDocs } from 'firebase/firestore';
+import { collection, query, getDocs, updateDoc, doc } from 'firebase/firestore';
 import { db } from 'firebase';
 import { useEffect } from 'react';
 
 export const ManageStockPage = () => {
   const [products, setProducts] = useState<Product[]>([]);
+  const [total, setTotal] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
-  const [total, setTotal] = useState('100');
+  const [editingIndex, setEditingIndex] = useState(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   //take product from firebase
   useEffect(() => {
     const fetchData = async () => {
@@ -24,6 +26,7 @@ export const ManageStockPage = () => {
         });
 
         setProducts(productData);
+        setTotal(productData.map((product) => product.count));
         setLoading(false);
       } catch (error) {
         console.error('Error fetching data:', error);
@@ -34,6 +37,48 @@ export const ManageStockPage = () => {
   }, []);
 
   console.log(products);
+
+  const handleTotalChange = (index: number, value: string) => {
+    // Update the total value for the specific row
+    const updatedTotalValues = [...total];
+    updatedTotalValues[index] = value;
+    setTotal(updatedTotalValues);
+  };
+
+  const handleEditClick = (index) => {
+    setEditingIndex(index); // Set the editing index to enable editing for this row
+  };
+
+  const handleBlur = () => {
+    setEditingIndex(null); // Reset the editing index when blurred
+  };
+
+  function handleSubmit(e: { preventDefault: () => void }) {
+    e.preventDefault();
+    // Check for invalid values in the total array
+    total.forEach((value) => {
+      if (Number.isNaN(Number(value))) {
+        setErrorMessage('jumlah barang tidak valid');
+        setTimeout(() => {
+          setErrorMessage(null);
+        }, 3000);
+        return;
+      }
+    });
+    // Update the data in Firebase
+    products.forEach((product, index) => {
+      const collectionRef = collection(db, 'product');
+      const docRef = doc(collectionRef, product.id);
+
+      updateDoc(docRef, { count: total[index] })
+        .then(() => {
+          console.log(`Document ${product.id} successfully updated!`);
+        })
+        .catch((error) => {
+          console.error(`Error updating document ${product.id}:`, error);
+        });
+    });
+  }
 
   return (
     <PageLayout>
@@ -71,8 +116,8 @@ export const ManageStockPage = () => {
                 </tr>
               </thead>
               <tbody className="overflow-y-auto">
-                {products.map((product: Product) => (
-                  <tr className="border-b dark:border-gray-700">
+                {products.map((product: Product, index) => (
+                  <tr key={index} className="border-b dark:border-gray-700">
                     <th
                       scope="row"
                       className="px-4 py-3 flex-1 font-medium text-gray-900 dark:text-white max-w-xs"
@@ -84,14 +129,16 @@ export const ManageStockPage = () => {
                         <input
                           type="text"
                           className="w-20 text-center text-gray-900 dark:text-white bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md focus:border-primary-500 focus:ring-primary-500"
-                          value={total}
-                          onChange={(e) => setTotal(e.target.value)}
-                          disabled={loading}
-                          onBlur={() => setLoading(true)}
+                          value={total[index]}
+                          onChange={(e) =>
+                            handleTotalChange(index, e.target.value)
+                          }
+                          disabled={editingIndex !== index}
+                          onBlur={handleBlur}
                         />
                         <button
                           className="text-gray-500 dark:text-gray-400 p-2 hover:text-gray-700 dark:hover:text-white cursor-pointer bg-gray-100 dark:bg-gray-700 rounded-md"
-                          onClick={() => setLoading(false)}
+                          onClick={() => handleEditClick(index)}
                         >
                           <AiFillEdit />
                         </button>
@@ -143,11 +190,15 @@ export const ManageStockPage = () => {
                 </a>
               </li>
             </ul>
+            {errorMessage && (
+              <p className="text-red-500 text-sm ">{errorMessage}</p>
+            )}
           </nav>
           <button
             disabled={loading}
             type="submit"
             className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800"
+            onClick={handleSubmit}
           >
             Update
           </button>
