@@ -124,9 +124,9 @@ export const AppSidebar = ({
               <SidebarItem
                 isSidebarOpen={isSidebarOpen}
                 onClick={() => {
-                  navigate('/input-stock');
+                  navigate('/manage-product');
                 }}
-                selected={location.pathname === '/input-stock'}
+                selected={location.pathname === '/manage-product'}
               >
                 Kelola Produk
               </SidebarItem>
