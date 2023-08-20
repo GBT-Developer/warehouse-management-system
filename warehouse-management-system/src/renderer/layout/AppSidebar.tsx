@@ -1,9 +1,11 @@
 import React, { ReactNode } from 'react';
 import { GoPackageDependents } from 'react-icons/go';
-import { MdInventory2, MdFactory } from 'react-icons/md';
+import { MdInventory2, MdTrolley } from 'react-icons/md';
 import { AiOutlineHome, AiOutlineUser } from 'react-icons/ai';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { BsChevronDown, BsChevronUp } from 'react-icons/bs';
+import { LuFolderEdit, LuPackageOpen } from 'react-icons/lu';
+import { PiUserListLight, PiPasswordLight } from 'react-icons/pi';
 
 interface SidebarItemProps {
   children: ReactNode;
@@ -123,6 +125,7 @@ export const AppSidebar = ({
             <ul className={`${isDropdownOpen ? '' : 'hidden'} space-y-2 pl-5`}>
               <SidebarItem
                 isSidebarOpen={isSidebarOpen}
+                icon={<LuPackageOpen />}
                 onClick={() => {
                   navigate('/manage-product');
                 }}
@@ -157,6 +160,7 @@ export const AppSidebar = ({
               } space-y-2 pl-5`}
             >
               <SidebarItem
+                icon={<MdTrolley />}
                 onClick={() => {
                   navigate('/inputsupplier');
                 }}
@@ -168,6 +172,7 @@ export const AppSidebar = ({
 
               <SidebarItem
                 isSidebarOpen={isSidebarOpen}
+                icon={<LuFolderEdit />}
                 onClick={() => {
                   navigate('/manage-stock');
                 }}
@@ -177,16 +182,6 @@ export const AppSidebar = ({
               </SidebarItem>
             </ul>
           </li>
-          <SidebarItem
-            onClick={() => {
-              navigate('/inputsupplier');
-            }}
-            selected={location.pathname === '/inputsupplier'}
-            icon={<MdFactory />}
-            isSidebarOpen={isSidebarOpen}
-          >
-            Input Supplier
-          </SidebarItem>
           <li
             className={`duration-500 transition-transform ${
               isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
@@ -213,6 +208,7 @@ export const AppSidebar = ({
             >
               <SidebarItem
                 isSidebarOpen={isSidebarOpen}
+                icon={<PiUserListLight />}
                 onClick={() => {
                   navigate('/adminlistpage');
                 }}
@@ -222,6 +218,7 @@ export const AppSidebar = ({
               </SidebarItem>
               <SidebarItem
                 isSidebarOpen={isSidebarOpen}
+                icon={<PiPasswordLight />}
                 onClick={() => {
                   navigate('/changepassword');
                 }}
