@@ -6,6 +6,7 @@ import { Product } from 'renderer/interfaces/Product';
 import { collection, query, getDocs, updateDoc, doc } from 'firebase/firestore';
 import { db } from 'firebase';
 import { useEffect } from 'react';
+import { ids } from 'webpack';
 
 export const ManageStockPage = () => {
   const [products, setProducts] = useState<Product[]>([]);
@@ -13,6 +14,7 @@ export const ManageStockPage = () => {
   const [loading, setLoading] = useState(true);
   const [editingIndex, setEditingIndex] = useState(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
   //take product from firebase
   useEffect(() => {
     const fetchData = async () => {
@@ -69,7 +71,6 @@ export const ManageStockPage = () => {
     products.forEach((product, index) => {
       const collectionRef = collection(db, 'product');
       const docRef = doc(collectionRef, product.id);
-
       updateDoc(docRef, { count: total[index] })
         .then(() => {
           console.log(`Document ${product.id} successfully updated!`);
