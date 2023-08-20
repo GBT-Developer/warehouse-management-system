@@ -1,9 +1,9 @@
 import React, { ReactNode } from 'react';
-import { GoPackageDependents } from 'react-icons/go';
-import { MdInventory2, MdFactory } from 'react-icons/md';
 import { AiOutlineHome, AiOutlineUser } from 'react-icons/ai';
-import { useLocation, useNavigate } from 'react-router-dom';
 import { BsChevronDown, BsChevronUp } from 'react-icons/bs';
+import { GoPackageDependents } from 'react-icons/go';
+import { MdInventory2 } from 'react-icons/md';
+import { useLocation, useNavigate } from 'react-router-dom';
 
 interface SidebarItemProps {
   children: ReactNode;
@@ -177,16 +177,6 @@ export const AppSidebar = ({
               </SidebarItem>
             </ul>
           </li>
-          <SidebarItem
-            onClick={() => {
-              navigate('/inputsupplier');
-            }}
-            selected={location.pathname === '/inputsupplier'}
-            icon={<MdFactory />}
-            isSidebarOpen={isSidebarOpen}
-          >
-            Input Supplier
-          </SidebarItem>
           <li
             className={`duration-500 transition-transform ${
               isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
