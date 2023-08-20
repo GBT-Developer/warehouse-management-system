@@ -1,8 +1,12 @@
 import { AiFillEdit } from 'react-icons/ai';
 import { BsChevronLeft, BsChevronRight, BsSearch } from 'react-icons/bs';
 import { PageLayout } from 'renderer/layout/PageLayout';
+import { useState } from 'react';
 
 export const ManageStockPage = () => {
+  const [loading, setLoading] = useState(true);
+  const [total, setTotal] = useState('100');
+
   return (
     <PageLayout>
       <h1 className="mb-4 text-4xl font-extrabold tracking-tight text-gray-900 md:text-5xl dark:text-white">
@@ -53,10 +57,20 @@ export const ManageStockPage = () => {
                   </th>
                   <td className="px-4 py-3 flex-1 max-w-xs">
                     <div className="flex items-center gap-6 justify-end">
-                      100
-                      <p className="text-gray-500 dark:text-gray-400 p-2 hover:text-gray-700 dark:hover:text-white cursor-pointer bg-gray-100 dark:bg-gray-700 rounded-md">
+                      <input
+                        type="text"
+                        className="w-20 text-center text-gray-900 dark:text-white bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md focus:border-primary-500 focus:ring-primary-500"
+                        value={total}
+                        onChange={(e) => setTotal(e.target.value)}
+                        disabled={loading}
+                        onBlur={() => setLoading(true)}
+                      />
+                      <button
+                        className="text-gray-500 dark:text-gray-400 p-2 hover:text-gray-700 dark:hover:text-white cursor-pointer bg-gray-100 dark:bg-gray-700 rounded-md"
+                        onClick={() => setLoading(false)}
+                      >
                         <AiFillEdit />
-                      </p>
+                      </button>
                     </div>
                   </td>
                 </tr>
