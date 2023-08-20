@@ -1,6 +1,6 @@
 import { db } from 'firebase';
 import { collection, doc, getDocs, query, updateDoc } from 'firebase/firestore';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { AiFillEdit } from 'react-icons/ai';
 import { SingleTableItem } from 'renderer/components/TableComponents/SingleTableItem';
 import { TableHeader } from 'renderer/components/TableComponents/TableHeader';
@@ -12,6 +12,7 @@ import { useAuth } from 'renderer/providers/AuthProvider';
 export const ManageStockPage = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [total, setTotal] = useState<string[]>([]);
+  const inputRef = useRef<HTMLInputElement>(null);
   const [loading, setLoading] = useState(true);
   const [editingIndex, setEditingIndex] = useState(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -26,8 +27,10 @@ export const ManageStockPage = () => {
         const querySnapshot = await getDocs(q);
 
         const productData: Product[] = [];
-        querySnapshot.forEach((doc) => {
-          productData.push(doc.data() as Product);
+        querySnapshot.forEach((theProduct) => {
+          const data = theProduct.data() as Product;
+          data.id = theProduct.id;
+          productData.push(data);
         });
 
         setProducts(productData);
@@ -40,8 +43,6 @@ export const ManageStockPage = () => {
 
     fetchData();
   }, []);
-
-  console.log(products);
 
   const handleTotalChange = (index: number, value: string) => {
     // Update the total value for the specific row
@@ -82,6 +83,9 @@ export const ManageStockPage = () => {
           console.error(`Error updating document ${product.id}:`, error);
         });
     });
+
+    setEditingIndex(null);
+    inputRef.current?.blur();
   }
 
   return (
@@ -103,12 +107,15 @@ export const ManageStockPage = () => {
                     <SingleTableItem>{index + 1}</SingleTableItem>
                     <SingleTableItem>{`${product.part}`}</SingleTableItem>
                     <SingleTableItem>{`${product.part}`}</SingleTableItem>
-
                     <SingleTableItem>
-                      <div className="flex justify-start gap-[1rem]">
+                      <form
+                        className="flex justify-start gap-[1rem]"
+                        onSubmit={(e) => handleSubmit(e)}
+                      >
                         <input
+                          ref={inputRef}
                           type="text"
-                          className="w-16 text-center text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 rounded-md focus:border-primary-500 focus:ring-primary-500"
+                          className="w-20 text-center text-gray-900 dark:text-white bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md focus:border-primary-500 focus:ring-primary-500"
                           value={total[index]}
                           onChange={(e) =>
                             handleTotalChange(index, e.target.value)
@@ -123,7 +130,7 @@ export const ManageStockPage = () => {
                         >
                           <AiFillEdit />
                         </button>
-                      </div>
+                      </form>
                     </SingleTableItem>
                   </tr>
                 ))}
