@@ -1,0 +1,30 @@
+{
+    "editor.codeActionsOnSave": {
+        "source.fixAll": true,
+        "source.fixAll.eslint": true,
+    },
+    "editor.formatOnSave": true,
+    "files.associations": {
+        ".eslintrc": "jsonc",
+        ".prettierrc": "jsonc",
+        ".eslintignore": "ignore"
+    },
+    "eslint.validate": [
+        "javascript",
+        "javascriptreact",
+        "html",
+        "typescriptreact"
+    ],
+    "javascript.validate.enable": false,
+    "javascript.format.enable": false,
+    "typescript.format.enable": false,
+    "search.exclude": {
+        ".git": true,
+        ".eslintcache": true,
+        "functions/dll": true,
+        "functions/node_modules": true,
+        "functions/npm-debug.log.*": true,
+        "functions/test/**/__snapshots__": true,
+        "functions/package-lock.json": true,
+    }
+}
