@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useMemo } from 'react';
+import React, { useContext, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   onAuthStateChanged,
@@ -46,34 +46,34 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     'accessToken',
     null
   );
+  const [user, setUser] = useState<CustomUser | null>(null);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      if (user) {
-        user
+    const unsubscribe = onAuthStateChanged(auth, (newUser) => {
+      if (newUser) {
+        newUser
           .getIdToken()
           .then((newToken) => {
             setAccessToken(newToken);
+            const { owner } = JSON.parse(
+              atob(newToken.split('.')[1])
+            ) as CustomUser;
+            const theUser = newUser as CustomUser;
+            theUser.owner = owner;
+            setUser(theUser);
           })
           .catch(() => {
             // TODO: Handle error
           });
       } else {
         setAccessToken(null); // To be changed to a toast
+        setUser(null);
         navigate('/');
       }
     });
 
     return unsubscribe;
   }, []);
-
-  const user = React.useMemo(
-    () =>
-      accessToken
-        ? (JSON.parse(atob(accessToken.split('.')[1])) as CustomUser)
-        : null,
-    [accessToken]
-  );
 
   const onLogout = React.useCallback(() => {
     signOut(auth).catch(() => {
@@ -103,7 +103,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     () => ({
       accessToken,
       user,
-      isLoggedIn: !!user,
+      isLoggedIn: !!accessToken,
       actions: {
         login: onLogin,
         logout: onLogout,
