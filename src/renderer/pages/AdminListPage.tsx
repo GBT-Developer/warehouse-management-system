@@ -1,5 +1,5 @@
 import { PageLayout } from 'renderer/layout/PageLayout';
-import Datatable from '../components/DataTable';
+import Datatable from '../components/Table';
 
 const List = () => {
   return (
