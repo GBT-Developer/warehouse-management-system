@@ -177,6 +177,7 @@ export const AppSidebar = ({
               </SidebarItem>
             </ul>
           </li>
+
           <li
             className={`duration-500 transition-transform ${
               isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
