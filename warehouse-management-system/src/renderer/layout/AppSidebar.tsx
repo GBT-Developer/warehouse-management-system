@@ -2,7 +2,7 @@ import React, { ReactNode } from 'react';
 import { GoPackageDependents } from 'react-icons/go';
 import { MdInventory2, MdFactory } from 'react-icons/md';
 import { AiOutlineHome, AiOutlineUser } from 'react-icons/ai';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { BsChevronDown, BsChevronUp } from 'react-icons/bs';
 
 interface SidebarItemProps {
@@ -10,6 +10,7 @@ interface SidebarItemProps {
   onClick?: () => void;
   icon?: ReactNode;
   isSidebarOpen: boolean;
+  selected: boolean;
 }
 
 const SidebarItem = ({
@@ -17,6 +18,7 @@ const SidebarItem = ({
   onClick,
   icon,
   isSidebarOpen,
+  selected,
 }: SidebarItemProps) => {
   return (
     <li>
@@ -24,7 +26,7 @@ const SidebarItem = ({
         type="button"
         className={`flex gap-2 w-full items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 group duration-500 transition-transform ${
           isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
-        }`}
+        } ${selected ? 'bg-gray-100 dark:bg-gray-700' : ''}`}
         onClick={onClick}
       >
         {icon}
@@ -67,6 +69,7 @@ export const AppSidebar = ({
   setIsSidebarOpen,
 }: SidebarProps) => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [isDropdownOpen, setIsDropdownOpen] = React.useState(false);
   const [isInventDropdownOpen, setIsInventDropdownOpen] = React.useState(false);
   const [isUserDropdownOpen, setIsUserDropdownOpen] = React.useState(false);
@@ -89,9 +92,12 @@ export const AppSidebar = ({
         />
         <ul className="space-y-2 font-medium">
           <SidebarItem
-            onClick={() => navigate('/profile')}
+            onClick={() => {
+              navigate('/profile');
+            }}
             icon={<AiOutlineHome />}
             isSidebarOpen={isSidebarOpen}
+            selected={location.pathname === '/profile'}
           >
             Beranda
           </SidebarItem>
@@ -117,7 +123,10 @@ export const AppSidebar = ({
             <ul className={`${isDropdownOpen ? '' : 'hidden'} space-y-2 pl-5`}>
               <SidebarItem
                 isSidebarOpen={isSidebarOpen}
-                onClick={() => navigate('/manage-product')}
+                onClick={() => {
+                  navigate('/input-stock');
+                }}
+                selected={location.pathname === '/input-stock'}
               >
                 Kelola Produk
               </SidebarItem>
@@ -148,22 +157,31 @@ export const AppSidebar = ({
               } space-y-2 pl-5`}
             >
               <SidebarItem
-                onClick={() => navigate('/inputsupplier')}
+                onClick={() => {
+                  navigate('/inputsupplier');
+                }}
                 isSidebarOpen={isSidebarOpen}
+                selected={location.pathname === '/inputsupplier'}
               >
                 Input Supplier
               </SidebarItem>
 
               <SidebarItem
                 isSidebarOpen={isSidebarOpen}
-                onClick={() => navigate('/manage-stock')}
+                onClick={() => {
+                  navigate('/manage-stock');
+                }}
+                selected={location.pathname === '/manage-stock'}
               >
                 Penyesuaian Stock
               </SidebarItem>
             </ul>
           </li>
           <SidebarItem
-            onClick={() => navigate('/inputsupplier')}
+            onClick={() => {
+              navigate('/inputsupplier');
+            }}
+            selected={location.pathname === '/inputsupplier'}
             icon={<MdFactory />}
             isSidebarOpen={isSidebarOpen}
           >
@@ -195,13 +213,19 @@ export const AppSidebar = ({
             >
               <SidebarItem
                 isSidebarOpen={isSidebarOpen}
-                onClick={() => navigate('/adminlistpage')}
+                onClick={() => {
+                  navigate('/adminlistpage');
+                }}
+                selected={location.pathname === '/adminlistpage'}
               >
                 Admin List
               </SidebarItem>
               <SidebarItem
                 isSidebarOpen={isSidebarOpen}
-                onClick={() => navigate('/changepassword')}
+                onClick={() => {
+                  navigate('/changepassword');
+                }}
+                selected={location.pathname === '/changepassword'}
               >
                 Change Password
               </SidebarItem>

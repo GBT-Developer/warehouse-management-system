@@ -69,5 +69,3 @@ node_modules/
 .firebaserc
 
 exports/
-
-.DS_Store

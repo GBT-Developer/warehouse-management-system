@@ -1,13 +1,12 @@
-import React, { useContext, useEffect, useMemo } from 'react';
+import React, { useContext, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-  User,
   onAuthStateChanged,
   signInWithEmailAndPassword,
   signOut,
 } from 'firebase/auth';
 import { auth } from 'firebase';
-import { useLocalStorage } from '../hooks/useLocalStorage';
+import { CustomUser } from 'renderer/interfaces/CustomUser';
 
 export type LoginData = {
   password: string;
@@ -16,10 +15,10 @@ export type LoginData = {
 
 export type AuthContext = {
   accessToken: string | null;
-  user: User | null;
+  user: CustomUser | null;
   isLoggedIn: boolean;
   actions: {
-    login: (loginData: LoginData) => Promise<User | void>;
+    login: (loginData: LoginData) => Promise<CustomUser | void>;
     logout: () => void;
   };
 };
@@ -42,24 +41,29 @@ export type AuthProviderProps = { children: React.ReactNode };
 export const AuthProvider = ({ children }: AuthProviderProps) => {
   const navigate = useNavigate();
 
-  const [accessToken, setAccessToken] = useLocalStorage<string | null>(
-    'accessToken',
-    null
-  );
+  const [accessToken, setAccessToken] = useState<string | null>(null); // Store token in memory
+  const [user, setUser] = useState<CustomUser | null>(null);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      if (user) {
-        user
+    const unsubscribe = onAuthStateChanged(auth, (newUser) => {
+      if (newUser) {
+        newUser
           .getIdToken()
           .then((newToken) => {
             setAccessToken(newToken);
+            const { owner } = JSON.parse(
+              atob(newToken.split('.')[1])
+            ) as CustomUser;
+            const theUser = newUser as CustomUser;
+            theUser.owner = owner;
+            setUser(theUser);
           })
-          .catch((error) => {
+          .catch(() => {
             // TODO: Handle error
           });
       } else {
         setAccessToken(null); // To be changed to a toast
+        setUser(null);
         navigate('/');
       }
     });
@@ -67,16 +71,8 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     return unsubscribe;
   }, []);
 
-  const user = React.useMemo(
-    () =>
-      accessToken
-        ? (JSON.parse(atob(accessToken.split('.')[1])) as User)
-        : null,
-    [accessToken]
-  );
-
   const onLogout = React.useCallback(() => {
-    signOut(auth).catch((error) => {
+    signOut(auth).catch(() => {
       // TODO: Handle error
     });
   }, []);
@@ -92,8 +88,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         loginData.email,
         loginData.password
       );
-      const firebaseUser = userCredential.user;
-      return firebaseUser;
+      return userCredential.user as CustomUser;
     } catch (error) {
       // TODO: Handle error
     }
@@ -103,7 +98,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     () => ({
       accessToken,
       user,
-      isLoggedIn: !!user,
+      isLoggedIn: !!accessToken,
       actions: {
         login: onLogin,
         logout: onLogout,

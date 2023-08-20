@@ -122,7 +122,7 @@ export const ManageProductPage = () => {
             loading={loading}
             labelFor="available_color"
             label="Warna tersedia"
-            value={newProduct.available_color}
+            value={newProduct.available_color.toLowerCase()}
             onChange={(e) =>
               setNewProduct({
                 ...newProduct,

@@ -37,27 +37,22 @@ export const ManageStockPage = () => {
 
   return (
     <PageLayout>
-      <h1 className="mb-4 text-4xl font-extrabold tracking-tight text-gray-900 md:text-5xl dark:text-white">
-        Penyesuaian Stock
-      </h1>
       <section className="bg-gray-50 w-full h-full px-3 bg-transparent overflow-hidden">
-        <div className="bg-white dark:bg-gray-800 relative shadow-md sm:rounded-lg overflow-auto h-full flex flex-col justify-between">
+        <div className="relative shadow-md sm:rounded-lg overflow-auto h-full flex flex-col justify-between">
           <div className="flex flex-col md:flex-row items-center justify-between space-y-3 md:space-y-0 md:space-x-4 p-4">
-            <div className="w-full flex justify-center">
-              <form className="flex items-center md:w-1/2">
-                <div className="relative w-full">
-                  <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                    <BsSearch />
-                  </div>
-                  <input
-                    type="text"
-                    id="simple-search"
-                    className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full pl-10 p-2 dark:bg-gray-800 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
-                    placeholder="Cari nama produk"
-                    required
-                  />
+            <div className="w-full md:w-1/2 flex items-center">
+              <div className="relative w-full">
+                <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                  <BsSearch />
                 </div>
-              </form>
+                <input
+                  type="text"
+                  id="simple-search"
+                  className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:outline-none focus:border-primary-500 block w-full pl-10 p-2 dark:bg-gray-800 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white"
+                  placeholder="Cari nama produk"
+                  required
+                />
+              </div>
             </div>
           </div>
           <div className="overflow-y-auto h-full">
