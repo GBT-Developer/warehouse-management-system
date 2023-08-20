@@ -1,7 +1,7 @@
 import React, { ReactNode } from 'react';
 import { GoPackageDependents } from 'react-icons/go';
-import { AiOutlineHome } from 'react-icons/ai';
-import { MdInventory2 } from 'react-icons/md';
+import { MdInventory2, MdFactory } from 'react-icons/md';
+import { AiOutlineHome, AiOutlineUser } from 'react-icons/ai';
 import { useNavigate } from 'react-router-dom';
 import { BsChevronDown, BsChevronUp } from 'react-icons/bs';
 
@@ -69,6 +69,7 @@ export const AppSidebar = ({
   const navigate = useNavigate();
   const [isDropdownOpen, setIsDropdownOpen] = React.useState(false);
   const [isInventDropdownOpen, setIsInventDropdownOpen] = React.useState(false);
+  const [isUserDropdownOpen, setIsUserDropdownOpen] = React.useState(false);
 
   return (
     <aside
@@ -158,6 +159,51 @@ export const AppSidebar = ({
                 onClick={() => navigate('/manage-stock')}
               >
                 Penyesuaian Stock
+              </SidebarItem>
+            </ul>
+          </li>
+          <SidebarItem
+            onClick={() => navigate('/inputsupplier')}
+            icon={<MdFactory />}
+            isSidebarOpen={isSidebarOpen}
+          >
+            Input Supplier
+          </SidebarItem>
+          <li
+            className={`duration-500 transition-transform ${
+              isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
+            }`}
+          >
+            <button
+              type="button"
+              className="flex gap-2 mb-2 items-center w-full p-2 text-base text-gray-900 transition duration-75 rounded-lg group hover:bg-gray-100 dark:text-white dark:hover:bg-gray-700"
+              onClick={() => setIsUserDropdownOpen(!isUserDropdownOpen)}
+            >
+              <p>
+                <AiOutlineUser />
+              </p>
+              <span className="text-left whitespace-nowrap">
+                Account Setting
+              </span>
+              <div className="flex justify-end w-full">
+                {isUserDropdownOpen ? <BsChevronUp /> : <BsChevronDown />}
+              </div>
+            </button>
+
+            <ul
+              className={`${isUserDropdownOpen ? '' : 'hidden'} space-y-2 pl-5`}
+            >
+              <SidebarItem
+                isSidebarOpen={isSidebarOpen}
+                onClick={() => navigate('/adminlistpage')}
+              >
+                Admin List
+              </SidebarItem>
+              <SidebarItem
+                isSidebarOpen={isSidebarOpen}
+                onClick={() => navigate('/changepassword')}
+              >
+                Change Password
               </SidebarItem>
             </ul>
           </li>

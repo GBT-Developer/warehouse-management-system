@@ -9,6 +9,9 @@ import {
 import { AuthPage } from './pages/LoginPage';
 import { useAuth } from './providers/AuthProvider';
 import ProfilePage from './pages/ProfilePage';
+import { CreateAdminPage } from './pages/CreateAdminPage';
+import List from './pages/AdminListPage';
+import { ChangePasswordPage } from './pages/ChangePasswordPage';
 import InputSupplier from './pages/InputSupplier';
 import { ManageProductPage } from './pages/ManageProductPage';
 import { ManageStockPage } from './pages/ManageStockPage';
@@ -45,6 +48,18 @@ export const routes: RouteConfig[] = [
     path: '/inputsupplier',
     element: <InputSupplier />,
   },
+  {
+    path: '/createadminpage',
+    element: <CreateAdminPage />,
+  },
+  {
+    path: '/adminlistpage',
+    element: <List />,
+  },
+  {
+    path: '/changepassword',
+    element: <ChangePasswordPage />,
+  }
 ];
 
 export type AuthRequiredProps = {
