@@ -1,9 +1,9 @@
 import React, { ReactNode } from 'react';
-import { GoPackageDependents } from 'react-icons/go';
-import { MdInventory2, MdFactory } from 'react-icons/md';
 import { AiOutlineHome, AiOutlineUser } from 'react-icons/ai';
-import { useLocation, useNavigate } from 'react-router-dom';
 import { BsChevronDown, BsChevronUp } from 'react-icons/bs';
+import { GoPackageDependents } from 'react-icons/go';
+import { MdInventory2 } from 'react-icons/md';
+import { useLocation, useNavigate } from 'react-router-dom';
 
 interface SidebarItemProps {
   children: ReactNode;
