@@ -14,7 +14,7 @@ export const ManageStockPage = () => {
   const [total, setTotal] = useState<string[]>([]);
   const inputRef = useRef<HTMLInputElement>(null);
   const [loading, setLoading] = useState(true);
-  const [editingIndex, setEditingIndex] = useState(null);
+  const [editingIndex, setEditingIndex] = useState<number>(-1);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [search, setSearch] = useState('');
   const { user } = useAuth();
@@ -52,18 +52,18 @@ export const ManageStockPage = () => {
     setTotal(updatedTotalValues);
   };
 
-  const handleEditClick = (index) => {
+  const handleEditClick = (index: number) => {
     setEditingIndex(index); // Set the editing index to enable editing for this row
   };
 
   const handleBlur = () => {
-    setEditingIndex(null); // Reset the editing index when blurred
+    setEditingIndex(-1); // Reset the editing index when blurred
   };
 
   function handleSubmit(e: { preventDefault: () => void }) {
     e.preventDefault();
     //declare the index
-    var index = 0;
+    let index = 0;
     // Check for invalid values in the total array
     total.forEach((value) => {
       if (Number.isNaN(Number(value))) {
@@ -89,7 +89,7 @@ export const ManageStockPage = () => {
         console.error(`Error updating document ${updatedProduct}:`, error);
       });
 
-    setEditingIndex(null);
+    setEditingIndex(-1);
     inputRef.current?.blur();
   }
 
