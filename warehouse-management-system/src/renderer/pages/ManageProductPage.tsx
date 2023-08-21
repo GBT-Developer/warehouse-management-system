@@ -1,10 +1,11 @@
-import { addDoc, collection } from 'firebase/firestore';
 import { db } from 'firebase';
-import { useRef, useState } from 'react';
-import { Product } from 'renderer/interfaces/Product';
-import { StockInputField } from 'renderer/components/StockInputField';
-import { useNavigate } from 'react-router-dom';
+import { addDoc, collection, getDocs, query } from 'firebase/firestore';
+import { useEffect, useRef, useState } from 'react';
 import { AiOutlineLoading3Quarters } from 'react-icons/ai';
+import { useNavigate } from 'react-router-dom';
+import { StockInputField } from 'renderer/components/StockInputField';
+import { Product } from 'renderer/interfaces/Product';
+import { Supplier } from 'renderer/interfaces/Supplier';
 import { PageLayout } from 'renderer/layout/PageLayout';
 
 const newProductInitialState = {
@@ -13,8 +14,10 @@ const newProductInitialState = {
   part: '',
   available_color: '',
   price: '',
+  initial_cost: '',
   warehouse_position: '',
   count: '',
+  supplier: '',
 };
 
 export const ManageProductPage = () => {
@@ -23,10 +26,34 @@ export const ManageProductPage = () => {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const selectRef = useRef<HTMLSelectElement>(null);
   const [loading, setLoading] = useState(false);
+  const [suppliers, setSupplier] = useState<Supplier[]>([]);
+
+  // take product from firebase
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const q = query(collection(db, 'supplier'));
+        const querySnapshot = await getDocs(q);
+
+        const supplierData: Supplier[] = [];
+        querySnapshot.forEach((theSupplier) => {
+          const data = theSupplier.data() as Supplier;
+          data.id = theSupplier.id;
+          supplierData.push(data);
+        });
+
+        setSupplier(supplierData);
+        console.log(supplierData);
+      } catch (error) {
+        console.error('Error fetching data:', error);
+      }
+    };
+
+    fetchData();
+  }, []);
 
   async function handleSubmit(e: { preventDefault: () => void }) {
     e.preventDefault();
-
     // If one or more fields are empty, return early
     if (
       Object.values(newProduct).some(
@@ -148,6 +175,15 @@ export const ManageProductPage = () => {
               setNewProduct({ ...newProduct, price: e.target.value })
             }
           />
+          <StockInputField
+            loading={loading}
+            labelFor="price"
+            label="Harga modal (Rp)"
+            value={newProduct.initial_cost}
+            onChange={(e) =>
+              setNewProduct({ ...newProduct, initial_cost: e.target.value })
+            }
+          />
         </div>
         <label
           htmlFor="countries"
@@ -172,6 +208,34 @@ export const ManageProductPage = () => {
             </option>
             <option value="gudang_jadi">Gudang Jadi</option>
             <option value="gudang_bahan">Gudang Bahan</option>
+          </select>
+        </label>
+        <label
+          htmlFor="countries"
+          className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+        >
+          Supplier barang
+          <select
+            ref={selectRef}
+            disabled={loading}
+            id="countries"
+            name="countries"
+            onChange={(e) => {
+              setNewProduct({
+                ...newProduct,
+                supplier: e.target.value,
+              });
+            }}
+            className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+          >
+            <option value="" selected>
+              Pilih Supplier
+            </option>
+            {suppliers.map((supplier) => (
+              <option value={supplier.company_name}>
+                {supplier.company_name}
+              </option>
+            ))}
           </select>
         </label>
 
