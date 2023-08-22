@@ -104,7 +104,9 @@ export const ManageStockPage = () => {
                 <th className="px-4 py-3">No</th>
                 <th className="px-4 py-3">Merk</th>
                 <th className="px-4 py-3">Part</th>
+                <td className="px-4 py-3">Supplier</td>
                 <td className="px-4 py-3">Jumlah</td>
+                <td className="px-4 py-3">History</td>
               </TableHeader>
               <tbody className="overflow-y-auto">
                 {products.map((product: Product, index) => (
@@ -112,6 +114,7 @@ export const ManageStockPage = () => {
                     <SingleTableItem>{index + 1}</SingleTableItem>
                     <SingleTableItem>{`${product.brand}`}</SingleTableItem>
                     <SingleTableItem>{`${product.part}`}</SingleTableItem>
+                    <SingleTableItem>{`${product.supplier}`}</SingleTableItem>
                     <SingleTableItem>
                       <form
                         className="flex justify-start gap-[1rem]"
@@ -139,6 +142,17 @@ export const ManageStockPage = () => {
                           <AiFillEdit />
                         </button>
                       </form>
+                    </SingleTableItem>
+                    <SingleTableItem>
+                      <button
+                        type="button"
+                        className="text-gray-500 dark:text-gray-400 p-2 hover:text-gray-700 dark:hover:text-white cursor-pointer bg-gray-100 dark:bg-gray-700 rounded-md"
+                        onClick={() => {
+                          if (product.id) setUpdatedProduct(product.id);
+                        }}
+                      >
+                        Riwayat Produk
+                      </button>
                     </SingleTableItem>
                   </tr>
                 ))}
