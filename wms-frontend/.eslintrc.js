@@ -1,25 +1,49 @@
 module.exports = {
-  extends: 'erb',
-  plugins: ['@typescript-eslint'],
-  rules: {
-    // A temporary hack related to IDE not resolving correct package.json
-    'import/no-extraneous-dependencies': 'off',
-    'react/react-in-jsx-scope': 'off',
-    'react/jsx-filename-extension': 'off',
-    'import/extensions': 'off',
-    'import/no-unresolved': 'off',
-    'import/no-import-module-exports': 'off',
-    'no-shadow': 'off',
-    '@typescript-eslint/no-shadow': 'error',
-    'no-unused-vars': 'off',
-    '@typescript-eslint/no-unused-vars': 'error',
+  env: {
+    browser: true,
+    es2021: true,
+    node: true,
   },
+  extends: [
+    'eslint:recommended',
+    'plugin:@typescript-eslint/recommended',
+    'plugin:@typescript-eslint/recommended-requiring-type-checking',
+    'plugin:@typescript-eslint/strict',
+    'prettier',
+  ],
+  overrides: [],
+  parser: '@typescript-eslint/parser',
   parserOptions: {
-    ecmaVersion: 2020,
+    ecmaVersion: 'latest',
     sourceType: 'module',
-    project: './tsconfig.json',
+    project: ['./tsconfig.json'],
     tsconfigRootDir: __dirname,
-    createDefaultProgram: true,
+  },
+  plugins: ['@typescript-eslint', 'prettier'],
+  ignorePatterns: [
+    'node_modules',
+    'dist',
+    '.eslintrc.cjs',
+    'vite-env.d.ts',
+    'vite.config.ts',
+  ],
+  rules: {
+    quotes: ['error', 'single'],
+    semi: ['error', 'always'],
+    'spaced-comment': [
+      'error',
+      'always',
+      { exceptions: ['-', '+'], markers: ['!', 'TODO', '?', '//'] },
+    ],
+    'capitalized-comments': [
+      'error',
+      'always',
+      {
+        ignorePattern: 'pragma|ignored',
+        ignoreInlineComments: true,
+      },
+    ],
+    curly: ['error', 'multi'],
   },
   settings: {
     'import/resolver': {
