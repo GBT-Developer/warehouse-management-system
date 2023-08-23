@@ -2,13 +2,13 @@ import { db } from 'firebase';
 import { collection, doc, getDocs, query, updateDoc } from 'firebase/firestore';
 import { useEffect, useRef, useState } from 'react';
 import { AiFillEdit } from 'react-icons/ai';
+import { useNavigate } from 'react-router-dom';
 import { SingleTableItem } from 'renderer/components/TableComponents/SingleTableItem';
 import { TableHeader } from 'renderer/components/TableComponents/TableHeader';
 import { TableTitle } from 'renderer/components/TableComponents/TableTitle';
 import { Product } from 'renderer/interfaces/Product';
 import { PageLayout } from 'renderer/layout/PageLayout';
 import { useAuth } from 'renderer/providers/AuthProvider';
-
 export const ManageStockPage = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [total, setTotal] = useState<string[]>([]);
@@ -19,6 +19,7 @@ export const ManageStockPage = () => {
   const [search, setSearch] = useState('');
   const { user } = useAuth();
   const [updatedProduct, setUpdatedProduct] = useState('');
+  const navigate = useNavigate();
 
   // take product from firebase
   useEffect(() => {
@@ -92,7 +93,6 @@ export const ManageStockPage = () => {
     setEditingIndex(-1);
     inputRef.current?.blur();
   }
-
   return (
     <PageLayout>
       <div className="w-full h-full bg-transparent overflow-hidden">
@@ -105,6 +105,8 @@ export const ManageStockPage = () => {
                 <th className="px-4 py-3">Merk</th>
                 <th className="px-4 py-3">Part</th>
                 <td className="px-4 py-3">Supplier</td>
+                <td className="px-4 py-3">Warna</td>
+                <td className="px-4 py-3">Posisi</td>
                 <td className="px-4 py-3">Jumlah</td>
                 <td className="px-4 py-3">History</td>
               </TableHeader>
@@ -115,6 +117,8 @@ export const ManageStockPage = () => {
                     <SingleTableItem>{`${product.brand}`}</SingleTableItem>
                     <SingleTableItem>{`${product.part}`}</SingleTableItem>
                     <SingleTableItem>{`${product.supplier}`}</SingleTableItem>
+                    <SingleTableItem>{`${product.available_color}`}</SingleTableItem>
+                    <SingleTableItem>{`${product.warehouse_position}`}</SingleTableItem>
                     <SingleTableItem>
                       <form
                         className="flex justify-start gap-[1rem]"
@@ -148,7 +152,7 @@ export const ManageStockPage = () => {
                         type="button"
                         className="text-gray-500 dark:text-gray-400 p-2 hover:text-gray-700 dark:hover:text-white cursor-pointer bg-gray-100 dark:bg-gray-700 rounded-md"
                         onClick={() => {
-                          if (product.id) setUpdatedProduct(product.id);
+                          navigate('/stockhistory');
                         }}
                       >
                         Riwayat Produk

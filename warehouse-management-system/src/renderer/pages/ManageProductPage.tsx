@@ -71,6 +71,7 @@ export const ManageProductPage = () => {
     if (
       Number.isNaN(Number(newProduct.price)) ||
       Number.isNaN(Number(newProduct.count)) ||
+      Number.isNaN(Number(newProduct.initial_cost)) ||
       Number(newProduct.price) <= 0 ||
       Number(newProduct.count) <= 0
     ) {
@@ -169,7 +170,7 @@ export const ManageProductPage = () => {
           <StockInputField
             loading={loading}
             labelFor="price"
-            label="Harga barang (Rp)"
+            label="Harga Jual (Rp)"
             value={newProduct.price}
             onChange={(e) =>
               setNewProduct({ ...newProduct, price: e.target.value })

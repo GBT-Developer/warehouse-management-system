@@ -13,9 +13,6 @@ const newSupplierInitialState = {
   city: '',
   phone_number: '',
   bank_number: '',
-  products: '',
-  factory_name: '',
-  payment_status: '',
 } as Supplier;
 
 function InputSupplier() {
@@ -33,7 +30,7 @@ function InputSupplier() {
       Object.values(newSupplier).some(
         (value) => value === '' || value === undefined
       ) ||
-      newSupplier.payment_status === ''
+      newSupplier === newSupplierInitialState
     ) {
       setErrorMessage('Mohon isi semua kolom');
       setTimeout(() => {
@@ -129,33 +126,6 @@ function InputSupplier() {
             value={newSupplier.bank_number}
             onChange={(e) =>
               setNewSupplier({ ...newSupplier, bank_number: e.target.value })
-            }
-          />
-          <StockInputField
-            loading={loading}
-            label="Products"
-            labelFor="products"
-            value={newSupplier.products}
-            onChange={(e) =>
-              setNewSupplier({ ...newSupplier, products: e.target.value })
-            }
-          />
-          <StockInputField
-            loading={loading}
-            label="Factory Name"
-            labelFor="factory_name"
-            value={newSupplier.factory_name}
-            onChange={(e) =>
-              setNewSupplier({ ...newSupplier, factory_name: e.target.value })
-            }
-          />
-          <StockInputField
-            loading={loading}
-            label="Payment Status"
-            labelFor="payment_status"
-            value={newSupplier.payment_status}
-            onChange={(e) =>
-              setNewSupplier({ ...newSupplier, payment_status: e.target.value })
             }
           />
         </div>

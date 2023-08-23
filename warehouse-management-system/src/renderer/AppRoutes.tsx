@@ -16,6 +16,7 @@ import { AuthPage } from './pages/LoginPage';
 import { ManageProductPage } from './pages/ManageProductPage';
 import { ManageStockPage } from './pages/ManageStockPage';
 import ProfilePage from './pages/ProfilePage';
+import StockHistory from './pages/StockHistory';
 import { useAuth } from './providers/AuthProvider';
 
 type RouteConfig = RouteProps & {
@@ -61,6 +62,10 @@ export const routes: RouteConfig[] = [
   {
     path: '/changepassword',
     element: <ChangePasswordPage />,
+  },
+  {
+    path: '/stockhistory',
+    element: <StockHistory />,
   },
 ];
 
