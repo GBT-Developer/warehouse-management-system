@@ -1,16 +1,16 @@
-import { MemoryRouter as Router } from 'react-router-dom';
+import { MemoryRouter } from 'react-router-dom';
 import { AppRoutes } from './AppRoutes';
-import { AuthProvider } from './providers/AuthProvider';
 import { AppLayout } from './layout/AppLayout';
+import { AuthProvider } from './providers/AuthProvider';
 
 export default function App() {
   return (
-    <Router>
+    <MemoryRouter>
       <AuthProvider>
         <AppLayout>
           <AppRoutes />
         </AppLayout>
       </AuthProvider>
-    </Router>
+    </MemoryRouter>
   );
 }

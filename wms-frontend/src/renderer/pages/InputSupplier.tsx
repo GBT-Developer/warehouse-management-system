@@ -13,9 +13,6 @@ const newSupplierInitialState = {
   city: '',
   phone_number: '',
   bank_number: '',
-  products: '',
-  factory_name: '',
-  payment_status: '',
 } as Supplier;
 
 function InputSupplier() {
@@ -42,7 +39,7 @@ function InputSupplier() {
       return;
     }
 
-    // check data type
+    // Check data type
     if (
       Number.isNaN(Number(newSupplier.bank_number)) ||
       Number.isNaN(Number(newSupplier.phone_number))
@@ -54,14 +51,14 @@ function InputSupplier() {
       return;
     }
 
-    // make a code to input my data to firebase
+    // Make a code to input my data to firebase
     const productCollection = collection(db, '/supplier');
     setLoading(true);
     addDoc(productCollection, newSupplier)
       .then(() => {
         setNewSupplier(newSupplierInitialState);
         setLoading(false);
-        // set the select value back to default
+        // Set the select value back to default
       })
       .catch((error) => {
         setLoading(false);
@@ -129,33 +126,6 @@ function InputSupplier() {
             value={newSupplier.bank_number}
             onChange={(e) =>
               setNewSupplier({ ...newSupplier, bank_number: e.target.value })
-            }
-          />
-          <StockInputField
-            loading={loading}
-            label="Products"
-            labelFor="products"
-            value={newSupplier.products}
-            onChange={(e) =>
-              setNewSupplier({ ...newSupplier, products: e.target.value })
-            }
-          />
-          <StockInputField
-            loading={loading}
-            label="Factory Name"
-            labelFor="factory_name"
-            value={newSupplier.factory_name}
-            onChange={(e) =>
-              setNewSupplier({ ...newSupplier, factory_name: e.target.value })
-            }
-          />
-          <StockInputField
-            loading={loading}
-            label="Payment Status"
-            labelFor="payment_status"
-            value={newSupplier.payment_status}
-            onChange={(e) =>
-              setNewSupplier({ ...newSupplier, payment_status: e.target.value })
             }
           />
         </div>

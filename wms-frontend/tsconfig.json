@@ -18,6 +18,10 @@
     "allowJs": true,
     "outDir": ".erb/dll"
   },
+  "include": [
+    "src",
+    ".eslintrc.js",
+  ],
   "exclude": [
     "test",
     "release/build",
