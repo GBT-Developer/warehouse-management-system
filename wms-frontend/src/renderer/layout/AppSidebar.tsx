@@ -1,6 +1,7 @@
 import React, { ReactNode } from 'react';
 import { AiOutlineDatabase, AiOutlineHome } from 'react-icons/ai';
 import { BsChevronDown, BsChevronUp } from 'react-icons/bs';
+import { CiLogout } from 'react-icons/ci';
 import { LiaFileInvoiceDollarSolid } from 'react-icons/lia';
 import { LuFolderEdit, LuHistory, LuPackageOpen } from 'react-icons/lu';
 import { MdInventory2 } from 'react-icons/md';
@@ -52,6 +53,7 @@ export const AppSidebar = ({
   isSidebarOpen,
   setIsSidebarOpen,
 }: SidebarProps) => {
+  const { logout } = useAuth().actions;
   const navigate = useNavigate();
   const location = useLocation();
   const [isDropdownOpen, setIsDropdownOpen] = React.useState(false);
@@ -62,7 +64,7 @@ export const AppSidebar = ({
     <aside
       id="sidebar-multi-level-sidebar"
       className={
-        'fixed left-0 z-40 w-64 h-screen bg-gray-50 dark:bg-gray-900 duration-300 transition-transform border-r border-gray-200 dark:border-gray-700'
+        'flex flex-col left-0 z-40 w-64 h-screen bg-gray-50 dark:bg-gray-900 duration-300 transition-transform border-r border-gray-200 dark:border-gray-700'
       }
     >
       <div className="py-6">
@@ -216,10 +218,8 @@ export const AppSidebar = ({
             Change Password
           </SidebarItem>
           <SidebarItem
-            icon={<PiPasswordLight />}
-            onClick={() => {
-              navigate('/changepassword');
-            }}
+            icon={<CiLogout />}
+            onClick={logout}
             selected={location.pathname === '/'}
           >
             Logout
