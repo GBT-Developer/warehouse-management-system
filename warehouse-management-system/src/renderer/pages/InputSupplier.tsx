@@ -13,6 +13,7 @@ const newSupplierInitialState = {
   city: '',
   phone_number: '',
   bank_number: '',
+  bank_owner: '',
 } as Supplier;
 
 function InputSupplier() {
@@ -126,6 +127,15 @@ function InputSupplier() {
             value={newSupplier.bank_number}
             onChange={(e) =>
               setNewSupplier({ ...newSupplier, bank_number: e.target.value })
+            }
+          />
+          <StockInputField
+            loading={loading}
+            label="Bank Owner"
+            labelFor="bank_owner"
+            value={newSupplier.bank_owner}
+            onChange={(e) =>
+              setNewSupplier({ ...newSupplier, bank_owner: e.target.value })
             }
           />
         </div>
