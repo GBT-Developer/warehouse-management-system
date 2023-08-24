@@ -13,10 +13,9 @@ export const BaseLayout = ({ headerRightMenu, children }: BaseLayoutProps) => {
   const { isLoggedIn } = useAuth();
 
   return (
-    <div className="flex flex-col w-screen h-screen bg-gray-100 dark:bg-gray-900 text-black dark:text-white overflow-y-auto">
-      <AppHeader headerRightMenu={headerRightMenu} />
+    <div className="flex flex-col w-screen h-screen bg-gray-100 dark:bg-gray-900 text-black dark:text-white overflow-y-auto"> 
       {isLoggedIn && (
-        <div className="z-40 fixed top-12 h-full px-2 py-4 bg-gray-50 dark:bg-gray-900 border-r border-gray-200 dark:border-gray-700">
+        <div className="z-40 fixed h-full px-2 bg-gray-50 dark:bg-gray-900 border-r border-gray-200 dark:border-gray-700">
           <AppSidebar
             isSidebarOpen={isSidebarOpen}
             setIsSidebarOpen={setIsSidebarOpen}

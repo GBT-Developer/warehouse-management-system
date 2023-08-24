@@ -1,17 +1,21 @@
 import React, { ReactNode } from 'react';
-import { GoPackageDependents } from 'react-icons/go';
-import { MdInventory2, MdTrolley } from 'react-icons/md';
-import { AiOutlineHome, AiOutlineUser } from 'react-icons/ai';
+import { MdInventory2 } from 'react-icons/md';
+import { AiOutlineHome, AiOutlineDatabase } from 'react-icons/ai';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { BsChevronDown, BsChevronUp } from 'react-icons/bs';
-import { LuFolderEdit, LuPackageOpen } from 'react-icons/lu';
+import { LuFolderEdit, LuPackageOpen, LuHistory } from 'react-icons/lu';
 import { PiUserListLight, PiPasswordLight } from 'react-icons/pi';
+import { Link } from 'react-router-dom';
+import { useAuth } from 'renderer/providers/AuthProvider';
+import { SiAzureartifacts } from 'react-icons/si';
+import { TbPackageExport, TbTruckReturn } from 'react-icons/tb';
+import { LiaFileInvoiceDollarSolid } from 'react-icons/lia';
+import { CiLogout } from 'react-icons/ci';
 
 interface SidebarItemProps {
   children: ReactNode;
   onClick?: () => void;
   icon?: ReactNode;
-  isSidebarOpen: boolean;
   selected: boolean;
 }
 
@@ -19,16 +23,14 @@ const SidebarItem = ({
   children,
   onClick,
   icon,
-  isSidebarOpen,
   selected,
 }: SidebarItemProps) => {
   return (
     <li>
       <button
         type="button"
-        className={`flex gap-2 w-full items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 group duration-500 transition-transform ${
-          isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
-        } ${selected ? 'bg-gray-100 dark:bg-gray-700' : ''}`}
+        className={`flex gap-2 w-full items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 group duration-500 transition-transform
+        ${selected ? 'bg-gray-100 dark:bg-gray-700' : ''}`}
         onClick={onClick}
       >
         {icon}
@@ -38,28 +40,12 @@ const SidebarItem = ({
   );
 };
 
-export const SidebarButton = ({ onClick }: { onClick?: () => void }) => {
+const Profile = () => {
+  const { user } = useAuth();
   return (
-    <button
-      type="button"
-      className="inline-flex items-center p-2 text-sm text-gray-500 rounded-lg hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700"
-      onClick={onClick}
-    >
-      <svg
-        className="w-6 h-6"
-        fill="currentColor"
-        viewBox="0 0 20 20"
-        xmlns="http://www.w3.org/2000/svg"
-      >
-        <path
-          clipRule="evenodd"
-          fillRule="evenodd"
-          d="M2 4.75A.75.75 0 012.75 4h14.5a.75.75 0 010 1.5H2.75A.75.75 0 012 4.75zm0 10.5a.75.75 0 01.75-.75h7.5a.75.75 0 010 1.5h-7.5a.75.75 0 01-.75-.75zM2 10a.75.75 0 01.75-.75h14.5a.75.75 0 010 1.5H2.75A.75.75 0 012 10z"
-        />
-      </svg>
-    </button>
+      <p className="text-sm text-gray-400">{user?.email}</p>
   );
-};
+}
 
 interface SidebarProps {
   isSidebarOpen: boolean;
@@ -79,67 +65,55 @@ export const AppSidebar = ({
   return (
     <aside
       id="sidebar-multi-level-sidebar"
-      className={` fixed top-12 left-0 z-40 w-64 h-screen bg-gray-50 dark:bg-gray-900 duration-300 transition-transform ${
-        isSidebarOpen ? 'translate-x-0' : '-translate-x-48'
-      } border-r border-gray-200 dark:border-gray-700`}
+      className={`fixed left-0 z-40 w-64 h-screen bg-gray-50 dark:bg-gray-900 duration-300 transition-transform border-r border-gray-200 dark:border-gray-700`}
     >
-      <div className="h-full px-3 py-4 overflow-y-auto bg-gray-50 dark:bg-gray-900">
-        <div className="flex justify-end">
-          <SidebarButton onClick={() => setIsSidebarOpen(!isSidebarOpen)} />
+      <div className='py-6'>
+        <div className='flex px-3 bg-transparent dark:bg-transparent justify-between items-center text-black dark:text-white'>
+          <Link to="/">
+            <p className="text-4xl font-bold">WMS</p>
+          </Link>
         </div>
+        <div className="py-1 px-3 bg-transparent">
+          <Profile />
+        </div>
+      </div>
+      <div className="h-full px-3  overflow-y-auto bg-gray-50 dark:bg-gray-900">
         <div
-          className={`w-full my-2 border-b border-gray-200 dark:border-gray-700 duration-500 transition-transform ${
-            isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
-          }`}
+          className={`w-full my-2 border-b border-gray-200 dark:border-gray-700`}
         />
-        <ul className="space-y-2 font-medium">
+        <p className='text-sm font-bold text-gray-400 '>Main Functions</p>
+        <ul className="my-3 space-y-2 font-medium">
           <SidebarItem
             onClick={() => {
               navigate('/profile');
             }}
             icon={<AiOutlineHome />}
-            isSidebarOpen={isSidebarOpen}
             selected={location.pathname === '/profile'}
           >
-            Beranda
+            Home
           </SidebarItem>
-          <li
-            className={`duration-500 transition-transform ${
-              isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
-            }`}
-          >
-            <button
-              type="button"
-              className="flex gap-2 mb-2 items-center w-full p-2 text-base text-gray-900 transition duration-75 rounded-lg group hover:bg-gray-100 dark:text-white dark:hover:bg-gray-700"
-              onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-            >
-              <p>
-                <GoPackageDependents />
-              </p>
-              <span className="text-left whitespace-nowrap">Input Stock</span>
-              <div className="flex justify-end w-full">
-                {isDropdownOpen ? <BsChevronUp /> : <BsChevronDown />}
-              </div>
-            </button>
 
-            <ul className={`${isDropdownOpen ? '' : 'hidden'} space-y-2 pl-5`}>
-              <SidebarItem
-                isSidebarOpen={isSidebarOpen}
-                icon={<LuPackageOpen />}
-                onClick={() => {
-                  navigate('/manage-product');
-                }}
-                selected={location.pathname === '/manage-product'}
-              >
-                Kelola Produk
-              </SidebarItem>
-            </ul>
-          </li>
-          <li
-            className={`duration-500 transition-transform ${
-              isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
-            }`}
+          <SidebarItem
+            onClick={() => {
+              navigate('/');
+            }}
+            icon={<SiAzureartifacts />}
+            selected={location.pathname === '/'}
           >
+            Suppliers
+          </SidebarItem>
+
+          <SidebarItem
+            onClick={() => {
+              navigate('/manage-product');
+            }}
+            icon={<LuPackageOpen />}
+            selected={location.pathname === '/manage-product'}
+          >
+            Manage Product
+          </SidebarItem>
+
+          <li>
             <button
               type="button"
               className="flex gap-2 mb-2 items-center w-full p-2 text-base text-gray-900 transition duration-75 rounded-lg group hover:bg-gray-100 dark:text-white dark:hover:bg-gray-700"
@@ -148,86 +122,108 @@ export const AppSidebar = ({
               <p>
                 <MdInventory2 />
               </p>
-              <span className="text-left whitespace-nowrap">Inventaris</span>
+              <span className="text-left whitespace-nowrap">Inventory</span>
               <div className="flex justify-end w-full">
                 {isInventDropdownOpen ? <BsChevronUp /> : <BsChevronDown />}
               </div>
             </button>
-
             <ul
               className={`${
                 isInventDropdownOpen ? '' : 'hidden'
               } space-y-2 pl-5`}
             >
               <SidebarItem
-                icon={<MdTrolley />}
+                icon={<AiOutlineDatabase />}
                 onClick={() => {
                   navigate('/inputsupplier');
                 }}
-                isSidebarOpen={isSidebarOpen}
                 selected={location.pathname === '/inputsupplier'}
               >
-                Input Supplier
+                Supplier Data
               </SidebarItem>
 
               <SidebarItem
-                isSidebarOpen={isSidebarOpen}
                 icon={<LuFolderEdit />}
                 onClick={() => {
                   navigate('/manage-stock');
                 }}
                 selected={location.pathname === '/manage-stock'}
               >
-                Penyesuaian Stock
+                Manage Stock
               </SidebarItem>
-            </ul>
-          </li>
-          <li
-            className={`duration-500 transition-transform ${
-              isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
-            }`}
-          >
-            <button
-              type="button"
-              className="flex gap-2 mb-2 items-center w-full p-2 text-base text-gray-900 transition duration-75 rounded-lg group hover:bg-gray-100 dark:text-white dark:hover:bg-gray-700"
-              onClick={() => setIsUserDropdownOpen(!isUserDropdownOpen)}
-            >
-              <p>
-                <AiOutlineUser />
-              </p>
-              <span className="text-left whitespace-nowrap">
-                Account Setting
-              </span>
-              <div className="flex justify-end w-full">
-                {isUserDropdownOpen ? <BsChevronUp /> : <BsChevronDown />}
-              </div>
-            </button>
 
-            <ul
-              className={`${isUserDropdownOpen ? '' : 'hidden'} space-y-2 pl-5`}
-            >
               <SidebarItem
-                isSidebarOpen={isSidebarOpen}
-                icon={<PiUserListLight />}
+                icon={<TbPackageExport />}
                 onClick={() => {
-                  navigate('/adminlistpage');
+                  navigate('/');
                 }}
-                selected={location.pathname === '/adminlistpage'}
+                selected={location.pathname === '/'}
               >
-                Admin List
-              </SidebarItem>
-              <SidebarItem
-                isSidebarOpen={isSidebarOpen}
-                icon={<PiPasswordLight />}
-                onClick={() => {
-                  navigate('/changepassword');
-                }}
-                selected={location.pathname === '/changepassword'}
-              >
-                Change Password
+                Transfer Item
               </SidebarItem>
             </ul>
           </li>
+          
+          <SidebarItem
+            onClick={() => {
+              navigate('/');
+            }}
+            icon={<LuHistory />}
+            selected={location.pathname === '/'}
+          >
+            Transaction History
+          </SidebarItem>
+
+          <SidebarItem
+            onClick={() => {
+              navigate('/');
+            }}
+            icon={<LiaFileInvoiceDollarSolid />}
+            selected={location.pathname === '/'}
+          >
+            Invoice
+          </SidebarItem>
+
+          <SidebarItem
+            onClick={() => {
+              navigate('/');
+            }}
+            icon={<TbTruckReturn />}
+            selected={location.pathname === '/'}
+          >
+            Retoure
+          </SidebarItem>
+        </ul>
+
+        <p className='text-sm font-bold text-gray-400 '>Administrative</p>
+        <ul className="my-3 space-y-2 font-medium">
+          <SidebarItem
+            icon={<PiUserListLight />}
+            onClick={() => {
+              navigate('/adminlistpage');
+            }}
+            selected={location.pathname === '/adminlistpage'}
+          >
+            Admin List
+          </SidebarItem>
+          <SidebarItem
+            icon={<PiPasswordLight />}
+            onClick={() => {
+              navigate('/changepassword');
+            }}
+            selected={location.pathname === '/changepassword'}
+          >
+            Change Password
+          </SidebarItem>
+          <SidebarItem
+            icon={<PiPasswordLight />}
+            onClick={() => {
+              navigate('/changepassword');
+            }}
+            selected={location.pathname === '/'}
+          >
+            Logout
+          </SidebarItem>
         </ul>
       </div>
     </aside>
