@@ -69,12 +69,12 @@ export default function SupplierList() {
     <PageLayout>
       <div className="w-full h-full bg-transparent overflow-hidden">
         <div className="relative shadow-md sm:rounded-lg overflow-auto h-full flex flex-col justify-between">
-          <h1 className="mb-4 text-4xl font-extrabold tracking-tight text-gray-900 md:text-5xl dark:text-white">
+          <h1 className="mb-4 text-4xl font-extrabold tracking-tight text-gray-900 md:text-5xl">
             List Supplier
           </h1>
           <TableTitle setSearch={setSearch}></TableTitle>
           <div className="overflow-y-auto h-full">
-            <table className="w-full text-sm text-left text-gray-500 dark:text-gray-400">
+            <table className="w-full text-sm text-left text-gray-500">
               <TableHeader>
                 <th className="px-4 py-3">Factory Name</th>
                 <th className="px-4 py-3">Telephone</th>
@@ -84,7 +84,7 @@ export default function SupplierList() {
               </TableHeader>
               <tbody className="overflow-y-auto"></tbody>
               {supplierList.map((supplier: Supplier, index) => (
-                <tr key={index} className="border-b dark:border-gray-700">
+                <tr key={index} className="border-b">
                   <SingleTableItem>
                     <span style={{ fontSize: '16px', fontWeight: 'bold' }}>
                       {supplier.company_name}
@@ -102,7 +102,7 @@ export default function SupplierList() {
                       <input
                         ref={inputRef}
                         type="text"
-                        className="w-30 text-center text-gray-900 dark:text-white bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md focus:border-primary-500 focus:ring-primary-500"
+                        className="w-30 text-center text-gray-900 bg-gray-100 border border-gray-300 rounded-md focus:border-primary-500 focus:ring-primary-500"
                         value={telephone[index]}
                         onChange={(e) =>
                           handleTelephoneChange(index, e.target.value)
@@ -112,7 +112,7 @@ export default function SupplierList() {
                       />
                       <button
                         type="button"
-                        className="text-gray-500 dark:text-gray-400 p-2 hover:text-gray-700 dark:hover:text-white cursor-pointer bg-gray-100 dark:bg-gray-700 rounded-md"
+                        className="text-gray-500 p-2 hover:text-gray-700 cursor-pointer bg-gray-100 rounded-md"
                         onClick={() => {
                           handleEditClick(index);
                           if (supplier.id) setUpdatedProduct(supplier.id);
@@ -134,7 +134,7 @@ export default function SupplierList() {
                   <SingleTableItem>
                     <button
                       type="button"
-                      className="text-gray-500 dark:text-gray-400 p-2 hover:text-gray-700 dark:hover:text-white cursor-pointer bg-gray-100 dark:bg-gray-700 rounded-md"
+                      className="text-gray-500 p-2 hover:text-gray-700 cursor-pointer bg-gray-100 rounded-md"
                       onClick={() => {
                         navigate('/transactionhistory');
                       }}
@@ -149,7 +149,7 @@ export default function SupplierList() {
           <div className="flex flex-row-reverse gap-2 w-full justify-start">
             <button
               type="submit"
-              className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800 transform transition duration-300 hover:-translate-y-1 "
+              className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 focus:outline-none hover:-translate-y-1 "
               style={{
                 width: '100px', // Adjust the width as needed
                 height: '40px', // Adjust the height as needed

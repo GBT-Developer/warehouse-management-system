@@ -13,7 +13,7 @@ export const BaseLayout = ({ headerRightMenu, children }: BaseLayoutProps) => {
   const { isLoggedIn } = useAuth();
 
   return (
-    <div className="flex w-screen h-screen bg-gray-100 dark:bg-gray-900 text-black dark:text-white overflow-y-auto"> 
+    <div className="flex w-screen h-screen page-bg text-black overflow-y-auto"> 
       {isLoggedIn && (
         <AppSidebar
           isSidebarOpen={isSidebarOpen}
