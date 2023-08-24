@@ -1,6 +1,10 @@
 import React, { ReactNode } from 'react';
 import { AiOutlineHome, AiOutlineUser } from 'react-icons/ai';
-import { BsChevronDown, BsChevronUp } from 'react-icons/bs';
+import {
+  BsChevronDown,
+  BsChevronUp,
+  BsFillPersonVcardFill,
+} from 'react-icons/bs';
 import { GoPackageDependents } from 'react-icons/go';
 import { MdInventory2 } from 'react-icons/md';
 import { useLocation, useNavigate } from 'react-router-dom';
@@ -177,7 +181,16 @@ export const AppSidebar = ({
               </SidebarItem>
             </ul>
           </li>
-
+          <SidebarItem
+            onClick={() => {
+              navigate('/supplierlist');
+            }}
+            icon={<BsFillPersonVcardFill />}
+            isSidebarOpen={isSidebarOpen}
+            selected={location.pathname === '/profile'}
+          >
+            List Supplier
+          </SidebarItem>
           <li
             className={`duration-500 transition-transform ${
               isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
