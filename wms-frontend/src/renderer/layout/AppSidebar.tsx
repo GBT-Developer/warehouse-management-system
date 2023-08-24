@@ -5,7 +5,6 @@ import { LiaFileInvoiceDollarSolid } from 'react-icons/lia';
 import { LuFolderEdit, LuHistory, LuPackageOpen } from 'react-icons/lu';
 import { MdInventory2 } from 'react-icons/md';
 import { PiPasswordLight, PiUserListLight } from 'react-icons/pi';
-import { SiAzureartifacts } from 'react-icons/si';
 import { TbPackageExport, TbTruckReturn } from 'react-icons/tb';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from 'renderer/providers/AuthProvider';
@@ -95,16 +94,6 @@ export const AppSidebar = ({
 
           <SidebarItem
             onClick={() => {
-              navigate('/');
-            }}
-            icon={<SiAzureartifacts />}
-            selected={location.pathname === '/'}
-          >
-            Suppliers
-          </SidebarItem>
-
-          <SidebarItem
-            onClick={() => {
               navigate('/manage-product');
             }}
             icon={<LuPackageOpen />}
@@ -135,9 +124,9 @@ export const AppSidebar = ({
               <SidebarItem
                 icon={<AiOutlineDatabase />}
                 onClick={() => {
-                  navigate('/inputsupplier');
+                  navigate('/supplierlist');
                 }}
-                selected={location.pathname === '/inputsupplier'}
+                selected={location.pathname === '/supplierlist'}
               >
                 Supplier Data
               </SidebarItem>
@@ -166,10 +155,10 @@ export const AppSidebar = ({
 
           <SidebarItem
             onClick={() => {
-              navigate('/');
+              navigate('/transactionhistory');
             }}
             icon={<LuHistory />}
-            selected={location.pathname === '/'}
+            selected={location.pathname === '/transactionhistory'}
           >
             Transaction History
           </SidebarItem>

@@ -1,7 +1,7 @@
 import { db } from 'firebase';
 import { collection, getDocs, query } from 'firebase/firestore';
 import { useEffect, useRef, useState } from 'react';
-import { AiFillEdit } from 'react-icons/ai';
+import { AiFillEdit, AiFillInfoCircle } from 'react-icons/ai';
 import { useNavigate } from 'react-router-dom';
 import { SingleTableItem } from 'renderer/components/TableComponents/SingleTableItem';
 import { TableHeader } from 'renderer/components/TableComponents/TableHeader';
@@ -40,7 +40,9 @@ export default function SupplierList() {
       }
     };
 
-    fetchData();
+    fetchData().catch((error) => {
+      console.log(error);
+    });
   }, []);
 
   const handleEditClick = (index: number) => {
@@ -78,7 +80,7 @@ export default function SupplierList() {
               <TableHeader>
                 <th className="px-4 py-3">Factory Name</th>
                 <th className="px-4 py-3">Telephone</th>
-                <th className="px-4 py-3">NO. Rekening</th>
+                <th className="px-4 py-3">Bank Account</th>
                 <th className="px-4 py-3"></th>
                 <th className="px-4 py-3"></th>
               </TableHeader>
@@ -141,6 +143,9 @@ export default function SupplierList() {
                     >
                       Riwayat Pembelian
                     </button>
+                  </SingleTableItem>
+                  <SingleTableItem>
+                    <AiFillInfoCircle size={20} className="cursor-pointer" />
                   </SingleTableItem>
                 </tr>
               ))}

@@ -79,10 +79,10 @@ export const routes: RouteConfig[] = [
   },
 ];
 
-export type AuthRequiredProps = {
+export interface AuthRequiredProps {
   children: React.ReactNode;
   to?: string;
-};
+}
 
 export const AuthRequired = ({
   children,
@@ -103,9 +103,7 @@ export const AuthRequired = ({
     return unsubscribe;
   }, []);
 
-  if (isLoading) {
-    return null; // Or a loading spinner, or any other loading indicator
-  }
+  if (isLoading) return null; // Or a loading spinner, or any other loading indicator
 
   return (
     <>
