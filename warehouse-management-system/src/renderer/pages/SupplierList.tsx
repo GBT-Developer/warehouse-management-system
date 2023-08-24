@@ -90,7 +90,7 @@ export default function SupplierList() {
                       {supplier.company_name}
                     </span>
                     <br />
-                    <span style={{ fontSize: '12px' }}>
+                    <span style={{ fontSize: '12px', fontWeight: 'lighter' }}>
                       {supplier.address}, {supplier.city}
                     </span>
                   </SingleTableItem>
@@ -127,7 +127,7 @@ export default function SupplierList() {
                       {supplier.bank_number}
                     </span>
                     <br />
-                    <span style={{ fontSize: '12px' }}>
+                    <span style={{ fontSize: '12px', fontWeight: 'lighter' }}>
                       {'a.n'} {supplier.bank_owner}
                     </span>
                   </SingleTableItem>
