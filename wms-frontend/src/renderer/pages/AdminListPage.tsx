@@ -75,7 +75,7 @@ export const AdminListPage = () => {
                 <th className="px-4 py-3">Email</th>
                 <th className="px-4 py-3">Aksi</th>
               </TableHeader>
-              <tbody className="overflow-y-auto">
+              <tbody>
                 {filteredAdminList.map((admin, index) => (
                   <tr key={admin.uid} className="border-b">
                     <SingleTableItem>{index + 1}</SingleTableItem>

@@ -6,7 +6,7 @@ interface TableHeaderProps {
 
 export const TableHeader = ({ children }: TableHeaderProps) => {
   return (
-    <thead className="sticky top-0 text-xs text-gray-500 uppercase font-bold">
+    <thead className="top-0 text-xs text-gray-500 uppercase font-bold">
       <tr>{children}</tr>
     </thead>
   );
