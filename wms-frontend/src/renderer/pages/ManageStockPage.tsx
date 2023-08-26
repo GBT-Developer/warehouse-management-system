@@ -99,7 +99,7 @@ export const ManageStockPage = () => {
         <div className="relative shadow-md sm:rounded-lg overflow-auto h-full flex flex-col justify-between">
           <TableTitle setSearch={setSearch} />
           <div className="overflow-y-auto h-full">
-            <table className="w-full text-sm text-left text-gray-500 dark:text-gray-400">
+            <table className="w-full text-sm text-left text-gray-500">
               <TableHeader>
                 <th className="px-4 py-3">No</th>
                 <th className="px-4 py-3">Merk</th>
@@ -112,7 +112,7 @@ export const ManageStockPage = () => {
               </TableHeader>
               <tbody className="overflow-y-auto">
                 {products.map((product: Product, index) => (
-                  <tr key={index} className="border-b dark:border-gray-700">
+                  <tr key={index} className="border-b">
                     <SingleTableItem>{index + 1}</SingleTableItem>
                     <SingleTableItem>{`${product.brand}`}</SingleTableItem>
                     <SingleTableItem>{`${product.part}`}</SingleTableItem>
@@ -127,7 +127,7 @@ export const ManageStockPage = () => {
                         <input
                           ref={inputRef}
                           type="text"
-                          className="w-20 text-center text-gray-900 dark:text-white bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md focus:border-primary-500 focus:ring-primary-500"
+                          className="w-20 text-center text-gray-900 bg-gray-100 border border-gray-300 rounded-md focus:border-primary-500 focus:ring-primary-500"
                           value={total[index]}
                           onChange={(e) =>
                             handleTotalChange(index, e.target.value)
@@ -137,7 +137,7 @@ export const ManageStockPage = () => {
                         />
                         <button
                           type="button"
-                          className="text-gray-500 dark:text-gray-400 p-2 hover:text-gray-700 dark:hover:text-white cursor-pointer bg-gray-100 dark:bg-gray-700 rounded-md"
+                          className="text-gray-500 p-2 hover:text-gray-700 cursor-pointer bg-gray-100 rounded-md"
                           onClick={() => {
                             handleEditClick(index);
                             if (product.id) setUpdatedProduct(product.id);
@@ -150,7 +150,7 @@ export const ManageStockPage = () => {
                     <SingleTableItem>
                       <button
                         type="button"
-                        className="text-gray-500 dark:text-gray-400 p-2 hover:text-gray-700 dark:hover:text-white cursor-pointer bg-gray-100 dark:bg-gray-700 rounded-md"
+                        className="text-gray-500 p-2 hover:text-gray-700 cursor-pointer bg-gray-100 rounded-md"
                         onClick={() => {
                           navigate('/stockhistory');
                         }}

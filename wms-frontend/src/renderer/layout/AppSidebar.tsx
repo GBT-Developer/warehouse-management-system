@@ -1,6 +1,7 @@
 import React, { ReactNode } from 'react';
 import { AiOutlineDatabase, AiOutlineHome } from 'react-icons/ai';
 import { BsChevronDown, BsChevronUp } from 'react-icons/bs';
+import { CiLogout } from 'react-icons/ci';
 import { LiaFileInvoiceDollarSolid } from 'react-icons/lia';
 import { LuFolderEdit, LuHistory, LuPackageOpen } from 'react-icons/lu';
 import { MdInventory2 } from 'react-icons/md';
@@ -26,8 +27,8 @@ const SidebarItem = ({
     <li>
       <button
         type="button"
-        className={`flex gap-2 w-full items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 group duration-500 transition-transform
-        ${selected ? 'bg-gray-100 dark:bg-gray-700' : ''}`}
+        className={`flex gap-2 w-full items-center p-2 text-black rounded-lg group
+        ${selected ? 'bg-white' : 'hover:bg-gray-300'}`}
         onClick={onClick}
       >
         {icon}
@@ -51,6 +52,7 @@ export const AppSidebar = ({
   isSidebarOpen,
   setIsSidebarOpen,
 }: SidebarProps) => {
+  const { logout } = useAuth().actions;
   const navigate = useNavigate();
   const location = useLocation();
   const [isDropdownOpen, setIsDropdownOpen] = React.useState(false);
@@ -61,26 +63,26 @@ export const AppSidebar = ({
     <aside
       id="sidebar-multi-level-sidebar"
       className={
-        'fixed left-0 z-40 w-64 h-screen bg-gray-50 dark:bg-gray-900 duration-300 transition-transform border-r border-gray-200 dark:border-gray-700'
+        'flex flex-col left-0 z-40 w-64 h-screen sidebar-bg'
       }
     >
       <div className="py-6">
-        <div className="flex px-3 bg-transparent dark:bg-transparent justify-between items-center text-black dark:text-white">
+        <div className="flex px-3 justify-between items-center text-black">
           <Link to="/">
             <p className="text-4xl font-bold">WMS</p>
           </Link>
         </div>
-        <div className="py-1 px-3 bg-transparent">
+        <div className="px-3">
           <Profile />
         </div>
       </div>
-      <div className="h-full px-3  overflow-y-auto bg-gray-50 dark:bg-gray-900">
+      <div className="h-full px-3 overflow-y-auto">
         <div
           className={
-            'w-full my-2 border-b border-gray-200 dark:border-gray-700'
+            'w-full my-2 border-b border-gray-300'
           }
         />
-        <p className="text-sm font-bold text-gray-400 ">Main Functions</p>
+        <p className="text-sm font-bold text-gray-500 ">Main Functions</p>
         <ul className="my-3 space-y-2 font-medium">
           <SidebarItem
             onClick={() => {
@@ -105,7 +107,7 @@ export const AppSidebar = ({
           <li>
             <button
               type="button"
-              className="flex gap-2 mb-2 items-center w-full p-2 text-base text-gray-900 transition duration-75 rounded-lg group hover:bg-gray-100 dark:text-white dark:hover:bg-gray-700"
+              className="flex gap-2 mb-2 items-center w-full p-2 text-base text-black rounded-lg group hover:bg-gray-300"
               onClick={() => setIsInventDropdownOpen(!isInventDropdownOpen)}
             >
               <p>
@@ -184,7 +186,7 @@ export const AppSidebar = ({
           </SidebarItem>
         </ul>
 
-        <p className="text-sm font-bold text-gray-400 ">Administrative</p>
+        <p className="text-sm font-bold text-gray-500 ">Administrative</p>
         <ul className="my-3 space-y-2 font-medium">
           <SidebarItem
             icon={<PiUserListLight />}
@@ -205,10 +207,8 @@ export const AppSidebar = ({
             Change Password
           </SidebarItem>
           <SidebarItem
-            icon={<PiPasswordLight />}
-            onClick={() => {
-              navigate('/changepassword');
-            }}
+            icon={<CiLogout />}
+            onClick={logout}
             selected={location.pathname === '/'}
           >
             Logout
