@@ -171,7 +171,7 @@ export const NewProductPage = () => {
         />
         <StockInputField
           loading={loading}
-          labelFor="pruchase_price"
+          labelFor="purchase_price"
           label="Purchase Price"
           value={newProduct.buy_price}
           onChange={(e) =>
@@ -180,7 +180,7 @@ export const NewProductPage = () => {
         />
         <StockInputField
           loading={loading}
-          labelFor="pruchase_price"
+          labelFor="sell_price"
           label="Sell Price"
           value={newProduct.sell_price}
           onChange={(e) =>
