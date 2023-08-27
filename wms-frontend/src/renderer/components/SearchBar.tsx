@@ -15,7 +15,7 @@ export const SearchBar = ({ handleSearch }: SearchBarProps) => {
           type="text"
           id="simple-search"
           className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:outline-none focus:border-primary-500 block w-full pl-10 p-2"
-          placeholder="Cari email pengguna"
+          placeholder="Search..."
           onChange={(event) => handleSearch(event.target.value)}
         />
       </div>
