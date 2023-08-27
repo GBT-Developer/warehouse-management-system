@@ -20,7 +20,7 @@ exports.updateProductStock = onDocumentWritten("product/{docId}", (event) => {
       product: productRef,
       old_count: previousObject.count,
       new_count: newObject.count,
-      count: newObject.count - previousObject.count,
+      difference: newObject.count - previousObject.count,
       updated_at: new Date(),
     });
 });
