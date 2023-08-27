@@ -4,7 +4,8 @@ export interface Product {
   motor_type: string;
   part: string;
   available_color: string;
-  price: string;
+  buy_price: string;
+  sell_price: string;
   initial_cost: string;
   warehouse_position: string;
   count: string;
