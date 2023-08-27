@@ -60,7 +60,7 @@ export const AdminListPage = () => {
             {user?.owner && (
               <button
                 type="button"
-                className="px-4 py-2 font-medium text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 rounded-lg text-sm dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800 flex justify-center"
+                className="px-4 py-2 font-medium text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 rounded-lg text-sm flex justify-center"
                 onClick={() => navigate('/createadminpage')}
               >
                 Create User
@@ -68,16 +68,16 @@ export const AdminListPage = () => {
             )}
           </TableTitle>
           <div className="overflow-y-auto h-full">
-            <table className="w-full text-sm text-left text-gray-500 dark:text-gray-400">
+            <table className="w-full text-sm text-left text-gray-500">
               <TableHeader>
                 <th className="px-4 py-3">No</th>
                 <th className="px-4 py-3">Nama</th>
                 <th className="px-4 py-3">Email</th>
                 <th className="px-4 py-3">Aksi</th>
               </TableHeader>
-              <tbody className="overflow-y-auto">
+              <tbody>
                 {filteredAdminList.map((admin, index) => (
-                  <tr key={admin.uid} className="border-b dark:border-gray-700">
+                  <tr key={admin.uid} className="border-b">
                     <SingleTableItem>{index + 1}</SingleTableItem>
                     <SingleTableItem>{admin.displayName}</SingleTableItem>
                     <SingleTableItem>{admin.email}</SingleTableItem>

@@ -19,7 +19,7 @@ export const StockInputField = ({
     <div>
       <label
         htmlFor={labelFor}
-        className="text-sm font-medium text-gray-900 dark:text-white flex flex-col gap-1"
+        className="text-sm font-medium text-gray-900 flex flex-col gap-1"
       >
         {label}
         <input
@@ -27,7 +27,7 @@ export const StockInputField = ({
           id={labelFor}
           name={labelFor}
           type="text"
-          className="placeholder:text-xs placeholder:font-light bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+          className="placeholder:text-xs placeholder:font-light bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 w-full p-2.5"
           placeholder="Masukan teks.."
           value={value}
           onChange={onChange}

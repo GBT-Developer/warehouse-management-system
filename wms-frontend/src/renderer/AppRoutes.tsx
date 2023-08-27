@@ -16,6 +16,9 @@ import { AuthPage } from './pages/LoginPage';
 import { ManageProductPage } from './pages/ManageProductPage';
 import { ManageStockPage } from './pages/ManageStockPage';
 import ProfilePage from './pages/ProfilePage';
+import StockHistoryPage from './pages/StockHistoryPage';
+import SupplierList from './pages/SupplierList';
+import TransactionHistory from './pages/TransactionHistory';
 import { useAuth } from './providers/AuthProvider';
 
 type RouteConfig = RouteProps & {
@@ -62,12 +65,24 @@ export const routes: RouteConfig[] = [
     path: '/changepassword',
     element: <ChangePasswordPage />,
   },
+  {
+    path: '/stockhistory',
+    element: <StockHistoryPage />,
+  },
+  {
+    path: '/supplierlist',
+    element: <SupplierList />,
+  },
+  {
+    path: '/transactionhistory',
+    element: <TransactionHistory />,
+  },
 ];
 
-export type AuthRequiredProps = {
+export interface AuthRequiredProps {
   children: React.ReactNode;
   to?: string;
-};
+}
 
 export const AuthRequired = ({
   children,
@@ -88,9 +103,7 @@ export const AuthRequired = ({
     return unsubscribe;
   }, []);
 
-  if (isLoading) {
-    return null; // Or a loading spinner, or any other loading indicator
-  }
+  if (isLoading) return null; // Or a loading spinner, or any other loading indicator
 
   return (
     <>
