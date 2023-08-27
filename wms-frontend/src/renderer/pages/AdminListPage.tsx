@@ -41,15 +41,13 @@ export const AdminListPage = () => {
   }, []);
 
   useEffect(() => {
-    if (search === '') {
-      setFilteredAdminList(adminList);
-    } else {
+    if (search === '') setFilteredAdminList(adminList);
+    else
       setFilteredAdminList(
         adminList.filter((admin) =>
           admin.displayName?.toLowerCase().includes(search.toLowerCase())
         )
       );
-    }
   }, [search, adminList]);
 
   return (
@@ -77,7 +75,10 @@ export const AdminListPage = () => {
               </TableHeader>
               <tbody>
                 {filteredAdminList.map((admin, index) => (
-                  <tr key={admin.uid} className="border-b">
+                  <tr
+                    key={admin.uid}
+                    className="border-b hover:shadow-md cursor-pointer hover:underline"
+                  >
                     <SingleTableItem>{index + 1}</SingleTableItem>
                     <SingleTableItem>{admin.displayName}</SingleTableItem>
                     <SingleTableItem>{admin.email}</SingleTableItem>
