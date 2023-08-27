@@ -1,14 +1,16 @@
 import { db } from 'firebase';
 import { collectionGroup, getDocs, query } from 'firebase/firestore';
 import { useEffect, useState } from 'react';
+import { GoTriangleDown, GoTriangleUp } from 'react-icons/go';
 import { SingleTableItem } from 'renderer/components/TableComponents/SingleTableItem';
 import { TableHeader } from 'renderer/components/TableComponents/TableHeader';
 import { TableTitle } from 'renderer/components/TableComponents/TableTitle';
-import { Product } from 'renderer/interfaces/Product';
+import { StockHistory } from 'renderer/interfaces/StockHistory';
 import { PageLayout } from 'renderer/layout/PageLayout';
+
 function StockHistoryPage() {
   const [search, setSearch] = useState('');
-  const [products, setProducts] = useState<Product[]>([]);
+  const [stockHistory, setStockHistory] = useState<StockHistory[]>([]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -16,11 +18,23 @@ function StockHistoryPage() {
 
       const querySnapshot = await getDocs(q);
 
+      const stockHistoryData: StockHistory[] = [];
+      querySnapshot.forEach((theStockHistory) => {
+        const data = theStockHistory.data() as StockHistory;
+        if (data.updated_at === undefined) return;
+        data.id = theStockHistory.id;
+        stockHistoryData.push(data);
+      });
+
+      setStockHistory(stockHistoryData);
+
       console.log(
         'KOKO',
         querySnapshot.docs.map((doc) => doc.data())
       );
     };
+
+    console.log('search', search);
 
     fetchData().catch((error) => {
       console.log(error);
@@ -35,24 +49,28 @@ function StockHistoryPage() {
           <div className="overflow-y-auto h-full">
             <table className="w-full text-sm text-left text-gray-500 dark:text-gray-400">
               <TableHeader>
-                <th className="px-4 py-3">No</th>
-                <th className="px-4 py-3">Merk</th>
-                <th className="px-4 py-3">Part</th>
-                <td className="px-4 py-3">Supplier</td>
-                <td className="px-4 py-3">Jumlah</td>
+                <td className="px-4 py-3">Date</td>
+                <td className="px-4 py-3">Old count</td>
+                <td className="px-4 py-3">New count</td>
+                <td className="px-4 py-3">Difference</td>
               </TableHeader>
               <tbody className="overflow-y-auto">
-                {products.map((product: Product, index) => (
+                {stockHistory.map((stock_history: StockHistory, index) => (
                   <tr key={index} className="border-b dark:border-gray-700">
-                    <SingleTableItem>{index + 1}</SingleTableItem>
-                    <SingleTableItem>{`${product.brand}`}</SingleTableItem>
-                    <SingleTableItem>{`${product.part}`}</SingleTableItem>
-                    <SingleTableItem>{`${product.supplier}`}</SingleTableItem>
                     <SingleTableItem>
-                      <input
-                        type="text"
-                        className="w-20 text-center text-gray-900 dark:text-white bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md focus:border-primary-500 focus:ring-primary-500"
-                      />
+                      {stock_history.updated_at?.toDate().toLocaleDateString()}
+                    </SingleTableItem>
+                    <SingleTableItem>{stock_history.old_count}</SingleTableItem>
+                    <SingleTableItem>{stock_history.new_count}</SingleTableItem>
+                    <SingleTableItem>
+                      <div className="flex items-center justify-between">
+                        {stock_history.difference}
+                        {Number(stock_history.difference) > 0 ? (
+                          <GoTriangleUp size={23} className="text-green-500" />
+                        ) : (
+                          <GoTriangleDown size={23} className="text-red-500" />
+                        )}
+                      </div>
                     </SingleTableItem>
                   </tr>
                 ))}
