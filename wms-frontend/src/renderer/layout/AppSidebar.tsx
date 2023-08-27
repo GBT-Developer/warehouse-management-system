@@ -62,9 +62,7 @@ export const AppSidebar = ({
   return (
     <aside
       id="sidebar-multi-level-sidebar"
-      className={
-        'flex flex-col left-0 z-40 w-64 h-screen sidebar-bg'
-      }
+      className="flex flex-col h-screen sidebar-bg min-w-[16rem] px-2 pt-[2rem] w-1/5"
     >
       <div className="py-6">
         <div className="flex px-3 justify-between items-center text-black">
@@ -77,13 +75,9 @@ export const AppSidebar = ({
         </div>
       </div>
       <div className="h-full px-3 overflow-y-auto">
-        <div
-          className={
-            'w-full my-2 border-b border-gray-300'
-          }
-        />
+        <div className={'w-full my-2 border-b border-gray-300'} />
         <p className="text-sm font-bold text-gray-500 ">Main Functions</p>
-        <ul className="my-3 space-y-2 font-medium">
+        <ul className="my-3 space-y-2 font-regular">
           <SidebarItem
             onClick={() => {
               navigate('/profile');
@@ -187,7 +181,7 @@ export const AppSidebar = ({
         </ul>
 
         <p className="text-sm font-bold text-gray-500 ">Administrative</p>
-        <ul className="my-3 space-y-2 font-medium">
+        <ul className="my-3 space-y-2 font-regular">
           <SidebarItem
             icon={<PiUserListLight />}
             onClick={() => {

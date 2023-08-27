@@ -13,7 +13,7 @@ export const BaseLayout = ({ headerRightMenu, children }: BaseLayoutProps) => {
   const { isLoggedIn } = useAuth();
 
   return (
-    <div className="flex w-screen h-screen page-bg text-black overflow-y-auto"> 
+    <div className="flex w-screen h-screen page-bg text-black overflow-y-auto">
       {isLoggedIn && (
         <AppSidebar
           isSidebarOpen={isSidebarOpen}
@@ -21,9 +21,7 @@ export const BaseLayout = ({ headerRightMenu, children }: BaseLayoutProps) => {
         />
       )}
 
-      <div
-        className={`min-h-screen w-full`}
-      >
+      <div className={`min-h-screen ${isLoggedIn ? 'w-4/5' : 'w-full'}`}>
         {children}
       </div>
     </div>
