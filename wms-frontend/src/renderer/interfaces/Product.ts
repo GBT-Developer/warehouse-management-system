@@ -1,3 +1,5 @@
+import { DocumentReference } from '@firebase/firestore';
+
 export interface Product {
   id?: string;
   brand: string;
@@ -6,10 +8,9 @@ export interface Product {
   available_color: string;
   buy_price: string;
   sell_price: string;
-  initial_cost: string;
   warehouse_position: string;
   count: string;
   created_at?: string;
   updated_at?: string;
-  supplier: string;
+  supplier: DocumentReference;
 }

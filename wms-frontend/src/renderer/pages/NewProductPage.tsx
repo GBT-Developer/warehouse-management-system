@@ -1,5 +1,5 @@
 import { db } from 'firebase';
-import { addDoc, collection, getDocs, query } from 'firebase/firestore';
+import { addDoc, collection, doc, getDocs, query } from 'firebase/firestore';
 import { useEffect, useRef, useState } from 'react';
 import { AiOutlineLoading3Quarters } from 'react-icons/ai';
 import { useNavigate } from 'react-router-dom';
@@ -13,20 +13,19 @@ const newProductInitialState = {
   motor_type: '',
   part: '',
   available_color: '',
-  price: '',
-  initial_cost: '',
   warehouse_position: '',
   count: '',
-  supplier: '',
   sell_price: '',
   buy_price: '',
+  supplier: doc(db, 'supplier', '-1'),
 };
 
 export const NewProductPage = () => {
   const [newProduct, setNewProduct] = useState<Product>(newProductInitialState);
   const navigate = useNavigate();
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const selectRef = useRef<HTMLSelectElement>(null);
+  const warehouseOptionRef = useRef<HTMLSelectElement>(null);
+  const supplierOptionRef = useRef<HTMLSelectElement>(null);
   const [loading, setLoading] = useState(false);
   const [suppliers, setSupplier] = useState<Supplier[]>([]);
 
@@ -45,7 +44,6 @@ export const NewProductPage = () => {
         });
 
         setSupplier(supplierData);
-        console.log(supplierData);
       } catch (error) {
         console.error('Error fetching data:', error);
       }
@@ -63,7 +61,8 @@ export const NewProductPage = () => {
       Object.values(newProduct).some(
         (value) => value === '' || value === undefined
       ) ||
-      newProduct.warehouse_position === ''
+      newProduct.warehouse_position === '' ||
+      newProduct.supplier === doc(db, 'supplier', '-1')
     ) {
       setErrorMessage('Mohon isi semua kolom');
       setTimeout(() => {
@@ -76,7 +75,6 @@ export const NewProductPage = () => {
       Number.isNaN(Number(newProduct.sell_price)) ||
       Number.isNaN(Number(newProduct.buy_price)) ||
       Number.isNaN(Number(newProduct.count)) ||
-      Number.isNaN(Number(newProduct.initial_cost)) ||
       Number(newProduct.sell_price) <= 0 ||
       Number(newProduct.buy_price) <= 0 ||
       Number(newProduct.count) <= 0
@@ -96,7 +94,10 @@ export const NewProductPage = () => {
       .then(() => {
         setNewProduct(newProductInitialState);
         // Set the select value back to default
-        if (selectRef.current) selectRef.current.value = '';
+        if (warehouseOptionRef.current) warehouseOptionRef.current.value = '';
+        if (supplierOptionRef.current) supplierOptionRef.current.value = '';
+
+        navigate(-1);
 
         setLoading(false);
       })
@@ -195,7 +196,8 @@ export const NewProductPage = () => {
             </div>
             <div className="w-2/3">
               <select
-                ref={selectRef}
+                defaultValue={''}
+                ref={warehouseOptionRef}
                 disabled={loading}
                 id="warehouse-position"
                 name="warehouse-position"
@@ -207,11 +209,9 @@ export const NewProductPage = () => {
                 }}
                 className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
               >
-                <option value="" selected>
-                  Choose Warehouse
-                </option>
-                <option value="gudang_jadi">Gudang Jadi</option>
-                <option value="gudang_bahan">Gudang Bahan</option>
+                <option value={''}>Choose Warehouse</option>
+                <option value="Gudang Jadi">Gudang Jadi</option>
+                <option value="Gudang Bahan">Gudang Bahan</option>
               </select>{' '}
             </div>
           </div>
@@ -226,20 +226,20 @@ export const NewProductPage = () => {
             </div>
             <div className="w-2/3">
               <select
+                ref={supplierOptionRef}
+                defaultValue={''}
                 disabled={loading}
                 id="supplier"
                 name="supplier"
                 onChange={(e) => {
                   setNewProduct({
                     ...newProduct,
-                    supplier: e.target.value,
+                    supplier: doc(db, 'supplier', e.target.value),
                   });
                 }}
                 className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
               >
-                <option value="" selected>
-                  Choose Supplier
-                </option>
+                <option value={''}>Choose Supplier</option>
                 {suppliers.map((supplier) => (
                   <option key={supplier.id} value={supplier.id}>
                     {supplier.company_name}
