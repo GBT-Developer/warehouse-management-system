@@ -1,6 +1,7 @@
 import { collection, getDocs, query } from '@firebase/firestore';
 import { db } from 'firebase';
 import { useEffect, useState } from 'react';
+import { AiOutlineLoading3Quarters } from 'react-icons/ai';
 import { IoInformationCircleSharp } from 'react-icons/io5';
 import { useNavigate } from 'react-router-dom';
 import { SingleTableItem } from 'renderer/components/TableComponents/SingleTableItem';
@@ -9,27 +10,18 @@ import { TableTitle } from 'renderer/components/TableComponents/TableTitle';
 import { Product } from 'renderer/interfaces/Product';
 import { PageLayout } from 'renderer/layout/PageLayout';
 
-const newProductInitialState = {
-  brand: '',
-  motor_type: '',
-  part: '',
-  available_color: '',
-  price: '',
-  initial_cost: '',
-  warehouse_position: '',
-  count: '',
-  supplier: '',
-};
-
 export const ManageProductPage = () => {
   const [search, setSearch] = useState('');
   const navigate = useNavigate();
   const [products, setProducts] = useState<Product[]>([]);
+  const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         const productsQuery = query(collection(db, 'product'));
+        setLoading(true);
         const querySnapshot = await getDocs(productsQuery);
 
         const productData: Product[] = [];
@@ -40,7 +32,8 @@ export const ManageProductPage = () => {
         });
 
         setProducts(productData);
-        console.log(productData);
+        setFilteredProducts(productData);
+        setLoading(false);
       } catch (error) {
         console.error('Error fetching data:', error);
       }
@@ -50,6 +43,24 @@ export const ManageProductPage = () => {
       console.log(error);
     });
   }, []);
+
+  useEffect(() => {
+    setFilteredProducts(
+      products.filter((product) =>
+        product.brand
+          .toLowerCase()
+          .concat(
+            ' ',
+            product.motor_type,
+            ' ',
+            product.part,
+            ' ',
+            product.available_color
+          )
+          .includes(search.toLowerCase())
+      )
+    );
+  }, [search, products]);
 
   return (
     <PageLayout>
@@ -67,7 +78,13 @@ export const ManageProductPage = () => {
               Create new Product
             </button>
           </TableTitle>
-          <div className="overflow-y-auto h-full">
+          <div className="overflow-y-auto h-full relative">
+            {loading && (
+              <div className="absolute flex justify-center items-center py-2 px-3 top-0 left-0 w-full h-full bg-gray-50 rounded-lg z-0 bg-opacity-50">
+                <AiOutlineLoading3Quarters className="animate-spin flex justify-center text-4xl" />
+              </div>
+            )}
+
             <table className="w-full text-sm text-left text-gray-500">
               <TableHeader>
                 <th className="px-4 py-3">Name</th>
@@ -77,7 +94,7 @@ export const ManageProductPage = () => {
                 <th className="px-4 py-3"></th>
               </TableHeader>
               <tbody>
-                {products.map((product, index) => (
+                {filteredProducts.map((product) => (
                   <tr key={product.id} className="border-b">
                     <SingleTableItem>
                       {product.brand +
