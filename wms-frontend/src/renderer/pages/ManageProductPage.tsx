@@ -95,7 +95,10 @@ export const ManageProductPage = () => {
               </TableHeader>
               <tbody>
                 {filteredProducts.map((product) => (
-                  <tr key={product.id} className="border-b">
+                  <tr
+                    key={product.id}
+                    className="border-b hover:shadow-md cursor-pointer hover:underline"
+                  >
                     <SingleTableItem>
                       {product.brand +
                         ' ' +
