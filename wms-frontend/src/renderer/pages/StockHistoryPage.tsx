@@ -1,12 +1,32 @@
-import { useState } from 'react';
+import { db } from 'firebase';
+import { collectionGroup, getDocs, query } from 'firebase/firestore';
+import { useEffect, useState } from 'react';
 import { SingleTableItem } from 'renderer/components/TableComponents/SingleTableItem';
 import { TableHeader } from 'renderer/components/TableComponents/TableHeader';
 import { TableTitle } from 'renderer/components/TableComponents/TableTitle';
 import { Product } from 'renderer/interfaces/Product';
 import { PageLayout } from 'renderer/layout/PageLayout';
-function StockHistory() {
+function StockHistoryPage() {
   const [search, setSearch] = useState('');
   const [products, setProducts] = useState<Product[]>([]);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      const q = query(collectionGroup(db, 'stock_history'));
+
+      const querySnapshot = await getDocs(q);
+
+      console.log(
+        'KOKO',
+        querySnapshot.docs.map((doc) => doc.data())
+      );
+    };
+
+    fetchData().catch((error) => {
+      console.log(error);
+    });
+  }, []);
+
   return (
     <PageLayout>
       <div className="w-full h-full bg-transparent overflow-hidden">
@@ -45,4 +65,4 @@ function StockHistory() {
   );
 }
 
-export default StockHistory;
+export default StockHistoryPage;

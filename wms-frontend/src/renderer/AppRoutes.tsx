@@ -16,7 +16,7 @@ import { AuthPage } from './pages/LoginPage';
 import { ManageProductPage } from './pages/ManageProductPage';
 import { ManageStockPage } from './pages/ManageStockPage';
 import ProfilePage from './pages/ProfilePage';
-import StockHistory from './pages/StockHistory';
+import StockHistoryPage from './pages/StockHistoryPage';
 import SupplierList from './pages/SupplierList';
 import TransactionHistory from './pages/TransactionHistory';
 import { useAuth } from './providers/AuthProvider';
@@ -67,7 +67,7 @@ export const routes: RouteConfig[] = [
   },
   {
     path: '/stockhistory',
-    element: <StockHistory />,
+    element: <StockHistoryPage />,
   },
   {
     path: '/supplierlist',
