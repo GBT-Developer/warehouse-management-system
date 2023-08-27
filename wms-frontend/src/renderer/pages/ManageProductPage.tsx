@@ -48,7 +48,6 @@ export const ManageProductPage = () => {
     setFilteredProducts(
       products.filter((product) =>
         product.brand
-          .toLowerCase()
           .concat(
             ' ',
             product.motor_type,
@@ -57,6 +56,7 @@ export const ManageProductPage = () => {
             ' ',
             product.available_color
           )
+          .toLowerCase()
           .includes(search.toLowerCase())
       )
     );
@@ -108,9 +108,7 @@ export const ManageProductPage = () => {
                     <SingleTableItem>{product.count}</SingleTableItem>
                     <SingleTableItem>{product.sell_price}</SingleTableItem>
                     <SingleTableItem>
-                      {product.warehouse_position === 'gudang_jadi'
-                        ? 'Gudang Jadi'
-                        : 'Gudang Bahan'}
+                      {product.warehouse_position}
                     </SingleTableItem>
                     <SingleTableItem>
                       <IoInformationCircleSharp
