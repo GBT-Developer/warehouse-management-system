@@ -17,22 +17,25 @@ export const StockInputField = ({
 }: StockInputFieldProps) => {
   return (
     <div>
-      <label
-        htmlFor={labelFor}
-        className="text-sm font-medium text-gray-900 flex flex-col gap-1"
-      >
-        {label}
-        <input
-          disabled={loading}
-          id={labelFor}
-          name={labelFor}
-          type="text"
-          className="placeholder:text-xs placeholder:font-light bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 w-full p-2.5"
-          placeholder="Masukan teks.."
-          value={value}
-          onChange={onChange}
-        />
-      </label>
+      <div className="flex justify-between">
+        <div className="w-1/3">
+          <label htmlFor={labelFor} className="text-md">
+            {label}
+          </label>
+        </div>
+        <div className="w-2/3">
+          <input
+            disabled={loading}
+            id={labelFor}
+            name={labelFor}
+            type="text"
+            className="placeholder:text-xs placeholder:font-light bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 p-2.5 w-full"
+            placeholder="Masukan teks.."
+            value={value}
+            onChange={onChange}
+          />
+        </div>
+      </div>
     </div>
   );
 };
