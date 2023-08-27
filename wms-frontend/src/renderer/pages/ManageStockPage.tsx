@@ -21,7 +21,7 @@ export const ManageStockPage = () => {
   const [updatedProduct, setUpdatedProduct] = useState('');
   const navigate = useNavigate();
 
-  // take product from firebase
+  // Take product from firebase
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -43,7 +43,9 @@ export const ManageStockPage = () => {
       }
     };
 
-    fetchData();
+    fetchData().catch((error) => {
+      console.error('Error fetching data:', error);
+    });
   }, []);
 
   const handleTotalChange = (index: number, value: string) => {
@@ -63,7 +65,7 @@ export const ManageStockPage = () => {
 
   function handleSubmit(e: { preventDefault: () => void }) {
     e.preventDefault();
-    //declare the index
+    // Declare the index
     let index = 0;
     // Check for invalid values in the total array
     total.forEach((value) => {
