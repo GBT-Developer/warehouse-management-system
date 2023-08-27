@@ -84,71 +84,72 @@ export default function SupplierList() {
                 <th className="px-4 py-3"></th>
                 <th className="px-4 py-3"></th>
               </TableHeader>
-              <tbody className="overflow-y-auto"></tbody>
-              {supplierList.map((supplier: Supplier, index) => (
-                <tr key={index} className="border-b">
-                  <SingleTableItem>
-                    <span style={{ fontSize: '16px', fontWeight: 'bold' }}>
-                      {supplier.company_name}
-                    </span>
-                    <br />
-                    <span style={{ fontSize: '12px', fontWeight: 'lighter' }}>
-                      {supplier.address}, {supplier.city}
-                    </span>
-                  </SingleTableItem>
-                  <SingleTableItem>
-                    <form
-                      className="flex justify-start gap-[1rem]"
-                      onSubmit={(e) => handleSubmit(e)}
-                    >
-                      <input
-                        ref={inputRef}
-                        type="text"
-                        className="w-30 text-center text-gray-900 bg-gray-100 border border-gray-300 rounded-md focus:border-primary-500 focus:ring-primary-500"
-                        value={telephone[index]}
-                        onChange={(e) =>
-                          handleTelephoneChange(index, e.target.value)
-                        }
-                        disabled={editingIndex !== index}
-                        onBlur={handleBlur}
-                      />
+              <tbody className="overflow-y-auto">
+                {supplierList.map((supplier: Supplier, index) => (
+                  <tr key={index} className="border-b">
+                    <SingleTableItem>
+                      <span style={{ fontSize: '16px', fontWeight: 'bold' }}>
+                        {supplier.company_name}
+                      </span>
+                      <br />
+                      <span style={{ fontSize: '12px', fontWeight: 'lighter' }}>
+                        {supplier.address}, {supplier.city}
+                      </span>
+                    </SingleTableItem>
+                    <SingleTableItem>
+                      <form
+                        className="flex justify-start gap-[1rem]"
+                        onSubmit={(e) => handleSubmit(e)}
+                      >
+                        <input
+                          ref={inputRef}
+                          type="text"
+                          className="w-30 text-center text-gray-900 bg-gray-100 border border-gray-300 rounded-md focus:border-primary-500 focus:ring-primary-500"
+                          value={telephone[index]}
+                          onChange={(e) =>
+                            handleTelephoneChange(index, e.target.value)
+                          }
+                          disabled={editingIndex !== index}
+                          onBlur={handleBlur}
+                        />
+                        <button
+                          type="button"
+                          className="text-gray-500 p-2 hover:text-gray-700 cursor-pointer bg-gray-100 rounded-md"
+                          onClick={() => {
+                            handleEditClick(index);
+                            if (supplier.id) setUpdatedProduct(supplier.id);
+                          }}
+                        >
+                          <AiFillEdit />
+                        </button>
+                      </form>
+                    </SingleTableItem>
+                    <SingleTableItem>
+                      <span style={{ fontSize: '16px', fontWeight: 'bold' }}>
+                        {supplier.bank_number}
+                      </span>
+                      <br />
+                      <span style={{ fontSize: '12px', fontWeight: 'lighter' }}>
+                        {'a.n'} {supplier.bank_owner}
+                      </span>
+                    </SingleTableItem>
+                    <SingleTableItem>
                       <button
                         type="button"
                         className="text-gray-500 p-2 hover:text-gray-700 cursor-pointer bg-gray-100 rounded-md"
                         onClick={() => {
-                          handleEditClick(index);
-                          if (supplier.id) setUpdatedProduct(supplier.id);
+                          navigate('/transactionhistory');
                         }}
                       >
-                        <AiFillEdit />
+                        Riwayat Pembelian
                       </button>
-                    </form>
-                  </SingleTableItem>
-                  <SingleTableItem>
-                    <span style={{ fontSize: '16px', fontWeight: 'bold' }}>
-                      {supplier.bank_number}
-                    </span>
-                    <br />
-                    <span style={{ fontSize: '12px', fontWeight: 'lighter' }}>
-                      {'a.n'} {supplier.bank_owner}
-                    </span>
-                  </SingleTableItem>
-                  <SingleTableItem>
-                    <button
-                      type="button"
-                      className="text-gray-500 p-2 hover:text-gray-700 cursor-pointer bg-gray-100 rounded-md"
-                      onClick={() => {
-                        navigate('/transactionhistory');
-                      }}
-                    >
-                      Riwayat Pembelian
-                    </button>
-                  </SingleTableItem>
-                  <SingleTableItem>
-                    <AiFillInfoCircle size={20} className="cursor-pointer" />
-                  </SingleTableItem>
-                </tr>
-              ))}
+                    </SingleTableItem>
+                    <SingleTableItem>
+                      <AiFillInfoCircle size={20} className="cursor-pointer" />
+                    </SingleTableItem>
+                  </tr>
+                ))}
+              </tbody>
             </table>
           </div>
           <div className="flex flex-row-reverse gap-2 w-full justify-start">
