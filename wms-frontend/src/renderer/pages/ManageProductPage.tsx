@@ -64,7 +64,7 @@ export const ManageProductPage = () => {
 
   return (
     <PageLayout>
-      <h1 className="mb-4 text-4xl font-extrabold tracking-tight text-gray-900 md:text-5xl">
+      <h1 className="mb-[4rem] text-4xl font-extrabold tracking-tight text-gray-900 md:text-5xl">
         Manage Products
       </h1>
       <div className="w-full h-full bg-transparent overflow-hidden">
@@ -106,7 +106,7 @@ export const ManageProductPage = () => {
                         product.available_color}
                     </SingleTableItem>
                     <SingleTableItem>{product.count}</SingleTableItem>
-                    <SingleTableItem>{product.price}</SingleTableItem>
+                    <SingleTableItem>{product.sell_price}</SingleTableItem>
                     <SingleTableItem>
                       {product.warehouse_position === 'gudang_jadi'
                         ? 'Gudang Jadi'
