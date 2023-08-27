@@ -1,7 +1,6 @@
 import { db } from 'firebase';
-import { collection, getDocs, query } from 'firebase/firestore';
-import { useEffect, useRef, useState } from 'react';
-import { AiFillEdit, AiFillInfoCircle } from 'react-icons/ai';
+import { collection, doc, getDocs, query, updateDoc } from 'firebase/firestore';
+import { FormEvent, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { SingleTableItem } from 'renderer/components/TableComponents/SingleTableItem';
 import { TableHeader } from 'renderer/components/TableComponents/TableHeader';
@@ -17,6 +16,7 @@ export default function SupplierList() {
   const [editingIndex, setEditingIndex] = useState<number>(-1);
   const [loading, setLoading] = useState(true);
   const inputRef = useRef<HTMLInputElement>(null);
+  const [editTelephoneToggle, setEditTelephoneToggle] = useState(false);
   const navigate = useNavigate();
   // Take product from firebase
   useEffect(() => {
@@ -52,11 +52,22 @@ export default function SupplierList() {
   const handleBlur = () => {
     setEditingIndex(-1); // Reset the editing index when blurred
   };
-  const handleTelephoneChange = (index: number, value: string) => {
-    // Update the total value for the specific row
-    const updatedTelephoneValues = [...telephone];
-    updatedTelephoneValues[index] = value;
-    setTelephone(updatedTelephoneValues);
+  const handleTelephoneChange = (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const supplier = supplierList[editingIndex];
+    if (!supplier.id) return;
+    const supplierRef = doc(db, 'supplier', supplier.id);
+
+    const updatedSupplier = {
+      ...supplier,
+      phone_number: supplier.phone_number,
+    };
+
+    updateDoc(supplierRef, updatedSupplier).catch((error) => {
+      console.error('Error updating document: ', error);
+    });
+
+    setEditTelephoneToggle(false);
   };
 
   function handleSubmit(e: { preventDefault: () => void }) {
@@ -69,68 +80,47 @@ export default function SupplierList() {
   }
   return (
     <PageLayout>
+      <h1 className="mb-[4rem] text-4xl font-extrabold tracking-tight text-gray-900 md:text-5xl">
+        List Supplier
+      </h1>
       <div className="w-full h-full bg-transparent overflow-hidden">
         <div className="relative shadow-md sm:rounded-lg overflow-auto h-full flex flex-col justify-between">
-          <h1 className="mb-4 text-4xl font-extrabold tracking-tight text-gray-900 md:text-5xl">
-            List Supplier
-          </h1>
-          <TableTitle setSearch={setSearch}></TableTitle>
+          <TableTitle setSearch={setSearch}>
+            <button
+              type="button"
+              className="px-4 py-2 font-medium text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 rounded-lg text-sm flex justify-center"
+              onClick={() => navigate('/inputsupplier')}
+            >
+              Create new supplier
+            </button>
+          </TableTitle>
           <div className="overflow-y-auto h-full">
             <table className="w-full text-sm text-left text-gray-500">
               <TableHeader>
                 <th className="px-4 py-3">Factory Name</th>
+                <th className="px-4 py-3">Address</th>
                 <th className="px-4 py-3">Telephone</th>
                 <th className="px-4 py-3">Bank Account</th>
-                <th className="px-4 py-3"></th>
                 <th className="px-4 py-3"></th>
               </TableHeader>
               <tbody className="overflow-y-auto">
                 {supplierList.map((supplier: Supplier, index) => (
-                  <tr key={index} className="border-b">
+                  <tr
+                    key={index}
+                    className="border-b hover:shadow-md cursor-pointer"
+                  >
+                    <SingleTableItem>{supplier.company_name} </SingleTableItem>
                     <SingleTableItem>
-                      <span style={{ fontSize: '16px', fontWeight: 'bold' }}>
-                        {supplier.company_name}
-                      </span>
-                      <br />
-                      <span style={{ fontSize: '12px', fontWeight: 'lighter' }}>
-                        {supplier.address}, {supplier.city}
-                      </span>
+                      {supplier.address}, {supplier.city}
                     </SingleTableItem>
+                    <SingleTableItem>{supplier.phone_number}</SingleTableItem>
                     <SingleTableItem>
-                      <form
-                        className="flex justify-start gap-[1rem]"
-                        onSubmit={(e) => handleSubmit(e)}
-                      >
-                        <input
-                          ref={inputRef}
-                          type="text"
-                          className="w-30 text-center text-gray-900 bg-gray-100 border border-gray-300 rounded-md focus:border-primary-500 focus:ring-primary-500"
-                          value={telephone[index]}
-                          onChange={(e) =>
-                            handleTelephoneChange(index, e.target.value)
-                          }
-                          disabled={editingIndex !== index}
-                          onBlur={handleBlur}
-                        />
-                        <button
-                          type="button"
-                          className="text-gray-500 p-2 hover:text-gray-700 cursor-pointer bg-gray-100 rounded-md"
-                          onClick={() => {
-                            handleEditClick(index);
-                            if (supplier.id) setUpdatedProduct(supplier.id);
-                          }}
-                        >
-                          <AiFillEdit />
-                        </button>
-                      </form>
-                    </SingleTableItem>
-                    <SingleTableItem>
-                      <span style={{ fontSize: '16px', fontWeight: 'bold' }}>
+                      <span className="font-medium text-md">
                         {supplier.bank_number}
                       </span>
                       <br />
-                      <span style={{ fontSize: '12px', fontWeight: 'lighter' }}>
-                        {'a.n'} {supplier.bank_owner}
+                      <span className="font-light text-xs">
+                        {supplier.bank_owner}
                       </span>
                     </SingleTableItem>
                     <SingleTableItem>
@@ -141,11 +131,8 @@ export default function SupplierList() {
                           navigate('/transactionhistory');
                         }}
                       >
-                        Riwayat Pembelian
+                        Purchase History
                       </button>
-                    </SingleTableItem>
-                    <SingleTableItem>
-                      <AiFillInfoCircle size={20} className="cursor-pointer" />
                     </SingleTableItem>
                   </tr>
                 ))}
