@@ -5,6 +5,7 @@ interface StockInputFieldProps {
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   labelFor: string;
   label: string;
+  placeholder: string;
   loading?: boolean;
 }
 
@@ -13,11 +14,12 @@ export const StockInputField = ({
   onChange,
   labelFor,
   label,
+  placeholder,
   loading,
 }: StockInputFieldProps) => {
   return (
     <div>
-      <div className="flex justify-between">
+      <div className="flex justify-between items-center">
         <div className="w-1/3">
           <label htmlFor={labelFor} className="text-md">
             {label}
@@ -29,8 +31,8 @@ export const StockInputField = ({
             id={labelFor}
             name={labelFor}
             type="text"
-            className="placeholder:text-xs placeholder:font-light bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 p-2.5 w-full"
-            placeholder="Masukan teks.."
+            className="placeholder:text-xs placeholder:font-light bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 p-2 w-full"
+            placeholder={placeholder}
             value={value}
             onChange={onChange}
           />
