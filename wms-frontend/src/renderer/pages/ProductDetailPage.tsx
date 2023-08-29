@@ -1,11 +1,19 @@
 import { db } from 'firebase';
-import { doc, getDoc, updateDoc } from 'firebase/firestore';
+import {
+  collection,
+  doc,
+  getDoc,
+  getDocs,
+  query,
+  updateDoc,
+} from 'firebase/firestore';
 import { useEffect, useRef, useState } from 'react';
 import { AiFillEdit, AiOutlineLoading3Quarters } from 'react-icons/ai';
 import { GiCancel } from 'react-icons/gi';
 import { useNavigate, useParams } from 'react-router-dom';
 import { StockInputField } from 'renderer/components/StockInputField';
 import { Product } from 'renderer/interfaces/Product';
+import { Supplier } from 'renderer/interfaces/Supplier';
 import { PageLayout } from 'renderer/layout/PageLayout';
 export default function ProductDetailPage() {
   const [loading, setLoading] = useState(false);
@@ -14,6 +22,8 @@ export default function ProductDetailPage() {
   const [editToggle, setEditToggle] = useState(false);
   const warehouseOptionRef = useRef<HTMLSelectElement>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const supplierOptionRef = useRef<HTMLSelectElement>(null);
+  const [suppliers, setSupplier] = useState<Supplier[]>([]);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -26,12 +36,24 @@ export default function ProductDetailPage() {
         const data = theProduct.data() as Product;
         data.id = theProduct.id;
         setProduct(data);
+
+        // Fetch supplier
+        const q = query(collection(db, 'supplier'));
+        const querySnapshot = await getDocs(q);
+
+        const supplierData: Supplier[] = [];
+        querySnapshot.forEach((theSupplier) => {
+          const data = theSupplier.data() as Supplier;
+          data.id = theSupplier.id;
+          supplierData.push(data);
+        });
+        setSupplier(supplierData);
+
         setLoading(false);
       } catch (error) {
         console.error('Error fetching data:', error);
       }
     };
-    console.log(product);
     fetchData().catch((error) => {
       console.log(error);
     });
@@ -69,9 +91,7 @@ export default function ProductDetailPage() {
     }
 
     if (!product.id) return;
-    console.log(product);
     const productRef = doc(db, 'product', product.id);
-    console.log(productRef);
     const updatedProduct = {
       ...product,
       brand: product.brand,
@@ -82,6 +102,7 @@ export default function ProductDetailPage() {
       buy_price: product.buy_price,
       sell_price: product.sell_price,
       warehouse_position: product.warehouse_position,
+      supplier: product.supplier,
     };
 
     setLoading(true);
@@ -223,13 +244,12 @@ export default function ProductDetailPage() {
                   )}
                   {product?.warehouse_position && (
                     <select
-                      defaultValue={product?.warehouse_position ?? ''}
+                      value={product.warehouse_position}
                       ref={warehouseOptionRef}
                       disabled={loading || !editToggle}
                       id="warehouse-position"
                       name="warehouse-position"
                       onChange={(e) => {
-                        if (product === undefined) return;
                         setProduct({
                           ...product,
                           warehouse_position: e.target.value,
@@ -237,11 +257,54 @@ export default function ProductDetailPage() {
                       }}
                       className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
                     >
-                      <option value={''} disabled>
-                        Choose Warehouse
-                      </option>
                       <option value="Gudang Jadi">Gudang Jadi</option>
                       <option value="Gudang Bahan">Gudang Bahan</option>
+                    </select>
+                  )}
+                </div>
+              </div>
+            </div>
+            <div>
+              <div className="flex justify-between">
+                <div className="w-1/3">
+                  <label htmlFor={'supplier'} className="text-md">
+                    Supplier
+                  </label>
+                </div>
+                <div className="w-2/3 relative">
+                  {loading && (
+                    <div className="absolute flex justify-center items-center py-2 px-3 top-0 left-0 w-full h-full bg-gray-50 rounded-lg z-0">
+                      <AiOutlineLoading3Quarters className="animate-spin flex justify-center text-4xl" />
+                    </div>
+                  )}
+                  {product?.supplier && product.supplier.id && (
+                    <select
+                      value={product.supplier.id}
+                      ref={supplierOptionRef}
+                      disabled={loading || !editToggle}
+                      id="supplier"
+                      name="supplier"
+                      onChange={(e) => {
+                        if (product.supplier === undefined) return;
+                        const theSupplier = suppliers.find(
+                          (supplier) => supplier.id === e.target.value
+                        );
+                        if (!theSupplier) return;
+                        setProduct((prev) => {
+                          if (prev === undefined) return;
+                          return {
+                            ...prev,
+                            supplier: theSupplier,
+                          };
+                        });
+                      }}
+                      className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
+                    >
+                      {suppliers.map((supplier) => (
+                        <option key={supplier.id} value={supplier.id}>
+                          {supplier.company_name}
+                        </option>
+                      ))}
                     </select>
                   )}
                 </div>
