@@ -80,19 +80,12 @@ export default function SupplierList() {
   }
   return (
     <PageLayout>
-      <h1 className="mb-[4rem] text-4xl font-extrabold tracking-tight text-gray-900 md:text-5xl">
-        List Supplier
-      </h1>
       <div className="w-full h-full bg-transparent overflow-hidden">
         <div className="relative shadow-md sm:rounded-lg overflow-auto h-full flex flex-col justify-between">
           <TableTitle setSearch={setSearch}>
-            <button
-              type="button"
-              className="px-4 py-2 font-medium text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 rounded-lg text-sm flex justify-center"
-              onClick={() => navigate('/inputsupplier')}
-            >
-              Create new supplier
-            </button>
+            <h1 className="text-4xl font-extrabold tracking-tight text-gray-900 md:text-5xl">
+              Supplier List
+            </h1>
           </TableTitle>
           <div className="overflow-y-auto h-full">
             <table className="w-full text-sm text-left text-gray-500">
@@ -117,10 +110,6 @@ export default function SupplierList() {
                     <SingleTableItem>
                       <span className="font-medium text-md">
                         {supplier.bank_number}
-                      </span>
-                      <br />
-                      <span className="font-light text-xs">
-                        {supplier.bank_owner}
                       </span>
                     </SingleTableItem>
                     <SingleTableItem>
