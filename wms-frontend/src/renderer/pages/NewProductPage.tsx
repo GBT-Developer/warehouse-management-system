@@ -1,5 +1,5 @@
 import { db } from 'firebase';
-import { addDoc, collection, doc, getDocs, query } from 'firebase/firestore';
+import { addDoc, collection, getDocs, query } from 'firebase/firestore';
 import { useEffect, useRef, useState } from 'react';
 import { AiOutlineLoading3Quarters } from 'react-icons/ai';
 import { useNavigate } from 'react-router-dom';
@@ -17,7 +17,6 @@ const newProductInitialState = {
   count: '',
   sell_price: '',
   buy_price: '',
-  supplier: doc(db, 'supplier', '-1'),
 };
 
 export const NewProductPage = () => {
@@ -62,7 +61,7 @@ export const NewProductPage = () => {
         (value) => value === '' || value === undefined
       ) ||
       newProduct.warehouse_position === '' ||
-      newProduct.supplier === doc(db, 'supplier', '-1')
+      newProduct.supplier === undefined
     ) {
       setErrorMessage('Mohon isi semua kolom');
       setTimeout(() => {
@@ -232,9 +231,13 @@ export const NewProductPage = () => {
                 id="supplier"
                 name="supplier"
                 onChange={(e) => {
+                  const supplier = suppliers.find(
+                    (supplier) => supplier.id === e.target.value
+                  );
+                  if (!supplier) return;
                   setNewProduct({
                     ...newProduct,
-                    supplier: doc(db, 'supplier', e.target.value),
+                    supplier: supplier,
                   });
                 }}
                 className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"

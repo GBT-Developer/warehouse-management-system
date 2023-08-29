@@ -118,7 +118,9 @@ export const ManageStockPage = () => {
                     <SingleTableItem>{index + 1}</SingleTableItem>
                     <SingleTableItem>{`${product.brand}`}</SingleTableItem>
                     <SingleTableItem>{`${product.part}`}</SingleTableItem>
-                    <SingleTableItem>{`${product.supplier}`}</SingleTableItem>
+                    <SingleTableItem>{`${
+                      product.supplier?.company_name ?? '-'
+                    }`}</SingleTableItem>
                     <SingleTableItem>{`${product.available_color}`}</SingleTableItem>
                     <SingleTableItem>{`${product.warehouse_position}`}</SingleTableItem>
                     <SingleTableItem>
