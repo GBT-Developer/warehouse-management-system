@@ -27,14 +27,15 @@ function InputSupplier() {
 
   function handleSubmit(e: { preventDefault: () => void }) {
     e.preventDefault();
-    // If one or more fields are empty, return early
+    // If one or more fields are empty except remarks, return early
     if (
-      Object.values(newSupplier).some(
-        (value) => value === '' || value === undefined
-      ) ||
-      newSupplier === newSupplierInitialState
+      !newSupplier.company_name ||
+      !newSupplier.address ||
+      !newSupplier.city ||
+      !newSupplier.phone_number ||
+      !newSupplier.bank_number
     ) {
-      setErrorMessage('Mohon isi semua kolom');
+      setErrorMessage('Please fill all the fields');
       setTimeout(() => {
         setErrorMessage(null);
       }, 3000);
@@ -46,7 +47,7 @@ function InputSupplier() {
       Number.isNaN(Number(newSupplier.bank_number)) ||
       Number.isNaN(Number(newSupplier.phone_number))
     ) {
-      setErrorMessage('Nomor telepon atau nomor rekening tidak valid');
+      setErrorMessage('Please input a valid number');
       setTimeout(() => {
         setErrorMessage(null);
       }, 3000);
@@ -60,6 +61,7 @@ function InputSupplier() {
       .then(() => {
         setNewSupplier(newSupplierInitialState);
         setLoading(false);
+        navigate(-1);
         // Set the select value back to default
       })
       .catch((error) => {
@@ -148,9 +150,6 @@ function InputSupplier() {
             }
           />
         </div>
-        {errorMessage && (
-          <p className="text-red-500 text-sm ">{errorMessage}</p>
-        )}
         <div className="flex flex-row-reverse gap-2 w-2/3 justify-start">
           <button
             disabled={loading}
@@ -168,6 +167,9 @@ function InputSupplier() {
             Cancel
           </button>
         </div>
+        {errorMessage && (
+          <p className="text-red-500 text-sm ">{errorMessage}</p>
+        )}
       </form>
     </PageLayout>
   );

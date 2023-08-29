@@ -78,7 +78,7 @@ export const NewProductPage = () => {
       newProduct.warehouse_position === '' ||
       newProduct.supplier === doc(db, 'supplier', '-1')
     ) {
-      setErrorMessage('Mohon isi semua kolom');
+      setErrorMessage('Please fill all the fields');
       setTimeout(() => {
         setErrorMessage(null);
       }, 3000);
@@ -93,7 +93,7 @@ export const NewProductPage = () => {
       Number(newProduct.buy_price) <= 0 ||
       Number(newProduct.count) <= 0
     ) {
-      setErrorMessage('Harga atau jumlah barang tidak valid');
+      setErrorMessage('Please input a valid number');
       setTimeout(() => {
         setErrorMessage(null);
       }, 3000);
@@ -103,6 +103,32 @@ export const NewProductPage = () => {
     setLoading(true);
 
     if (showSupplierForm) {
+      if (
+        !newSupplier.company_name ||
+        !newSupplier.address ||
+        !newSupplier.city ||
+        !newSupplier.phone_number ||
+        !newSupplier.bank_number
+      ) {
+        setErrorMessage('Please fill all the fields');
+        setTimeout(() => {
+          setErrorMessage(null);
+        }, 3000);
+        return;
+      }  
+  
+      // Check data type
+      if (
+        Number.isNaN(Number(newSupplier.bank_number)) ||
+        Number.isNaN(Number(newSupplier.phone_number))
+      ) {
+        setErrorMessage('Please input a valid number');
+        setTimeout(() => {
+          setErrorMessage(null);
+        }, 3000);
+        return;
+      }
+      
       const supplierCollection = collection(db, 'supplier');
   
       addDoc(supplierCollection, newSupplier)
@@ -377,10 +403,6 @@ export const NewProductPage = () => {
             />
           </div>    
         )}
-
-        {errorMessage && (
-          <p className="text-red-500 text-sm ">{errorMessage}</p>
-        )}
         <div className="flex flex-row-reverse gap-2 w-2/3 justify-start">
           <button
             disabled={loading}
@@ -398,6 +420,9 @@ export const NewProductPage = () => {
             Cancel
           </button>
         </div>
+        {errorMessage && (
+          <p className="text-red-500 text-sm ">{errorMessage}</p>
+        )}
       </form>
     </PageLayout>
   );
