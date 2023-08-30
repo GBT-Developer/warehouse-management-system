@@ -168,6 +168,15 @@ export default function ProductDetailPage() {
                 if (product === undefined) return;
                 setProduct({ ...product, brand: e.target.value });
               }}
+              style={
+                editToggle
+                  ? {} // No additional styles when editToggle is true
+                  : {
+                      border: 'none',
+                      outline: 'none',
+                      backgroundColor: 'inherit',
+                    } // Remove border, outline, and inherit background when editToggle is false
+              }
             />
             <StockInputField
               loading={loading || !editToggle}
@@ -178,6 +187,15 @@ export default function ProductDetailPage() {
                 if (product === undefined) return;
                 setProduct({ ...product, motor_type: e.target.value });
               }}
+              style={
+                editToggle
+                  ? {} // No additional styles when editToggle is true
+                  : {
+                      border: 'none',
+                      outline: 'none',
+                      backgroundColor: 'inherit',
+                    } // Remove border, outline, and inherit background when editToggle is false
+              }
             />
             <StockInputField
               loading={loading || !editToggle}
@@ -188,6 +206,15 @@ export default function ProductDetailPage() {
                 if (product === undefined) return;
                 setProduct({ ...product, part: e.target.value });
               }}
+              style={
+                editToggle
+                  ? {} // No additional styles when editToggle is true
+                  : {
+                      border: 'none',
+                      outline: 'none',
+                      backgroundColor: 'inherit',
+                    } // Remove border, outline, and inherit background when editToggle is false
+              }
             />
             <StockInputField
               loading={loading || !editToggle}
@@ -198,6 +225,15 @@ export default function ProductDetailPage() {
                 if (product === undefined) return;
                 setProduct({ ...product, available_color: e.target.value });
               }}
+              style={
+                editToggle
+                  ? {} // No additional styles when editToggle is true
+                  : {
+                      border: 'none',
+                      outline: 'none',
+                      backgroundColor: 'inherit',
+                    } // Remove border, outline, and inherit background when editToggle is false
+              }
             />
             <StockInputField
               loading={loading || !editToggle}
@@ -208,6 +244,15 @@ export default function ProductDetailPage() {
                 if (product === undefined) return;
                 setProduct({ ...product, count: e.target.value });
               }}
+              style={
+                editToggle
+                  ? {} // No additional styles when editToggle is true
+                  : {
+                      border: 'none',
+                      outline: 'none',
+                      backgroundColor: 'inherit',
+                    } // Remove border, outline, and inherit background when editToggle is false
+              }
             />
             <StockInputField
               loading={loading || !editToggle}
@@ -218,6 +263,15 @@ export default function ProductDetailPage() {
                 if (product === undefined) return;
                 setProduct({ ...product, buy_price: e.target.value });
               }}
+              style={
+                editToggle
+                  ? {} // No additional styles when editToggle is true
+                  : {
+                      border: 'none',
+                      outline: 'none',
+                      backgroundColor: 'inherit',
+                    } // Remove border, outline, and inherit background when editToggle is false
+              }
             />
             <StockInputField
               loading={loading || !editToggle}
@@ -228,6 +282,15 @@ export default function ProductDetailPage() {
                 if (product === undefined) return;
                 setProduct({ ...product, sell_price: e.target.value });
               }}
+              style={
+                editToggle
+                  ? {} // No additional styles when editToggle is true
+                  : {
+                      border: 'none',
+                      outline: 'none',
+                      backgroundColor: 'inherit',
+                    } // Remove border, outline, and inherit background when editToggle is false
+              }
             />
             <div>
               <div className="flex justify-between">

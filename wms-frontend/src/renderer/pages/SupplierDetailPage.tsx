@@ -139,6 +139,15 @@ export default function SupplierDetailPage() {
                 if (supplier === undefined) return;
                 setSupplier({ ...supplier, company_name: e.target.value });
               }}
+              style={
+                editToggle
+                  ? {} // No additional styles when editToggle is true
+                  : {
+                      border: 'none',
+                      outline: 'none',
+                      backgroundColor: 'inherit',
+                    } // Remove border, outline, and inherit background when editToggle is false
+              }
             />
             <StockInputField
               loading={loading || !editToggle}
@@ -149,6 +158,15 @@ export default function SupplierDetailPage() {
                 if (supplier === undefined) return;
                 setSupplier({ ...supplier, address: e.target.value });
               }}
+              style={
+                editToggle
+                  ? {} // No additional styles when editToggle is true
+                  : {
+                      border: 'none',
+                      outline: 'none',
+                      backgroundColor: 'inherit',
+                    } // Remove border, outline, and inherit background when editToggle is false
+              }
             />
             <StockInputField
               loading={loading || !editToggle}
@@ -159,6 +177,15 @@ export default function SupplierDetailPage() {
                 if (supplier === undefined) return;
                 setSupplier({ ...supplier, city: e.target.value });
               }}
+              style={
+                editToggle
+                  ? {} // No additional styles when editToggle is true
+                  : {
+                      border: 'none',
+                      outline: 'none',
+                      backgroundColor: 'inherit',
+                    } // Remove border, outline, and inherit background when editToggle is false
+              }
             />
             <StockInputField
               loading={loading || !editToggle}
@@ -169,6 +196,15 @@ export default function SupplierDetailPage() {
                 if (supplier === undefined) return;
                 setSupplier({ ...supplier, phone_number: e.target.value });
               }}
+              style={
+                editToggle
+                  ? {} // No additional styles when editToggle is true
+                  : {
+                      border: 'none',
+                      outline: 'none',
+                      backgroundColor: 'inherit',
+                    } // Remove border, outline, and inherit background when editToggle is false
+              }
             />
             <StockInputField
               loading={loading || !editToggle}
@@ -179,6 +215,15 @@ export default function SupplierDetailPage() {
                 if (supplier === undefined) return;
                 setSupplier({ ...supplier, contact_person: e.target.value });
               }}
+              style={
+                editToggle
+                  ? {} // No additional styles when editToggle is true
+                  : {
+                      border: 'none',
+                      outline: 'none',
+                      backgroundColor: 'inherit',
+                    } // Remove border, outline, and inherit background when editToggle is false
+              }
             />
             <StockInputField
               loading={loading || !editToggle}
@@ -189,6 +234,15 @@ export default function SupplierDetailPage() {
                 if (supplier === undefined) return;
                 setSupplier({ ...supplier, bank_number: e.target.value });
               }}
+              style={
+                editToggle
+                  ? {} // No additional styles when editToggle is true
+                  : {
+                      border: 'none',
+                      outline: 'none',
+                      backgroundColor: 'inherit',
+                    } // Remove border, outline, and inherit background when editToggle is false
+              }
             />
             <StockInputField
               loading={loading || !editToggle}
@@ -199,6 +253,15 @@ export default function SupplierDetailPage() {
                 if (supplier === undefined) return;
                 setSupplier({ ...supplier, bank_owner: e.target.value });
               }}
+              style={
+                editToggle
+                  ? {} // No additional styles when editToggle is true
+                  : {
+                      border: 'none',
+                      outline: 'none',
+                      backgroundColor: 'inherit',
+                    } // Remove border, outline, and inherit background when editToggle is false
+              }
             />
             <AreaField
               loading={loading || !editToggle}

@@ -7,6 +7,7 @@ interface StockInputFieldProps {
   label: string;
   placeholder?: string;
   loading?: boolean;
+  style?: React.CSSProperties;
 }
 
 export const StockInputField = ({
@@ -16,6 +17,7 @@ export const StockInputField = ({
   label,
   placeholder,
   loading,
+  style,
 }: StockInputFieldProps) => {
   return (
     <div>
@@ -35,6 +37,7 @@ export const StockInputField = ({
             placeholder={placeholder ? placeholder : ''}
             value={value}
             onChange={onChange}
+            style={style}
           />
         </div>
       </div>
