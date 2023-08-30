@@ -173,7 +173,7 @@ export default function ProductDetailPage() {
         <div className="relative shadow-md sm:rounded-lg overflow-auto h-full flex flex-col justify-between">
           <form
             onSubmit={handleSubmit}
-            className={`w-full flex flex-col gap-3 relative ${
+            className={`w-2/3 flex flex-col gap-3 relative ${
               loading ? 'p-2' : ''
             } transform transition-all duration-300`}
           >
@@ -370,6 +370,10 @@ export default function ProductDetailPage() {
                   Submit
                 </button>
               )}
+            </div>
+            <hr className="my-4" />
+            <div className="px-4 w-full">
+              <p className="text-2xl font-medium">Stock History</p>
             </div>
             <table className="w-full text-sm text-left text-gray-500 dark:text-gray-400">
               <TableHeader>
