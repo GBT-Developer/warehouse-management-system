@@ -101,15 +101,28 @@ export default function SupplierList() {
                   <tr
                     key={index}
                     className="border-b hover:shadow-md cursor-pointer"
+                    onClick={() => navigate('/supplier-detail/' + supplier.id)}
                   >
                     <SingleTableItem>{supplier.company_name} </SingleTableItem>
                     <SingleTableItem>
                       {supplier.address}, {supplier.city}
                     </SingleTableItem>
-                    <SingleTableItem>{supplier.phone_number}</SingleTableItem>
+                    <SingleTableItem>
+                      <span className="font-medium text-md">
+                        {supplier.phone_number}
+                        <br />
+                        <span className="text-sm font-normal">
+                          {'a.n.' + supplier.contact_person}
+                        </span>
+                      </span>
+                    </SingleTableItem>
                     <SingleTableItem>
                       <span className="font-medium text-md">
                         {supplier.bank_number}
+                        <br />
+                        <span className="text-sm font-normal">
+                          {'a.n.' + supplier.bank_owner}
+                        </span>
                       </span>
                     </SingleTableItem>
                     <SingleTableItem>

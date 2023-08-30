@@ -382,12 +382,35 @@ export const NewProductPage = () => {
             />
             <StockInputField
               loading={loading}
+              labelFor="contact_person"
+              label="Contact Person"
+              value={newSupplier?.contact_person ?? ''}
+              placeholder='i.e "John Doe"'
+              onChange={(e) =>
+                setNewSupplier({
+                  ...newSupplier,
+                  contact_person: e.target.value,
+                })
+              }
+            />
+            <StockInputField
+              loading={loading}
               label="Bank Number"
               labelFor="bank_number"
               value={newSupplier.bank_number}
               placeholder="1234567890"
               onChange={(e) =>
                 setNewSupplier({ ...newSupplier, bank_number: e.target.value })
+              }
+            />
+            <StockInputField
+              loading={loading}
+              labelFor="bank_owner"
+              label="Bank Owner"
+              value={newSupplier?.bank_owner ?? ''}
+              placeholder='i.e "John Doe"'
+              onChange={(e) =>
+                setNewSupplier({ ...newSupplier, bank_owner: e.target.value })
               }
             />
             <AreaField

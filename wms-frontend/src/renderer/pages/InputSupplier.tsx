@@ -129,12 +129,32 @@ function InputSupplier() {
           />
           <StockInputField
             loading={loading}
+            label="Contact Person"
+            labelFor="contact_person"
+            value={newSupplier.contact_person}
+            placeholder="i.e John Doe"
+            onChange={(e) =>
+              setNewSupplier({ ...newSupplier, contact_person: e.target.value })
+            }
+          />
+          <StockInputField
+            loading={loading}
             label="Bank Number"
             labelFor="bank_number"
             value={newSupplier.bank_number}
             placeholder="1234567890"
             onChange={(e) =>
               setNewSupplier({ ...newSupplier, bank_number: e.target.value })
+            }
+          />
+          <StockInputField
+            loading={loading}
+            label="Bank Owner"
+            labelFor="bank_owner"
+            value={newSupplier.bank_owner}
+            placeholder="i.e John Doe"
+            onChange={(e) =>
+              setNewSupplier({ ...newSupplier, bank_owner: e.target.value })
             }
           />
           <AreaField
