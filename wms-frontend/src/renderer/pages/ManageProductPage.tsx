@@ -125,6 +125,7 @@ export const ManageProductPage = () => {
                   <tr
                     key={product.id}
                     className="border-b hover:shadow-md cursor-pointer hover:underline"
+                    onClick={() => navigate('/manage-product/' + product.id)}
                   >
                     <SingleTableItem>
                       {product.brand +
@@ -138,7 +139,8 @@ export const ManageProductPage = () => {
                     <SingleTableItem>
                       <div
                         className="flex items-center gap-2"
-                        onClick={() => {
+                        onClick={(e) => {
+                          e.stopPropagation();
                           setEditingIndex(index);
                           if (!editStockToggle) setEditStockToggle(true);
                         }}

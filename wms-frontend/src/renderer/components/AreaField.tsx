@@ -2,37 +2,43 @@ import React from 'react';
 
 interface StockInputFieldProps {
   value: string;
-  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
   labelFor: string;
   label: string;
-  placeholder?: string;
+  maxLength: number;
+  rows: number;
+  placeholder: string;
   loading?: boolean;
 }
 
-export const StockInputField = ({
+export const AreaField = ({
   value,
   onChange,
   labelFor,
   label,
+  maxLength,
+  rows,
   placeholder,
   loading,
 }: StockInputFieldProps) => {
   return (
     <div>
-      <div className="flex justify-between items-center">
-        <div className="w-1/3">
+      <div className="flex py-2">
+        <div className="w-1/3 py-1.5">
           <label htmlFor={labelFor} className="text-md">
             {label}
           </label>
         </div>
         <div className="w-2/3">
-          <input
+          <textarea
+            style={{ resize: 'none' }}
             disabled={loading}
             id={labelFor}
             name={labelFor}
-            type="text"
+            rows={rows}
+            maxLength={maxLength}
             className="placeholder:text-xs placeholder:font-light bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 p-2 w-full"
-            placeholder={placeholder ? placeholder : ''}
+            placeholder={placeholder}
             value={value}
             onChange={onChange}
           />

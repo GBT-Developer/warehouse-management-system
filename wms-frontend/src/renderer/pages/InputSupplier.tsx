@@ -3,6 +3,7 @@ import { addDoc, collection } from 'firebase/firestore';
 import { useState } from 'react';
 import { AiOutlineLoading3Quarters } from 'react-icons/ai';
 import { useNavigate } from 'react-router-dom';
+import { AreaField } from 'renderer/components/AreaField';
 import { StockInputField } from 'renderer/components/StockInputField';
 import { Supplier } from 'renderer/interfaces/Supplier';
 import { PageLayout } from 'renderer/layout/PageLayout';
@@ -13,7 +14,7 @@ const newSupplierInitialState = {
   city: '',
   phone_number: '',
   bank_number: '',
-  bank_owner: '',
+  remarks: '',
 } as Supplier;
 
 function InputSupplier() {
@@ -26,14 +27,15 @@ function InputSupplier() {
 
   function handleSubmit(e: { preventDefault: () => void }) {
     e.preventDefault();
-    // If one or more fields are empty, return early
+    // If one or more fields are empty except remarks, return early
     if (
-      Object.values(newSupplier).some(
-        (value) => value === '' || value === undefined
-      ) ||
-      newSupplier === newSupplierInitialState
+      !newSupplier.company_name ||
+      !newSupplier.address ||
+      !newSupplier.city ||
+      !newSupplier.phone_number ||
+      !newSupplier.bank_number
     ) {
-      setErrorMessage('Mohon isi semua kolom');
+      setErrorMessage('Please fill all the fields');
       setTimeout(() => {
         setErrorMessage(null);
       }, 3000);
@@ -45,7 +47,7 @@ function InputSupplier() {
       Number.isNaN(Number(newSupplier.bank_number)) ||
       Number.isNaN(Number(newSupplier.phone_number))
     ) {
-      setErrorMessage('Nomor telepon atau nomor rekening tidak valid');
+      setErrorMessage('Please input a valid number');
       setTimeout(() => {
         setErrorMessage(null);
       }, 3000);
@@ -59,6 +61,7 @@ function InputSupplier() {
       .then(() => {
         setNewSupplier(newSupplierInitialState);
         setLoading(false);
+        navigate(-1);
         // Set the select value back to default
       })
       .catch((error) => {
@@ -69,26 +72,27 @@ function InputSupplier() {
   }
   return (
     <PageLayout>
-      <h1 className="mb-4 text-4xl font-extrabold tracking-tight text-gray-900 md:text-5xl dark:text-white">
-        Input Supplier
+      <h1 className="text-4xl font-extrabold tracking-tight text-gray-900 md:text-5xl">
+        Add New Supplier
       </h1>
       <form
         onSubmit={handleSubmit}
-        className={`w-full flex flex-col gap-3 relative ${
+        className={`w-full py-14 my-10 flex flex-col gap-3 relative ${
           loading ? 'p-2' : ''
         }`}
       >
         {loading && (
-          <div className="absolute flex justify-center items-center dark:bg-opacity-50 py-2 px-3 top-0 left-0 w-full h-full bg-gray-50 dark:bg-gray-800 rounded-lg z-0">
+          <div className="absolute flex justify-center items-center py-2 px-3 top-0 left-0 w-full h-full bg-gray-50 rounded-lg z-0">
             <AiOutlineLoading3Quarters className="animate-spin flex justify-center text-4xl" />
           </div>
         )}
-        <div className="grid gap-3 md:grid-cols-2 w-full">
+        <div className="grid gap-3 w-2/3">
           <StockInputField
             loading={loading}
             label="Company Name"
             labelFor="company_name"
             value={newSupplier.company_name}
+            placeholder="i.e. PT. Berkat Abadi"
             onChange={(e) =>
               setNewSupplier({ ...newSupplier, company_name: e.target.value })
             }
@@ -98,6 +102,7 @@ function InputSupplier() {
             label="Address"
             labelFor="address"
             value={newSupplier.address}
+            placeholder="i.e. Jl.Soekarno-Hatta No. 123"
             onChange={(e) =>
               setNewSupplier({ ...newSupplier, address: e.target.value })
             }
@@ -107,15 +112,17 @@ function InputSupplier() {
             label="City"
             labelFor="city"
             value={newSupplier.city}
+            placeholder="i.e. 10120, Jakarta"
             onChange={(e) =>
               setNewSupplier({ ...newSupplier, city: e.target.value })
             }
           />
           <StockInputField
             loading={loading}
-            label="Phone Number"
+            label="Contact Number"
             labelFor="phone_number"
             value={newSupplier.phone_number}
+            placeholder="Phone number or landline number"
             onChange={(e) =>
               setNewSupplier({ ...newSupplier, phone_number: e.target.value })
             }
@@ -125,40 +132,44 @@ function InputSupplier() {
             label="Bank Number"
             labelFor="bank_number"
             value={newSupplier.bank_number}
+            placeholder="1234567890"
             onChange={(e) =>
               setNewSupplier({ ...newSupplier, bank_number: e.target.value })
             }
           />
-          <StockInputField
+          <AreaField
             loading={loading}
-            label="Bank Owner"
-            labelFor="bank_owner"
-            value={newSupplier.bank_owner}
+            label="Remarks"
+            labelFor="remarks"
+            maxLength={300}
+            rows={7}
+            value={newSupplier.remarks}
+            placeholder="Additional info... (max. 300 characters)"
             onChange={(e) =>
-              setNewSupplier({ ...newSupplier, bank_owner: e.target.value })
+              setNewSupplier({ ...newSupplier, remarks: e.target.value })
             }
           />
         </div>
-        {errorMessage && (
-          <p className="text-red-500 text-sm ">{errorMessage}</p>
-        )}
-        <div className="flex flex-row-reverse gap-2 w-full justify-start">
+        <div className="flex flex-row-reverse gap-2 w-2/3 justify-start">
           <button
             disabled={loading}
             type="submit"
-            className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800"
+            className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2 focus:outline-none"
           >
             Submit
           </button>
           <button
             disabled={loading}
             type="button"
-            className="py-2.5 px-5 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700"
+            className="py-2 px-5 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-200"
             onClick={() => navigate(-1)}
           >
             Cancel
           </button>
         </div>
+        {errorMessage && (
+          <p className="text-red-500 text-sm ">{errorMessage}</p>
+        )}
       </form>
     </PageLayout>
   );

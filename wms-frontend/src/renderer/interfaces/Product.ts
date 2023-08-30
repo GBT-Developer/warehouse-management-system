@@ -1,4 +1,4 @@
-import { DocumentReference } from '@firebase/firestore';
+import { Supplier } from './Supplier';
 
 export interface Product {
   id?: string;
@@ -12,5 +12,5 @@ export interface Product {
   count: string;
   created_at?: string;
   updated_at?: string;
-  supplier: DocumentReference;
+  supplier?: Supplier;
 }
