@@ -9,6 +9,7 @@ interface StockInputFieldProps {
   rows: number;
   placeholder: string;
   loading?: boolean;
+  additionalStyle?: string;
 }
 
 export const AreaField = ({
@@ -20,6 +21,7 @@ export const AreaField = ({
   rows,
   placeholder,
   loading,
+  additionalStyle,
 }: StockInputFieldProps) => {
   return (
     <div>
@@ -37,7 +39,9 @@ export const AreaField = ({
             name={labelFor}
             rows={rows}
             maxLength={maxLength}
-            className="placeholder:text-xs placeholder:font-light bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 p-2 w-full"
+            className={`placeholder:text-xs placeholder:font-light bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 p-2 w-full ${
+              additionalStyle ?? ''
+            }`}
             placeholder={placeholder}
             value={value}
             onChange={onChange}

@@ -7,7 +7,7 @@ interface StockInputFieldProps {
   label: string;
   placeholder?: string;
   loading?: boolean;
-  style?: React.CSSProperties;
+  additionalStyle?: string;
 }
 
 export const StockInputField = ({
@@ -17,7 +17,7 @@ export const StockInputField = ({
   label,
   placeholder,
   loading,
-  style,
+  additionalStyle,
 }: StockInputFieldProps) => {
   return (
     <div>
@@ -33,11 +33,12 @@ export const StockInputField = ({
             id={labelFor}
             name={labelFor}
             type="text"
-            className="placeholder:text-xs placeholder:font-light bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 p-2 w-full"
+            className={`}placeholder:text-xs placeholder:font-light bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 p-2 w-full ${
+              additionalStyle ?? ''
+            }`}
             placeholder={placeholder ? placeholder : ''}
             value={value}
             onChange={onChange}
-            style={style}
           />
         </div>
       </div>
