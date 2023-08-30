@@ -20,6 +20,7 @@ import ProductDetailPage from './pages/ProductDetailPage';
 import ProfilePage from './pages/ProfilePage';
 import PurchaseReportPage from './pages/PurchaseReportPage';
 import StockHistoryPage from './pages/StockHistoryPage';
+import SupplierDetailPage from './pages/SupplierDetailPage';
 import SupplierList from './pages/SupplierList';
 import TransactionHistory from './pages/TransactionHistory';
 import { useAuth } from './providers/AuthProvider';
@@ -92,6 +93,10 @@ export const routes: RouteConfig[] = [
   {
     path: '/purchase-report/:id/',
     element: <PurchaseReportPage />,
+  },
+  {
+    path: '/supplier-detail/:id',
+    element: <SupplierDetailPage />,
   },
 ];
 

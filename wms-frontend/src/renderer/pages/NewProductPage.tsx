@@ -1,10 +1,10 @@
 import { db } from 'firebase';
-import { addDoc, collection, getDocs, query } from 'firebase/firestore';
+import { addDoc, collection, doc, getDocs, query } from 'firebase/firestore';
 import { useEffect, useRef, useState } from 'react';
 import { AiOutlineLoading3Quarters } from 'react-icons/ai';
 import { useNavigate } from 'react-router-dom';
 import { AreaField } from 'renderer/components/AreaField';
-import { StockInputField } from 'renderer/components/StockInputField';
+import { InputField } from 'renderer/components/InputField';
 import { Product } from 'renderer/interfaces/Product';
 import { Supplier } from 'renderer/interfaces/Supplier';
 import { PageLayout } from 'renderer/layout/PageLayout';
@@ -162,8 +162,14 @@ export const NewProductPage = () => {
     } else {
       // Proceed to add the new product without creating a new supplier
       const productCollection = collection(db, '/product');
+      if (!newProduct.supplier?.id) return;
 
-      addDoc(productCollection, newProduct)
+      const theNewProcut = {
+        ...newProduct,
+        supplier: doc(db, 'supplier', newProduct.supplier.id),
+      };
+
+      addDoc(productCollection, theNewProcut)
         .then(() => {
           setNewProduct(newProductInitialState);
           if (warehouseOptionRef.current) warehouseOptionRef.current.value = '';
@@ -187,7 +193,7 @@ export const NewProductPage = () => {
       </h1>
       <form
         onSubmit={handleSubmit}
-        className={`w-full py-14 my-10 flex flex-col gap-3 relative${
+        className={`w-2/3 py-14 my-10 flex flex-col gap-3 relative${
           loading ? 'p-2' : ''
         }`}
       >
@@ -196,151 +202,149 @@ export const NewProductPage = () => {
             <AiOutlineLoading3Quarters className="animate-spin flex justify-center text-4xl" />
           </div>
         )}
-        <div className="grid gap-3 w-2/3">
-          <StockInputField
-            loading={loading}
-            labelFor="brand"
-            label="Brand"
-            value={newProduct.brand}
-            onChange={(e) =>
-              setNewProduct({ ...newProduct, brand: e.target.value })
-            }
-          />
-          <StockInputField
-            loading={loading}
-            labelFor="type"
-            label="Motorcycle Type"
-            value={newProduct.motor_type}
-            onChange={(e) =>
-              setNewProduct({ ...newProduct, motor_type: e.target.value })
-            }
-          />
-          <StockInputField
-            loading={loading}
-            labelFor="part"
-            label="Part"
-            value={newProduct.part}
-            onChange={(e) =>
-              setNewProduct({ ...newProduct, part: e.target.value })
-            }
-          />
-          <StockInputField
-            loading={loading}
-            labelFor="available_color"
-            label="Available Color"
-            value={newProduct.available_color}
-            onChange={(e) =>
-              setNewProduct({ ...newProduct, available_color: e.target.value })
-            }
-          />
-          <StockInputField
-            loading={loading}
-            labelFor="count"
-            label="Product Count"
-            value={newProduct.count}
-            onChange={(e) =>
-              setNewProduct({ ...newProduct, count: e.target.value })
-            }
-          />
-          <StockInputField
-            loading={loading}
-            labelFor="purchase_price"
-            label="Purchase Price"
-            value={newProduct.buy_price}
-            onChange={(e) =>
-              setNewProduct({ ...newProduct, buy_price: e.target.value })
-            }
-          />
-          <StockInputField
-            loading={loading}
-            labelFor="sell_price"
-            label="Sell Price"
-            value={newProduct.sell_price}
-            onChange={(e) =>
-              setNewProduct({ ...newProduct, sell_price: e.target.value })
-            }
-          />
-          <div>
-            <div className="flex justify-between">
-              <div className="w-1/3 py-1.5">
-                <label htmlFor={'warehouse'} className="text-md">
-                  Warehouse Position
-                </label>
-              </div>
-              <div className="w-2/3">
-                <select
-                  defaultValue={''}
-                  ref={warehouseOptionRef}
-                  disabled={loading}
-                  id="warehouse-position"
-                  name="warehouse-position"
-                  onChange={(e) => {
-                    setNewProduct({
-                      ...newProduct,
-                      warehouse_position: e.target.value,
-                    });
-                  }}
-                  className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
-                >
-                  <option value={''} disabled>
-                    Choose Warehouse
-                  </option>
-                  <option value="Gudang Jadi">Gudang Jadi</option>
-                  <option value="Gudang Bahan">Gudang Bahan</option>
-                </select>
-              </div>
+        <InputField
+          loading={loading}
+          labelFor="brand"
+          label="Brand"
+          value={newProduct.brand}
+          onChange={(e) =>
+            setNewProduct({ ...newProduct, brand: e.target.value })
+          }
+        />
+        <InputField
+          loading={loading}
+          labelFor="type"
+          label="Motorcycle Type"
+          value={newProduct.motor_type}
+          onChange={(e) =>
+            setNewProduct({ ...newProduct, motor_type: e.target.value })
+          }
+        />
+        <InputField
+          loading={loading}
+          labelFor="part"
+          label="Part"
+          value={newProduct.part}
+          onChange={(e) =>
+            setNewProduct({ ...newProduct, part: e.target.value })
+          }
+        />
+        <InputField
+          loading={loading}
+          labelFor="available_color"
+          label="Available Color"
+          value={newProduct.available_color}
+          onChange={(e) =>
+            setNewProduct({ ...newProduct, available_color: e.target.value })
+          }
+        />
+        <InputField
+          loading={loading}
+          labelFor="count"
+          label="Product Count"
+          value={newProduct.count}
+          onChange={(e) =>
+            setNewProduct({ ...newProduct, count: e.target.value })
+          }
+        />
+        <InputField
+          loading={loading}
+          labelFor="purchase_price"
+          label="Purchase Price"
+          value={newProduct.buy_price}
+          onChange={(e) =>
+            setNewProduct({ ...newProduct, buy_price: e.target.value })
+          }
+        />
+        <InputField
+          loading={loading}
+          labelFor="sell_price"
+          label="Sell Price"
+          value={newProduct.sell_price}
+          onChange={(e) =>
+            setNewProduct({ ...newProduct, sell_price: e.target.value })
+          }
+        />
+        <div>
+          <div className="flex justify-between">
+            <div className="w-1/3 py-1.5">
+              <label htmlFor={'warehouse'} className="text-md">
+                Warehouse Position
+              </label>
+            </div>
+            <div className="w-2/3">
+              <select
+                defaultValue={''}
+                ref={warehouseOptionRef}
+                disabled={loading}
+                id="warehouse-position"
+                name="warehouse-position"
+                onChange={(e) => {
+                  setNewProduct({
+                    ...newProduct,
+                    warehouse_position: e.target.value,
+                  });
+                }}
+                className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
+              >
+                <option value={''} disabled>
+                  Choose Warehouse
+                </option>
+                <option value="Gudang Jadi">Gudang Jadi</option>
+                <option value="Gudang Bahan">Gudang Bahan</option>
+              </select>
             </div>
           </div>
+        </div>
 
-          <div>
-            <div className="flex justify-between">
-              <div className="w-1/3 py-1.5">
-                <label htmlFor={'supplier'} className="text-md">
-                  Supplier
-                </label>
-              </div>
-              <div className="w-2/3">
-                <select
-                  ref={supplierOptionRef}
-                  defaultValue={''}
-                  disabled={loading}
-                  id="supplier"
-                  name="supplier"
-                  onChange={(e) => {
-                    if (e.target.value === 'New Supplier')
-                      setShowSupplierForm(true); // Show the supplier form
-                    else {
-                      const supplier = suppliers.find(
-                        (supplier) => supplier.id === e.target.value
-                      );
-                      if (!supplier) return;
-                      setNewProduct({
-                        ...newProduct,
-                        supplier: supplier,
-                      });
-                      setShowSupplierForm(false); // Hide the supplier form
-                    }
-                  }}
-                  className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
-                >
-                  <option value={''} disabled>
-                    Choose Supplier
+        <div>
+          <div className="flex justify-between">
+            <div className="w-1/3 py-1.5">
+              <label htmlFor={'supplier'} className="text-md">
+                Supplier
+              </label>
+            </div>
+            <div className="w-2/3">
+              <select
+                ref={supplierOptionRef}
+                defaultValue={''}
+                disabled={loading}
+                id="supplier"
+                name="supplier"
+                onChange={(e) => {
+                  if (e.target.value === 'New Supplier')
+                    setShowSupplierForm(true); // Show the supplier form
+                  else {
+                    const supplier = suppliers.find(
+                      (supplier) => supplier.id === e.target.value
+                    );
+                    if (!supplier) return;
+                    setNewProduct({
+                      ...newProduct,
+                      supplier: supplier,
+                    });
+                    setShowSupplierForm(false); // Hide the supplier form
+                  }
+                }}
+                className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
+              >
+                <option value={''} disabled>
+                  Choose Supplier
+                </option>
+                {suppliers.map((supplier) => (
+                  <option key={supplier.id} value={supplier.id}>
+                    {supplier.company_name}
                   </option>
-                  {suppliers.map((supplier) => (
-                    <option key={supplier.id} value={supplier.id}>
-                      {supplier.company_name}
-                    </option>
-                  ))}
-                  <option value="New Supplier">Add New Supplier</option>
-                </select>{' '}
-              </div>
+                ))}
+                <option value="New Supplier">Add New Supplier</option>
+              </select>{' '}
             </div>
           </div>
         </div>
 
         {showSupplierForm && (
-          <div className="grid gap-3 w-2/3">
-            <StockInputField
+          <>
+            <InputField
               loading={loading}
               label="Company Name"
               labelFor="company_name"
@@ -350,7 +354,7 @@ export const NewProductPage = () => {
                 setNewSupplier({ ...newSupplier, company_name: e.target.value })
               }
             />
-            <StockInputField
+            <InputField
               loading={loading}
               label="Address"
               labelFor="address"
@@ -360,7 +364,7 @@ export const NewProductPage = () => {
                 setNewSupplier({ ...newSupplier, address: e.target.value })
               }
             />
-            <StockInputField
+            <InputField
               loading={loading}
               label="City"
               labelFor="city"
@@ -370,7 +374,7 @@ export const NewProductPage = () => {
                 setNewSupplier({ ...newSupplier, city: e.target.value })
               }
             />
-            <StockInputField
+            <InputField
               loading={loading}
               label="Contact Number"
               labelFor="phone_number"
@@ -380,7 +384,20 @@ export const NewProductPage = () => {
                 setNewSupplier({ ...newSupplier, phone_number: e.target.value })
               }
             />
-            <StockInputField
+            <InputField
+              loading={loading}
+              labelFor="contact_person"
+              label="Contact Person"
+              value={newSupplier.contact_person}
+              placeholder='i.e "John Doe"'
+              onChange={(e) =>
+                setNewSupplier({
+                  ...newSupplier,
+                  contact_person: e.target.value,
+                })
+              }
+            />
+            <InputField
               loading={loading}
               label="Bank Number"
               labelFor="bank_number"
@@ -390,21 +407,31 @@ export const NewProductPage = () => {
                 setNewSupplier({ ...newSupplier, bank_number: e.target.value })
               }
             />
+            <InputField
+              loading={loading}
+              labelFor="bank_owner"
+              label="Bank Owner"
+              value={newSupplier.bank_owner}
+              placeholder='i.e "John Doe"'
+              onChange={(e) =>
+                setNewSupplier({ ...newSupplier, bank_owner: e.target.value })
+              }
+            />
             <AreaField
               loading={loading}
               label="Remarks"
               labelFor="remarks"
               maxLength={300}
               rows={7}
-              value={newSupplier.remarks}
+              value={newSupplier.remarks ?? ''}
               placeholder="Additional info... (max. 300 characters)"
               onChange={(e) =>
                 setNewSupplier({ ...newSupplier, remarks: e.target.value })
               }
             />
-          </div>
+          </>
         )}
-        <div className="flex flex-row-reverse gap-2 w-2/3 justify-start">
+        <div className="flex flex-row-reverse gap-2 justify-start">
           <button
             disabled={loading}
             type="submit"

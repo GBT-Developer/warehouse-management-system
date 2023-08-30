@@ -1,18 +1,24 @@
 import { db } from 'firebase';
 import {
   collection,
+  collectionGroup,
   doc,
   getDoc,
   getDocs,
   query,
   updateDoc,
+  where,
 } from 'firebase/firestore';
 import { useEffect, useRef, useState } from 'react';
 import { AiFillEdit, AiOutlineLoading3Quarters } from 'react-icons/ai';
 import { GiCancel } from 'react-icons/gi';
+import { GoTriangleDown, GoTriangleUp } from 'react-icons/go';
 import { useNavigate, useParams } from 'react-router-dom';
-import { StockInputField } from 'renderer/components/StockInputField';
+import { InputField } from 'renderer/components/InputField';
+import { SingleTableItem } from 'renderer/components/TableComponents/SingleTableItem';
+import { TableHeader } from 'renderer/components/TableComponents/TableHeader';
 import { Product } from 'renderer/interfaces/Product';
+import { StockHistory } from 'renderer/interfaces/StockHistory';
 import { Supplier } from 'renderer/interfaces/Supplier';
 import { PageLayout } from 'renderer/layout/PageLayout';
 export default function ProductDetailPage() {
@@ -24,6 +30,7 @@ export default function ProductDetailPage() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const supplierOptionRef = useRef<HTMLSelectElement>(null);
   const [suppliers, setSupplier] = useState<Supplier[]>([]);
+  const [stockHistory, setStockHistory] = useState<StockHistory[]>([]);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -38,16 +45,32 @@ export default function ProductDetailPage() {
         setProduct(data);
 
         // Fetch supplier
-        const q = query(collection(db, 'supplier'));
-        const querySnapshot = await getDocs(q);
+        const supplierQeury = query(collection(db, 'supplier'));
+        const supplierQuerySnapshot = await getDocs(supplierQeury);
 
         const supplierData: Supplier[] = [];
-        querySnapshot.forEach((theSupplier) => {
+        supplierQuerySnapshot.forEach((theSupplier) => {
           const data = theSupplier.data() as Supplier;
           data.id = theSupplier.id;
           supplierData.push(data);
         });
         setSupplier(supplierData);
+        // Fetch stock history
+        // Fetch stock history
+        const stockHistoryQuery = query(
+          collectionGroup(db, 'stock_history'),
+          where('product', '==', productRef)
+        );
+        const stockHistoryQuerySnapshot = await getDocs(stockHistoryQuery);
+
+        const stockHistoryData: StockHistory[] = [];
+        stockHistoryQuerySnapshot.forEach((theStockHistory) => {
+          const stockHistory = theStockHistory.data() as StockHistory;
+          if (stockHistory.updated_at === undefined) return;
+          stockHistory.id = theStockHistory.id;
+          stockHistoryData.push(stockHistory);
+        });
+        setStockHistory(stockHistoryData);
 
         setLoading(false);
       } catch (error) {
@@ -159,7 +182,7 @@ export default function ProductDetailPage() {
                 <AiOutlineLoading3Quarters className="animate-spin flex justify-center text-4xl" />
               </div>
             )}
-            <StockInputField
+            <InputField
               loading={loading || !editToggle}
               labelFor="brand"
               label="Brand"
@@ -168,8 +191,11 @@ export default function ProductDetailPage() {
                 if (product === undefined) return;
                 setProduct({ ...product, brand: e.target.value });
               }}
+              additionalStyle={`${
+                editToggle ? '' : 'border-none outline-none bg-inherit'
+              }`}
             />
-            <StockInputField
+            <InputField
               loading={loading || !editToggle}
               labelFor="type"
               label="Motorcyle Type"
@@ -178,8 +204,11 @@ export default function ProductDetailPage() {
                 if (product === undefined) return;
                 setProduct({ ...product, motor_type: e.target.value });
               }}
+              additionalStyle={`${
+                editToggle ? '' : 'border-none outline-none bg-inherit'
+              }`}
             />
-            <StockInputField
+            <InputField
               loading={loading || !editToggle}
               labelFor="part"
               label="Part"
@@ -188,8 +217,11 @@ export default function ProductDetailPage() {
                 if (product === undefined) return;
                 setProduct({ ...product, part: e.target.value });
               }}
+              additionalStyle={`${
+                editToggle ? '' : 'border-none outline-none bg-inherit'
+              }`}
             />
-            <StockInputField
+            <InputField
               loading={loading || !editToggle}
               labelFor="available_color"
               label="Available Color"
@@ -198,8 +230,11 @@ export default function ProductDetailPage() {
                 if (product === undefined) return;
                 setProduct({ ...product, available_color: e.target.value });
               }}
+              additionalStyle={`${
+                editToggle ? '' : 'border-none outline-none bg-inherit'
+              }`}
             />
-            <StockInputField
+            <InputField
               loading={loading || !editToggle}
               labelFor="count"
               label="Product Count"
@@ -208,8 +243,11 @@ export default function ProductDetailPage() {
                 if (product === undefined) return;
                 setProduct({ ...product, count: e.target.value });
               }}
+              additionalStyle={`${
+                editToggle ? '' : 'border-none outline-none bg-inherit'
+              }`}
             />
-            <StockInputField
+            <InputField
               loading={loading || !editToggle}
               labelFor="purchase_price"
               label="Purchase Price"
@@ -218,8 +256,11 @@ export default function ProductDetailPage() {
                 if (product === undefined) return;
                 setProduct({ ...product, buy_price: e.target.value });
               }}
+              additionalStyle={`${
+                editToggle ? '' : 'border-none outline-none bg-inherit'
+              }`}
             />
-            <StockInputField
+            <InputField
               loading={loading || !editToggle}
               labelFor="sell_price"
               label="Sell Price"
@@ -228,6 +269,9 @@ export default function ProductDetailPage() {
                 if (product === undefined) return;
                 setProduct({ ...product, sell_price: e.target.value });
               }}
+              additionalStyle={`${
+                editToggle ? '' : 'border-none outline-none bg-inherit'
+              }`}
             />
             <div>
               <div className="flex justify-between">
@@ -236,30 +280,33 @@ export default function ProductDetailPage() {
                     Warehouse Position
                   </label>
                 </div>
-                <div className="w-2/3 relative">
-                  {loading && (
-                    <div className="absolute flex justify-center items-center py-2 px-3 top-0 left-0 w-full h-full bg-gray-50 rounded-lg z-0">
-                      <AiOutlineLoading3Quarters className="animate-spin flex justify-center text-4xl" />
-                    </div>
-                  )}
-                  {product?.warehouse_position && (
-                    <select
-                      value={product.warehouse_position}
-                      ref={warehouseOptionRef}
-                      disabled={loading || !editToggle}
-                      id="warehouse-position"
-                      name="warehouse-position"
-                      onChange={(e) => {
-                        setProduct({
-                          ...product,
-                          warehouse_position: e.target.value,
-                        });
-                      }}
-                      className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
-                    >
-                      <option value="Gudang Jadi">Gudang Jadi</option>
-                      <option value="Gudang Bahan">Gudang Bahan</option>
-                    </select>
+                <div className="w-2/3">
+                  {editToggle ? (
+                    <>
+                      {product?.warehouse_position && (
+                        <select
+                          value={product.warehouse_position}
+                          ref={warehouseOptionRef}
+                          disabled={loading || !editToggle}
+                          id="warehouse-position"
+                          name="warehouse-position"
+                          onChange={(e) => {
+                            setProduct({
+                              ...product,
+                              warehouse_position: e.target.value,
+                            });
+                          }}
+                          className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
+                        >
+                          <option value="Gudang Jadi">Gudang Jadi</option>
+                          <option value="Gudang Bahan">Gudang Bahan</option>
+                        </select>
+                      )}
+                    </>
+                  ) : (
+                    <p className="text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
+                      {product?.warehouse_position}
+                    </p>
                   )}
                 </div>
               </div>
@@ -271,41 +318,44 @@ export default function ProductDetailPage() {
                     Supplier
                   </label>
                 </div>
-                <div className="w-2/3 relative">
-                  {loading && (
-                    <div className="absolute flex justify-center items-center py-2 px-3 top-0 left-0 w-full h-full bg-gray-50 rounded-lg z-0">
-                      <AiOutlineLoading3Quarters className="animate-spin flex justify-center text-4xl" />
-                    </div>
-                  )}
-                  {product?.supplier && product.supplier.id && (
-                    <select
-                      value={product.supplier.id}
-                      ref={supplierOptionRef}
-                      disabled={loading || !editToggle}
-                      id="supplier"
-                      name="supplier"
-                      onChange={(e) => {
-                        if (product.supplier === undefined) return;
-                        const theSupplier = suppliers.find(
-                          (supplier) => supplier.id === e.target.value
-                        );
-                        if (!theSupplier) return;
-                        setProduct((prev) => {
-                          if (prev === undefined) return;
-                          return {
-                            ...prev,
-                            supplier: theSupplier,
-                          };
-                        });
-                      }}
-                      className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
-                    >
-                      {suppliers.map((supplier) => (
-                        <option key={supplier.id} value={supplier.id}>
-                          {supplier.company_name}
-                        </option>
-                      ))}
-                    </select>
+                <div className="w-2/3">
+                  {editToggle ? (
+                    <>
+                      {product?.supplier && product.supplier.id && (
+                        <select
+                          value={product.supplier.id}
+                          ref={supplierOptionRef}
+                          disabled={loading || !editToggle}
+                          id="supplier"
+                          name="supplier"
+                          onChange={(e) => {
+                            if (product.supplier === undefined) return;
+                            const theSupplier = suppliers.find(
+                              (supplier) => supplier.id === e.target.value
+                            );
+                            if (!theSupplier) return;
+                            setProduct((prev) => {
+                              if (prev === undefined) return;
+                              return {
+                                ...prev,
+                                supplier: theSupplier,
+                              };
+                            });
+                          }}
+                          className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
+                        >
+                          {suppliers.map((supplier) => (
+                            <option key={supplier.id} value={supplier.id}>
+                              {supplier.company_name}
+                            </option>
+                          ))}
+                        </select>
+                      )}
+                    </>
+                  ) : (
+                    <p className="text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
+                      {product?.supplier && product.supplier.company_name}
+                    </p>
                   )}
                 </div>
               </div>
@@ -321,6 +371,35 @@ export default function ProductDetailPage() {
                 </button>
               )}
             </div>
+            <table className="w-full text-sm text-left text-gray-500 dark:text-gray-400">
+              <TableHeader>
+                <td className="px-4 py-3">Date</td>
+                <td className="px-4 py-3">Old count</td>
+                <td className="px-4 py-3">New count</td>
+                <td className="px-4 py-3">Difference</td>
+              </TableHeader>
+              <tbody className="overflow-y-auto">
+                {stockHistory.map((stock_history: StockHistory, index) => (
+                  <tr key={index} className="border-b dark:border-gray-700">
+                    <SingleTableItem>
+                      {stock_history.updated_at?.toDate().toLocaleDateString()}
+                    </SingleTableItem>
+                    <SingleTableItem>{stock_history.old_count}</SingleTableItem>
+                    <SingleTableItem>{stock_history.new_count}</SingleTableItem>
+                    <SingleTableItem>
+                      <div className="flex items-center justify-between">
+                        {stock_history.difference}
+                        {Number(stock_history.difference) > 0 ? (
+                          <GoTriangleUp size={23} className="text-green-500" />
+                        ) : (
+                          <GoTriangleDown size={23} className="text-red-500" />
+                        )}
+                      </div>
+                    </SingleTableItem>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </form>
         </div>
         {errorMessage && (
