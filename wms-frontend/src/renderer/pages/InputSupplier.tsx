@@ -73,11 +73,11 @@ function InputSupplier() {
   return (
     <PageLayout>
       <h1 className="text-4xl font-extrabold tracking-tight text-gray-900 md:text-5xl">
-        Add New Supplier
+        Add New Supplier waw
       </h1>
       <form
         onSubmit={handleSubmit}
-        className={`w-full py-14 my-10 flex flex-col gap-3 relative ${
+        className={`w-2/3 py-14 my-10 flex flex-col gap-3 relative ${
           loading ? 'p-2' : ''
         }`}
       >
@@ -86,91 +86,89 @@ function InputSupplier() {
             <AiOutlineLoading3Quarters className="animate-spin flex justify-center text-4xl" />
           </div>
         )}
-        <div className="grid gap-3 w-2/3">
-          <InputField
-            loading={loading}
-            label="Company Name"
-            labelFor="company_name"
-            value={newSupplier.company_name}
-            placeholder="i.e. PT. Berkat Abadi"
-            onChange={(e) =>
-              setNewSupplier({ ...newSupplier, company_name: e.target.value })
-            }
-          />
-          <InputField
-            loading={loading}
-            label="Address"
-            labelFor="address"
-            value={newSupplier.address}
-            placeholder="i.e. Jl.Soekarno-Hatta No. 123"
-            onChange={(e) =>
-              setNewSupplier({ ...newSupplier, address: e.target.value })
-            }
-          />
-          <InputField
-            loading={loading}
-            label="City"
-            labelFor="city"
-            value={newSupplier.city}
-            placeholder="i.e. 10120, Jakarta"
-            onChange={(e) =>
-              setNewSupplier({ ...newSupplier, city: e.target.value })
-            }
-          />
-          <InputField
-            loading={loading}
-            label="Contact Number"
-            labelFor="phone_number"
-            value={newSupplier.phone_number}
-            placeholder="Phone number or landline number"
-            onChange={(e) =>
-              setNewSupplier({ ...newSupplier, phone_number: e.target.value })
-            }
-          />
-          <InputField
-            loading={loading}
-            label="Contact Person"
-            labelFor="contact_person"
-            value={newSupplier.contact_person}
-            placeholder="i.e John Doe"
-            onChange={(e) =>
-              setNewSupplier({ ...newSupplier, contact_person: e.target.value })
-            }
-          />
-          <InputField
-            loading={loading}
-            label="Bank Number"
-            labelFor="bank_number"
-            value={newSupplier.bank_number}
-            placeholder="1234567890"
-            onChange={(e) =>
-              setNewSupplier({ ...newSupplier, bank_number: e.target.value })
-            }
-          />
-          <InputField
-            loading={loading}
-            label="Bank Owner"
-            labelFor="bank_owner"
-            value={newSupplier.bank_owner}
-            placeholder="i.e John Doe"
-            onChange={(e) =>
-              setNewSupplier({ ...newSupplier, bank_owner: e.target.value })
-            }
-          />
-          <AreaField
-            loading={loading}
-            label="Remarks"
-            labelFor="remarks"
-            maxLength={300}
-            rows={7}
-            value={newSupplier.remarks}
-            placeholder="Additional info... (max. 300 characters)"
-            onChange={(e) =>
-              setNewSupplier({ ...newSupplier, remarks: e.target.value })
-            }
-          />
-        </div>
-        <div className="flex flex-row-reverse gap-2 w-2/3 justify-start">
+        <InputField
+          loading={loading}
+          label="Company Name"
+          labelFor="company_name"
+          value={newSupplier.company_name}
+          placeholder="i.e. PT. Berkat Abadi"
+          onChange={(e) =>
+            setNewSupplier({ ...newSupplier, company_name: e.target.value })
+          }
+        />
+        <InputField
+          loading={loading}
+          label="Address"
+          labelFor="address"
+          value={newSupplier.address}
+          placeholder="i.e. Jl.Soekarno-Hatta No. 123"
+          onChange={(e) =>
+            setNewSupplier({ ...newSupplier, address: e.target.value })
+          }
+        />
+        <InputField
+          loading={loading}
+          label="City"
+          labelFor="city"
+          value={newSupplier.city}
+          placeholder="i.e. 10120, Jakarta"
+          onChange={(e) =>
+            setNewSupplier({ ...newSupplier, city: e.target.value })
+          }
+        />
+        <InputField
+          loading={loading}
+          label="Contact Number"
+          labelFor="phone_number"
+          value={newSupplier.phone_number}
+          placeholder="Phone number or landline number"
+          onChange={(e) =>
+            setNewSupplier({ ...newSupplier, phone_number: e.target.value })
+          }
+        />
+        <InputField
+          loading={loading}
+          label="Contact Person"
+          labelFor="contact_person"
+          value={newSupplier.contact_person}
+          placeholder="i.e John Doe"
+          onChange={(e) =>
+            setNewSupplier({ ...newSupplier, contact_person: e.target.value })
+          }
+        />
+        <InputField
+          loading={loading}
+          label="Bank Number"
+          labelFor="bank_number"
+          value={newSupplier.bank_number}
+          placeholder="1234567890"
+          onChange={(e) =>
+            setNewSupplier({ ...newSupplier, bank_number: e.target.value })
+          }
+        />
+        <InputField
+          loading={loading}
+          label="Bank Owner"
+          labelFor="bank_owner"
+          value={newSupplier.bank_owner}
+          placeholder="i.e John Doe"
+          onChange={(e) =>
+            setNewSupplier({ ...newSupplier, bank_owner: e.target.value })
+          }
+        />
+        <AreaField
+          loading={loading}
+          label="Remarks"
+          labelFor="remarks"
+          maxLength={300}
+          rows={7}
+          value={newSupplier.remarks ?? ''}
+          placeholder="Additional info... (max. 300 characters)"
+          onChange={(e) =>
+            setNewSupplier({ ...newSupplier, remarks: e.target.value })
+          }
+        />
+        <div className="flex flex-row-reverse gap-2 justify-start">
           <button
             disabled={loading}
             type="submit"
