@@ -1,5 +1,5 @@
 import { db } from 'firebase';
-import { addDoc, collection, getDocs, query } from 'firebase/firestore';
+import { addDoc, collection, doc, getDocs, query } from 'firebase/firestore';
 import { useEffect, useRef, useState } from 'react';
 import { AiOutlineLoading3Quarters } from 'react-icons/ai';
 import { useNavigate } from 'react-router-dom';
@@ -162,8 +162,14 @@ export const NewProductPage = () => {
     } else {
       // Proceed to add the new product without creating a new supplier
       const productCollection = collection(db, '/product');
+      if (!newProduct.supplier?.id) return;
 
-      addDoc(productCollection, newProduct)
+      const theNewProcut = {
+        ...newProduct,
+        supplier: doc(db, 'supplier', newProduct.supplier.id),
+      };
+
+      addDoc(productCollection, theNewProcut)
         .then(() => {
           setNewProduct(newProductInitialState);
           if (warehouseOptionRef.current) warehouseOptionRef.current.value = '';
@@ -384,7 +390,7 @@ export const NewProductPage = () => {
               loading={loading}
               labelFor="contact_person"
               label="Contact Person"
-              value={newSupplier.contact_person ?? ''}
+              value={newSupplier.contact_person}
               placeholder='i.e "John Doe"'
               onChange={(e) =>
                 setNewSupplier({
@@ -407,7 +413,7 @@ export const NewProductPage = () => {
               loading={loading}
               labelFor="bank_owner"
               label="Bank Owner"
-              value={newSupplier.bank_owner ?? ''}
+              value={newSupplier.bank_owner}
               placeholder='i.e "John Doe"'
               onChange={(e) =>
                 setNewSupplier({ ...newSupplier, bank_owner: e.target.value })
@@ -419,7 +425,7 @@ export const NewProductPage = () => {
               labelFor="remarks"
               maxLength={300}
               rows={7}
-              value={newSupplier.remarks}
+              value={newSupplier.remarks ?? ''}
               placeholder="Additional info... (max. 300 characters)"
               onChange={(e) =>
                 setNewSupplier({ ...newSupplier, remarks: e.target.value })
