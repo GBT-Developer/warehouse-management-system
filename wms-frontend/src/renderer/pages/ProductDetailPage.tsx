@@ -351,15 +351,6 @@ export default function ProductDetailPage() {
                 )}
               </div>
             </div>
-            <div className="w-full flex justify-end">
-              <button
-                type="button"
-                className="px-4 py-2 font-medium text-white bg-gray-600  focus:ring-4 focus:ring-gray-300 rounded-lg text-sm h-[max-content] w-[max-content] flex justify-center gap-2 text-center items-center"
-                onClick={() => navigate(-1)}
-              >
-                Back
-              </button>
-            </div>
             <div className="flex flex-row-reverse gap-2 w-full justify-start">
               {editToggle && (
                 <button
@@ -371,40 +362,40 @@ export default function ProductDetailPage() {
                 </button>
               )}
             </div>
-            <hr className="my-4" />
-            <div className=" w-full">
-              <p className="text-2xl font-medium">Stock History</p>
-            </div>
-            <table className="w-full text-sm text-left text-gray-500 dark:text-gray-400">
-              <TableHeader>
-                <td className=" py-3">Date</td>
-                <td className=" py-3">Old count</td>
-                <td className=" py-3">New count</td>
-                <td className=" py-3">Difference</td>
-              </TableHeader>
-              <tbody className="overflow-y-auto">
-                {stockHistory.map((stock_history: StockHistory, index) => (
-                  <tr key={index} className="border-b dark:border-gray-700">
-                    <SingleTableItem>
-                      {stock_history.updated_at?.toDate().toLocaleDateString()}
-                    </SingleTableItem>
-                    <SingleTableItem>{stock_history.old_count}</SingleTableItem>
-                    <SingleTableItem>{stock_history.new_count}</SingleTableItem>
-                    <SingleTableItem>
-                      <div className="flex items-center justify-between">
-                        {stock_history.difference}
-                        {Number(stock_history.difference) > 0 ? (
-                          <GoTriangleUp size={23} className="text-green-500" />
-                        ) : (
-                          <GoTriangleDown size={23} className="text-red-500" />
-                        )}
-                      </div>
-                    </SingleTableItem>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
           </form>
+          <hr className="my-4" />
+          <div className=" w-full">
+            <p className="text-2xl font-medium">Stock History</p>
+          </div>
+          <table className="w-full text-sm text-left text-gray-500 dark:text-gray-400">
+            <TableHeader>
+              <td className=" py-3">Date</td>
+              <td className=" py-3">Old count</td>
+              <td className=" py-3">New count</td>
+              <td className=" py-3">Difference</td>
+            </TableHeader>
+            <tbody className="overflow-y-auto">
+              {stockHistory.map((stock_history: StockHistory, index) => (
+                <tr key={index} className="border-b dark:border-gray-700">
+                  <SingleTableItem>
+                    {stock_history.updated_at?.toDate().toLocaleDateString()}
+                  </SingleTableItem>
+                  <SingleTableItem>{stock_history.old_count}</SingleTableItem>
+                  <SingleTableItem>{stock_history.new_count}</SingleTableItem>
+                  <SingleTableItem>
+                    <div className="flex items-center justify-between">
+                      {stock_history.difference}
+                      {Number(stock_history.difference) > 0 ? (
+                        <GoTriangleUp size={23} className="text-green-500" />
+                      ) : (
+                        <GoTriangleDown size={23} className="text-red-500" />
+                      )}
+                    </div>
+                  </SingleTableItem>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
         {errorMessage && (
           <p className="text-red-500 text-sm ">{errorMessage}</p>
