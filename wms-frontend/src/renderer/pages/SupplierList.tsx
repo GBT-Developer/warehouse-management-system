@@ -1,6 +1,6 @@
 import { db } from 'firebase';
-import { collection, doc, getDocs, query, updateDoc } from 'firebase/firestore';
-import { FormEvent, useEffect, useRef, useState } from 'react';
+import { collection, getDocs, query } from 'firebase/firestore';
+import { useEffect, useState } from 'react';
 import { AiOutlineLoading3Quarters } from 'react-icons/ai';
 import { useNavigate } from 'react-router-dom';
 import { SingleTableItem } from 'renderer/components/TableComponents/SingleTableItem';
@@ -12,12 +12,7 @@ import { PageLayout } from 'renderer/layout/PageLayout';
 export default function SupplierList() {
   const [supplierList, setSupplierList] = useState<Supplier[]>([]);
   const [search, setSearch] = useState('');
-  const [telephone, setTelephone] = useState<string[]>([]);
-  const [updatedProduct, setUpdatedProduct] = useState('');
-  const [editingIndex, setEditingIndex] = useState<number>(-1);
   const [loading, setLoading] = useState(true);
-  const inputRef = useRef<HTMLInputElement>(null);
-  const [editTelephoneToggle, setEditTelephoneToggle] = useState(false);
   const navigate = useNavigate();
   // Take product from firebase
   useEffect(() => {
@@ -34,7 +29,6 @@ export default function SupplierList() {
         });
 
         setSupplierList(supplierData);
-        setTelephone(supplierData.map((supplier) => supplier.phone_number));
         setLoading(false);
       } catch (error) {
         console.error('Error fetching data:', error);
@@ -46,39 +40,6 @@ export default function SupplierList() {
     });
   }, []);
 
-  const handleEditClick = (index: number) => {
-    setEditingIndex(index); // Set the editing index to enable editing for this row
-  };
-
-  const handleBlur = () => {
-    setEditingIndex(-1); // Reset the editing index when blurred
-  };
-  const handleTelephoneChange = (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    const supplier = supplierList[editingIndex];
-    if (!supplier.id) return;
-    const supplierRef = doc(db, 'supplier', supplier.id);
-
-    const updatedSupplier = {
-      ...supplier,
-      phone_number: supplier.phone_number,
-    };
-
-    updateDoc(supplierRef, updatedSupplier).catch((error) => {
-      console.error('Error updating document: ', error);
-    });
-
-    setEditTelephoneToggle(false);
-  };
-
-  function handleSubmit(e: { preventDefault: () => void }) {
-    e.preventDefault();
-    // Declare the index
-    const index = 0;
-
-    setEditingIndex(-1);
-    inputRef.current?.blur();
-  }
   return (
     <PageLayout>
       <div className="w-full h-full bg-transparent overflow-hidden">
