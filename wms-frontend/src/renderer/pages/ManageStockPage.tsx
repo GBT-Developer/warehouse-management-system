@@ -103,14 +103,14 @@ export const ManageStockPage = () => {
           <div className="overflow-y-auto h-full">
             <table className="w-full text-sm text-left text-gray-500">
               <TableHeader>
-                <th className="px-4 py-3">No</th>
-                <th className="px-4 py-3">Merk</th>
-                <th className="px-4 py-3">Part</th>
-                <td className="px-4 py-3">Supplier</td>
-                <td className="px-4 py-3">Warna</td>
-                <td className="px-4 py-3">Posisi</td>
-                <td className="px-4 py-3">Jumlah</td>
-                <td className="px-4 py-3">History</td>
+                <th className=" py-3">No</th>
+                <th className=" py-3">Merk</th>
+                <th className=" py-3">Part</th>
+                <td className=" py-3">Supplier</td>
+                <td className=" py-3">Warna</td>
+                <td className=" py-3">Posisi</td>
+                <td className=" py-3">Jumlah</td>
+                <td className=" py-3">History</td>
               </TableHeader>
               <tbody className="overflow-y-auto">
                 {products.map((product: Product, index) => (

@@ -7,7 +7,7 @@ export type BaseLayoutProps = AppHeaderProps & {
   children: React.ReactNode;
 };
 
-export const BaseLayout = ({ headerRightMenu, children }: BaseLayoutProps) => {
+export const BaseLayout = ({ children }: BaseLayoutProps) => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
   const { isLoggedIn } = useAuth();

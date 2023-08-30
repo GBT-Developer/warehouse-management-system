@@ -107,11 +107,11 @@ export const ManageProductPage = () => {
 
             <table className="w-full text-sm text-left text-gray-500">
               <TableHeader>
-                <th className="px-4 py-3">Name</th>
-                <th className="px-4 py-3">Amount</th>
-                <th className="px-4 py-3">Selling Price</th>
-                <th className="px-4 py-3">Warehouse</th>
-                <th className="px-4 py-3"></th>
+                <th className=" py-3">Name</th>
+                <th className=" py-3">Amount</th>
+                <th className=" py-3">Selling Price</th>
+                <th className=" py-3">Warehouse</th>
+                <th className=" py-3"></th>
               </TableHeader>
               <tbody>
                 {filteredProducts.map((product, index) => (

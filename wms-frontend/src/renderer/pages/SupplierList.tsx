@@ -97,11 +97,11 @@ export default function SupplierList() {
 
             <table className="w-full text-sm text-left text-gray-500">
               <TableHeader>
-                <th className="px-4 py-3">Factory Name</th>
-                <th className="px-4 py-3">Address</th>
-                <th className="px-4 py-3">Telephone</th>
-                <th className="px-4 py-3">Bank Account</th>
-                <th className="px-4 py-3"></th>
+                <th className=" py-3">Factory Name</th>
+                <th className=" py-3">Address</th>
+                <th className=" py-3">Telephone</th>
+                <th className=" py-3">Bank Account</th>
+                <th className=" py-3"></th>
               </TableHeader>
               <tbody className="overflow-y-auto">
                 {supplierList.map((supplier: Supplier, index) => (
@@ -109,7 +109,7 @@ export default function SupplierList() {
                     key={index}
                     className="border-b hover:shadow-md cursor-pointer"
                     onClick={() =>
-                      supplier.id && navigate('/supplier/' + supplier.id)
+                      supplier.id && navigate('/supplier-detail/' + supplier.id)
                     }
                   >
                     <SingleTableItem>{supplier.company_name} </SingleTableItem>
