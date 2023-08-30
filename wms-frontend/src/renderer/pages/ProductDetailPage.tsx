@@ -140,15 +140,8 @@ export default function ProductDetailPage() {
 
   return (
     <PageLayout>
-      <div className="flex justify-between">
-        <button
-          type="button"
-          className="px-4 py-2 font-medium text-white bg-gray-600  focus:ring-4 focus:ring-gray-300 rounded-lg text-sm h-[max-content] w-[max-content] flex justify-center gap-2 text-center items-center"
-          onClick={() => navigate(-1)}
-        >
-          Back
-        </button>
-        <h1 className="mb-[4rem] text-4xl font-extrabold tracking-tight text-gray-900 md:text-5xl">
+      <div className="flex w-2/3 flex-col md:flex-row items-center justify-between space-y-3 md:space-y-0 md:space-x-4 py-4 mb-[2rem]">
+        <h1 className="text-4xl font-extrabold tracking-tight text-gray-900 md:text-5xl">
           Product Detail
         </h1>
         <button
@@ -169,8 +162,8 @@ export default function ProductDetailPage() {
           )}
         </button>
       </div>
-      <div className="w-full h-full bg-transparent overflow-hidden">
-        <div className="relative shadow-md sm:rounded-lg overflow-auto h-full flex flex-col justify-between">
+      <div className="w-full h-full bg-transparent">
+        <div className="relative sm:rounded-lg h-full flex flex-col justify-between">
           <form
             onSubmit={handleSubmit}
             className={`w-2/3 flex flex-col gap-3 relative ${
@@ -275,7 +268,7 @@ export default function ProductDetailPage() {
             />
             <div>
               <div className="flex justify-between">
-                <div className="w-1/3">
+                <div className="w-1/3 flex items-center">
                   <label htmlFor={'warehouse'} className="text-md">
                     Warehouse Position
                   </label>
@@ -311,54 +304,61 @@ export default function ProductDetailPage() {
                 </div>
               </div>
             </div>
-            <div>
-              <div className="flex justify-between">
-                <div className="w-1/3">
-                  <label htmlFor={'supplier'} className="text-md">
-                    Supplier
-                  </label>
-                </div>
-                <div className="w-2/3">
-                  {editToggle ? (
-                    <>
-                      {product?.supplier && product.supplier.id && (
-                        <select
-                          value={product.supplier.id}
-                          ref={supplierOptionRef}
-                          disabled={loading || !editToggle}
-                          id="supplier"
-                          name="supplier"
-                          onChange={(e) => {
-                            if (product.supplier === undefined) return;
-                            const theSupplier = suppliers.find(
-                              (supplier) => supplier.id === e.target.value
-                            );
-                            if (!theSupplier) return;
-                            setProduct((prev) => {
-                              if (prev === undefined) return;
-                              return {
-                                ...prev,
-                                supplier: theSupplier,
-                              };
-                            });
-                          }}
-                          className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
-                        >
-                          {suppliers.map((supplier) => (
-                            <option key={supplier.id} value={supplier.id}>
-                              {supplier.company_name}
-                            </option>
-                          ))}
-                        </select>
-                      )}
-                    </>
-                  ) : (
-                    <p className="text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
-                      {product?.supplier && product.supplier.company_name}
-                    </p>
-                  )}
-                </div>
+            <div className="flex justify-between">
+              <div className="w-1/3 flex items-center">
+                <label htmlFor={'supplier'} className="text-md">
+                  Supplier
+                </label>
               </div>
+              <div className="w-2/3">
+                {editToggle ? (
+                  <>
+                    {product?.supplier && product.supplier.id && (
+                      <select
+                        value={product.supplier.id}
+                        ref={supplierOptionRef}
+                        disabled={loading || !editToggle}
+                        id="supplier"
+                        name="supplier"
+                        onChange={(e) => {
+                          if (product.supplier === undefined) return;
+                          const theSupplier = suppliers.find(
+                            (supplier) => supplier.id === e.target.value
+                          );
+                          if (!theSupplier) return;
+                          setProduct((prev) => {
+                            if (prev === undefined) return;
+                            return {
+                              ...prev,
+                              supplier: theSupplier,
+                            };
+                          });
+                        }}
+                        className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
+                      >
+                        {suppliers.map((supplier) => (
+                          <option key={supplier.id} value={supplier.id}>
+                            {supplier.company_name}
+                          </option>
+                        ))}
+                      </select>
+                    )}
+                  </>
+                ) : (
+                  <p className="text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
+                    {product?.supplier && product.supplier.company_name}
+                  </p>
+                )}
+              </div>
+            </div>
+            <div className="w-full flex justify-end">
+              <button
+                type="button"
+                className="px-4 py-2 font-medium text-white bg-gray-600  focus:ring-4 focus:ring-gray-300 rounded-lg text-sm h-[max-content] w-[max-content] flex justify-center gap-2 text-center items-center"
+                onClick={() => navigate(-1)}
+              >
+                Back
+              </button>
             </div>
             <div className="flex flex-row-reverse gap-2 w-full justify-start">
               {editToggle && (
@@ -372,15 +372,15 @@ export default function ProductDetailPage() {
               )}
             </div>
             <hr className="my-4" />
-            <div className="px-4 w-full">
+            <div className=" w-full">
               <p className="text-2xl font-medium">Stock History</p>
             </div>
             <table className="w-full text-sm text-left text-gray-500 dark:text-gray-400">
               <TableHeader>
-                <td className="px-4 py-3">Date</td>
-                <td className="px-4 py-3">Old count</td>
-                <td className="px-4 py-3">New count</td>
-                <td className="px-4 py-3">Difference</td>
+                <td className=" py-3">Date</td>
+                <td className=" py-3">Old count</td>
+                <td className=" py-3">New count</td>
+                <td className=" py-3">Difference</td>
               </TableHeader>
               <tbody className="overflow-y-auto">
                 {stockHistory.map((stock_history: StockHistory, index) => (
