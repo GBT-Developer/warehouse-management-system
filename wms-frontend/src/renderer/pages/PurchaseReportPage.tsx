@@ -1,20 +1,22 @@
 import { db } from 'firebase';
-import { collection, doc, getDocs, query, updateDoc } from 'firebase/firestore';
-import { FormEvent, useEffect, useRef, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { collection, doc, getDocs, query, where } from 'firebase/firestore';
+import { useEffect, useRef, useState } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 import { SingleTableItem } from 'renderer/components/TableComponents/SingleTableItem';
 import { TableHeader } from 'renderer/components/TableComponents/TableHeader';
 import { TableTitle } from 'renderer/components/TableComponents/TableTitle';
-import { Supplier } from 'renderer/interfaces/Supplier';
+import { Product } from 'renderer/interfaces/Product';
+import { Purchase_History } from 'renderer/interfaces/PurchaseHistory';
 import { PageLayout } from 'renderer/layout/PageLayout';
 
 export default function PurchaseHistoryPage() {
-  const [supplierList, setSupplierList] = useState<Supplier[]>([]);
+  const [loading, setLoading] = useState(false);
+  const param = useParams();
+  const [purchaseList, setPurchaseList] = useState<Purchase_History[]>([]);
   const [search, setSearch] = useState('');
   const [telephone, setTelephone] = useState<string[]>([]);
   const [updatedProduct, setUpdatedProduct] = useState('');
   const [editingIndex, setEditingIndex] = useState<number>(-1);
-  const [loading, setLoading] = useState(true);
   const inputRef = useRef<HTMLInputElement>(null);
   const [editTelephoneToggle, setEditTelephoneToggle] = useState(false);
   const navigate = useNavigate();
@@ -22,18 +24,36 @@ export default function PurchaseHistoryPage() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const q = query(collection(db, 'supplier'));
+        setLoading(true);
+        if (!param.id) return; // Check if param.id is defined
+
+        const supplierRef = doc(db, 'supplier', param.id);
+
+        const q = query(
+          collection(db, 'purchase_history'),
+          where('supplier', '==', supplierRef)
+        );
         const querySnapshot = await getDocs(q);
 
-        const supplierData: Supplier[] = [];
-        querySnapshot.forEach((theProduct) => {
-          const data = theProduct.data() as Supplier;
-          data.id = theProduct.id;
-          supplierData.push(data);
+        const historyData: Purchase_History[] = [];
+        querySnapshot.forEach((doc) => {
+          const data = doc.data() as Purchase_History;
+          historyData.push(data);
         });
-
-        setSupplierList(supplierData);
-        setTelephone(supplierData.map((supplier) => supplier.phone_number));
+        const myquery = query(
+          collection(db, 'product'),
+          where('supplier', '==', supplierRef)
+        );
+        const productSnapshot = await getDocs(myquery);
+        productSnapshot.forEach((doc) => {
+          console.log(doc.id, ' => ', doc.data());
+          historyData.forEach((history) => {
+            if (doc.id === history.product.id) {
+              history.product = doc.data() as Product;
+            }
+          });
+        });
+        setPurchaseList(historyData);
         setLoading(false);
       } catch (error) {
         console.error('Error fetching data:', error);
@@ -43,32 +63,7 @@ export default function PurchaseHistoryPage() {
     fetchData().catch((error) => {
       console.log(error);
     });
-  }, []);
-
-  const handleEditClick = (index: number) => {
-    setEditingIndex(index); // Set the editing index to enable editing for this row
-  };
-
-  const handleBlur = () => {
-    setEditingIndex(-1); // Reset the editing index when blurred
-  };
-  const handleTelephoneChange = (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    const supplier = supplierList[editingIndex];
-    if (!supplier.id) return;
-    const supplierRef = doc(db, 'supplier', supplier.id);
-
-    const updatedSupplier = {
-      ...supplier,
-      phone_number: supplier.phone_number,
-    };
-
-    updateDoc(supplierRef, updatedSupplier).catch((error) => {
-      console.error('Error updating document: ', error);
-    });
-
-    setEditTelephoneToggle(false);
-  };
+  }, [param.id]);
 
   function handleSubmit(e: { preventDefault: () => void }) {
     e.preventDefault();
@@ -97,37 +92,43 @@ export default function PurchaseHistoryPage() {
                 <th className="px-4 py-3">Status</th>
               </TableHeader>
               <tbody className="overflow-y-auto">
-                {supplierList.map((supplier: Supplier, index) => (
-                  <tr
-                    key={index}
-                    className="border-b hover:shadow-md cursor-pointer"
-                  >
-                    <SingleTableItem>{supplier.company_name}</SingleTableItem>
-                    <SingleTableItem>
-                      {supplier.address}, {supplier.city}
-                    </SingleTableItem>
-                    <SingleTableItem>{supplier.phone_number}</SingleTableItem>
-                    <SingleTableItem>
-                      <span className="font-medium text-md">
-                        {supplier.bank_number}
-                      </span>
-                    </SingleTableItem>
-                    <SingleTableItem>
-                      <div>
-                        <select
-                          value={'Unpaid'}
-                          disabled={loading}
-                          id="supplier"
-                          name="supplier"
-                          className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-fit p-2.5"
-                        >
-                          <option value="Unpaid">Unpaid</option>
-                          <option value="Paid">Paid</option>
-                        </select>
-                      </div>
-                    </SingleTableItem>
-                  </tr>
-                ))}
+                {purchaseList.map(
+                  (purchase_history: Purchase_History, index) => (
+                    <tr
+                      key={index}
+                      className="border-b hover:shadow-md cursor-pointer"
+                    >
+                      <SingleTableItem>
+                        {purchase_history.product.brand}
+                      </SingleTableItem>
+                      <SingleTableItem>
+                        {purchase_history.created_at.toDate().toLocaleString()}
+                      </SingleTableItem>
+                      <SingleTableItem>
+                        {purchase_history.count}
+                      </SingleTableItem>
+                      <SingleTableItem>
+                        <span className="font-medium text-md">
+                          {purchase_history.product.buy_price}
+                        </span>
+                      </SingleTableItem>
+                      <SingleTableItem>
+                        <form>
+                          <select
+                            value={purchase_history.payment_status}
+                            disabled={loading}
+                            id="purchase_history"
+                            name="purchase_history"
+                            className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-fit p-2.5"
+                          >
+                            <option value="Unpaid">Unpaid</option>
+                            <option value="Paid">Paid</option>
+                          </select>
+                        </form>
+                      </SingleTableItem>
+                    </tr>
+                  )
+                )}
               </tbody>
             </table>
           </div>

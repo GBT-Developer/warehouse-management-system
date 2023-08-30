@@ -117,7 +117,7 @@ export default function SupplierList() {
                         type="button"
                         className="text-gray-500 p-2 hover:text-gray-700 cursor-pointer bg-gray-100 rounded-md"
                         onClick={() => {
-                          navigate('/transactionhistory');
+                          navigate('/purchase-report/' + supplier.id);
                         }}
                       >
                         Purchase History
