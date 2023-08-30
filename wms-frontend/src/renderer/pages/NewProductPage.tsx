@@ -74,8 +74,7 @@ export const NewProductPage = () => {
       Object.values(newProduct).some(
         (value) => value === '' || value === undefined
       ) ||
-      newProduct.warehouse_position === '' ||
-      newProduct.supplier === undefined
+      newProduct.warehouse_position === ''
     ) {
       setErrorMessage('Please fill all the fields');
       setTimeout(() => {
@@ -203,7 +202,6 @@ export const NewProductPage = () => {
             labelFor="brand"
             label="Brand"
             value={newProduct.brand}
-            placeholder=""
             onChange={(e) =>
               setNewProduct({ ...newProduct, brand: e.target.value })
             }
@@ -213,7 +211,6 @@ export const NewProductPage = () => {
             labelFor="type"
             label="Motorcycle Type"
             value={newProduct.motor_type}
-            placeholder=""
             onChange={(e) =>
               setNewProduct({ ...newProduct, motor_type: e.target.value })
             }
@@ -223,7 +220,6 @@ export const NewProductPage = () => {
             labelFor="part"
             label="Part"
             value={newProduct.part}
-            placeholder=""
             onChange={(e) =>
               setNewProduct({ ...newProduct, part: e.target.value })
             }
@@ -233,7 +229,6 @@ export const NewProductPage = () => {
             labelFor="available_color"
             label="Available Color"
             value={newProduct.available_color}
-            placeholder=""
             onChange={(e) =>
               setNewProduct({ ...newProduct, available_color: e.target.value })
             }
@@ -243,7 +238,6 @@ export const NewProductPage = () => {
             labelFor="count"
             label="Product Count"
             value={newProduct.count}
-            placeholder=""
             onChange={(e) =>
               setNewProduct({ ...newProduct, count: e.target.value })
             }
@@ -253,7 +247,6 @@ export const NewProductPage = () => {
             labelFor="purchase_price"
             label="Purchase Price"
             value={newProduct.buy_price}
-            placeholder=""
             onChange={(e) =>
               setNewProduct({ ...newProduct, buy_price: e.target.value })
             }
@@ -263,7 +256,6 @@ export const NewProductPage = () => {
             labelFor="sell_price"
             label="Sell Price"
             value={newProduct.sell_price}
-            placeholder=""
             onChange={(e) =>
               setNewProduct({ ...newProduct, sell_price: e.target.value })
             }
