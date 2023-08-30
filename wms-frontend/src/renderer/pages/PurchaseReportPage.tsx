@@ -119,10 +119,25 @@ export default function PurchaseHistoryPage() {
                             disabled={loading}
                             id="purchase_history"
                             name="purchase_history"
-                            className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-fit p-2.5"
+                            onChange={(e) => {
+                              const newPurchaseList = [...purchaseList];
+                              newPurchaseList[index].payment_status =
+                                e.target.value;
+                              setPurchaseList(newPurchaseList);
+                            }}
+                            className={` ${
+                              purchase_history.payment_status.toLowerCase() ===
+                              'unpaid'
+                                ? 'bg-red-400'
+                                : 'bg-green-400'
+                            } border border-gray-300 text-gray-900 text-sm rounded-lg outline-none block w-fit p-2.5`}
                           >
-                            <option value="Unpaid">Unpaid</option>
-                            <option value="Paid">Paid</option>
+                            <option className="bg-gray-50" value="Unpaid">
+                              Unpaid
+                            </option>
+                            <option className="bg-gray-50" value="Paid">
+                              Paid
+                            </option>
                           </select>
                         </form>
                       </SingleTableItem>
