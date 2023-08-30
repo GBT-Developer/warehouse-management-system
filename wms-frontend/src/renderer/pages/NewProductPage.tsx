@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import { AiOutlineLoading3Quarters } from 'react-icons/ai';
 import { useNavigate } from 'react-router-dom';
 import { AreaField } from 'renderer/components/AreaField';
-import { StockInputField } from 'renderer/components/StockInputField';
+import { StockInputField } from 'renderer/components/InputField';
 import { Product } from 'renderer/interfaces/Product';
 import { Supplier } from 'renderer/interfaces/Supplier';
 import { PageLayout } from 'renderer/layout/PageLayout';
@@ -384,7 +384,7 @@ export const NewProductPage = () => {
               loading={loading}
               labelFor="contact_person"
               label="Contact Person"
-              value={newSupplier?.contact_person ?? ''}
+              value={newSupplier.contact_person ?? ''}
               placeholder='i.e "John Doe"'
               onChange={(e) =>
                 setNewSupplier({
@@ -407,7 +407,7 @@ export const NewProductPage = () => {
               loading={loading}
               labelFor="bank_owner"
               label="Bank Owner"
-              value={newSupplier?.bank_owner ?? ''}
+              value={newSupplier.bank_owner ?? ''}
               placeholder='i.e "John Doe"'
               onChange={(e) =>
                 setNewSupplier({ ...newSupplier, bank_owner: e.target.value })

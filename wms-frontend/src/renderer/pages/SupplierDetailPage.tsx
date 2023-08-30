@@ -5,7 +5,7 @@ import { AiFillEdit, AiOutlineLoading3Quarters } from 'react-icons/ai';
 import { GiCancel } from 'react-icons/gi';
 import { useNavigate, useParams } from 'react-router-dom';
 import { AreaField } from 'renderer/components/AreaField';
-import { StockInputField } from 'renderer/components/StockInputField';
+import { StockInputField } from 'renderer/components/InputField';
 import { Supplier } from 'renderer/interfaces/Supplier';
 import { PageLayout } from 'renderer/layout/PageLayout';
 export default function SupplierDetailPage() {

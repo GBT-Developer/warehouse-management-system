@@ -14,7 +14,7 @@ import { AiFillEdit, AiOutlineLoading3Quarters } from 'react-icons/ai';
 import { GiCancel } from 'react-icons/gi';
 import { GoTriangleDown, GoTriangleUp } from 'react-icons/go';
 import { useNavigate, useParams } from 'react-router-dom';
-import { StockInputField } from 'renderer/components/StockInputField';
+import { StockInputField } from 'renderer/components/InputField';
 import { SingleTableItem } from 'renderer/components/TableComponents/SingleTableItem';
 import { TableHeader } from 'renderer/components/TableComponents/TableHeader';
 import { Product } from 'renderer/interfaces/Product';
@@ -55,7 +55,7 @@ export default function ProductDetailPage() {
           supplierData.push(data);
         });
         setSupplier(supplierData);
-        //fetch stock history
+        // Fetch stock history
         // Fetch stock history
         const stockHistoryQuery = query(
           collectionGroup(db, 'stock_history'),
