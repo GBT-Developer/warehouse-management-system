@@ -1,6 +1,6 @@
 import React from 'react';
 
-interface StockInputFieldProps {
+interface TextAreProps {
   value: string;
   onChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
   labelFor: string;
@@ -22,7 +22,7 @@ export const AreaField = ({
   placeholder,
   loading,
   additionalStyle,
-}: StockInputFieldProps) => {
+}: TextAreProps) => {
   return (
     <div>
       <div className="flex py-2">

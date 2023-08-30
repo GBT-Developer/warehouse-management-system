@@ -5,7 +5,7 @@ import { AiFillEdit, AiOutlineLoading3Quarters } from 'react-icons/ai';
 import { GiCancel } from 'react-icons/gi';
 import { useNavigate, useParams } from 'react-router-dom';
 import { AreaField } from 'renderer/components/AreaField';
-import { StockInputField } from 'renderer/components/InputField';
+import { InputField } from 'renderer/components/InputField';
 import { Supplier } from 'renderer/interfaces/Supplier';
 import { PageLayout } from 'renderer/layout/PageLayout';
 export default function SupplierDetailPage() {
@@ -134,7 +134,7 @@ export default function SupplierDetailPage() {
                 <AiOutlineLoading3Quarters className="animate-spin flex justify-center text-4xl" />
               </div>
             )}
-            <StockInputField
+            <InputField
               loading={loading || !editToggle}
               labelFor="company_name"
               label="Company Name"
@@ -147,7 +147,7 @@ export default function SupplierDetailPage() {
                 editToggle ? '' : 'border-none outline-none bg-inherit'
               }`}
             />
-            <StockInputField
+            <InputField
               loading={loading || !editToggle}
               labelFor="address"
               label="Address"
@@ -160,7 +160,7 @@ export default function SupplierDetailPage() {
                 editToggle ? '' : 'border-none outline-none bg-inherit'
               }`}
             />
-            <StockInputField
+            <InputField
               loading={loading || !editToggle}
               labelFor="city"
               label="City"
@@ -173,7 +173,7 @@ export default function SupplierDetailPage() {
                 editToggle ? '' : 'border-none outline-none bg-inherit'
               }`}
             />
-            <StockInputField
+            <InputField
               loading={loading || !editToggle}
               labelFor="phone_number"
               label="Contact Number"
@@ -186,7 +186,7 @@ export default function SupplierDetailPage() {
                 editToggle ? '' : 'border-none outline-none bg-inherit'
               }`}
             />
-            <StockInputField
+            <InputField
               loading={loading || !editToggle}
               labelFor="contact_person"
               label="Contact Person"
@@ -199,7 +199,7 @@ export default function SupplierDetailPage() {
                 editToggle ? '' : 'border-none outline-none bg-inherit'
               }`}
             />
-            <StockInputField
+            <InputField
               loading={loading || !editToggle}
               labelFor="bank_number"
               label="Bank Number"
@@ -212,7 +212,7 @@ export default function SupplierDetailPage() {
                 editToggle ? '' : 'border-none outline-none bg-inherit'
               }`}
             />
-            <StockInputField
+            <InputField
               loading={loading || !editToggle}
               labelFor="bank_owner"
               label="Bank Owner"

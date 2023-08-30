@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { AiOutlineLoading3Quarters } from 'react-icons/ai';
 import { useNavigate } from 'react-router-dom';
 import { AreaField } from 'renderer/components/AreaField';
-import { StockInputField } from 'renderer/components/InputField';
+import { InputField } from 'renderer/components/InputField';
 import { Supplier } from 'renderer/interfaces/Supplier';
 import { PageLayout } from 'renderer/layout/PageLayout';
 
@@ -87,7 +87,7 @@ function InputSupplier() {
           </div>
         )}
         <div className="grid gap-3 w-2/3">
-          <StockInputField
+          <InputField
             loading={loading}
             label="Company Name"
             labelFor="company_name"
@@ -97,7 +97,7 @@ function InputSupplier() {
               setNewSupplier({ ...newSupplier, company_name: e.target.value })
             }
           />
-          <StockInputField
+          <InputField
             loading={loading}
             label="Address"
             labelFor="address"
@@ -107,7 +107,7 @@ function InputSupplier() {
               setNewSupplier({ ...newSupplier, address: e.target.value })
             }
           />
-          <StockInputField
+          <InputField
             loading={loading}
             label="City"
             labelFor="city"
@@ -117,7 +117,7 @@ function InputSupplier() {
               setNewSupplier({ ...newSupplier, city: e.target.value })
             }
           />
-          <StockInputField
+          <InputField
             loading={loading}
             label="Contact Number"
             labelFor="phone_number"
@@ -127,7 +127,7 @@ function InputSupplier() {
               setNewSupplier({ ...newSupplier, phone_number: e.target.value })
             }
           />
-          <StockInputField
+          <InputField
             loading={loading}
             label="Contact Person"
             labelFor="contact_person"
@@ -137,7 +137,7 @@ function InputSupplier() {
               setNewSupplier({ ...newSupplier, contact_person: e.target.value })
             }
           />
-          <StockInputField
+          <InputField
             loading={loading}
             label="Bank Number"
             labelFor="bank_number"
@@ -147,7 +147,7 @@ function InputSupplier() {
               setNewSupplier({ ...newSupplier, bank_number: e.target.value })
             }
           />
-          <StockInputField
+          <InputField
             loading={loading}
             label="Bank Owner"
             labelFor="bank_owner"

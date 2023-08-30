@@ -1,6 +1,6 @@
 import React from 'react';
 
-interface StockInputFieldProps {
+export interface InputFieldProps {
   value: string;
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   labelFor: string;
@@ -10,7 +10,7 @@ interface StockInputFieldProps {
   additionalStyle?: string;
 }
 
-export const StockInputField = ({
+export const InputField = ({
   value,
   onChange,
   labelFor,
@@ -18,7 +18,7 @@ export const StockInputField = ({
   placeholder,
   loading,
   additionalStyle,
-}: StockInputFieldProps) => {
+}: InputFieldProps) => {
   return (
     <div>
       <div className="flex justify-between items-center">

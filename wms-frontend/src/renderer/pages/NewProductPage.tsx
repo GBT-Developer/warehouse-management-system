@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import { AiOutlineLoading3Quarters } from 'react-icons/ai';
 import { useNavigate } from 'react-router-dom';
 import { AreaField } from 'renderer/components/AreaField';
-import { StockInputField } from 'renderer/components/InputField';
+import { InputField } from 'renderer/components/InputField';
 import { Product } from 'renderer/interfaces/Product';
 import { Supplier } from 'renderer/interfaces/Supplier';
 import { PageLayout } from 'renderer/layout/PageLayout';
@@ -197,7 +197,7 @@ export const NewProductPage = () => {
           </div>
         )}
         <div className="grid gap-3 w-2/3">
-          <StockInputField
+          <InputField
             loading={loading}
             labelFor="brand"
             label="Brand"
@@ -206,7 +206,7 @@ export const NewProductPage = () => {
               setNewProduct({ ...newProduct, brand: e.target.value })
             }
           />
-          <StockInputField
+          <InputField
             loading={loading}
             labelFor="type"
             label="Motorcycle Type"
@@ -215,7 +215,7 @@ export const NewProductPage = () => {
               setNewProduct({ ...newProduct, motor_type: e.target.value })
             }
           />
-          <StockInputField
+          <InputField
             loading={loading}
             labelFor="part"
             label="Part"
@@ -224,7 +224,7 @@ export const NewProductPage = () => {
               setNewProduct({ ...newProduct, part: e.target.value })
             }
           />
-          <StockInputField
+          <InputField
             loading={loading}
             labelFor="available_color"
             label="Available Color"
@@ -233,7 +233,7 @@ export const NewProductPage = () => {
               setNewProduct({ ...newProduct, available_color: e.target.value })
             }
           />
-          <StockInputField
+          <InputField
             loading={loading}
             labelFor="count"
             label="Product Count"
@@ -242,7 +242,7 @@ export const NewProductPage = () => {
               setNewProduct({ ...newProduct, count: e.target.value })
             }
           />
-          <StockInputField
+          <InputField
             loading={loading}
             labelFor="purchase_price"
             label="Purchase Price"
@@ -251,7 +251,7 @@ export const NewProductPage = () => {
               setNewProduct({ ...newProduct, buy_price: e.target.value })
             }
           />
-          <StockInputField
+          <InputField
             loading={loading}
             labelFor="sell_price"
             label="Sell Price"
@@ -340,7 +340,7 @@ export const NewProductPage = () => {
 
         {showSupplierForm && (
           <div className="grid gap-3 w-2/3">
-            <StockInputField
+            <InputField
               loading={loading}
               label="Company Name"
               labelFor="company_name"
@@ -350,7 +350,7 @@ export const NewProductPage = () => {
                 setNewSupplier({ ...newSupplier, company_name: e.target.value })
               }
             />
-            <StockInputField
+            <InputField
               loading={loading}
               label="Address"
               labelFor="address"
@@ -360,7 +360,7 @@ export const NewProductPage = () => {
                 setNewSupplier({ ...newSupplier, address: e.target.value })
               }
             />
-            <StockInputField
+            <InputField
               loading={loading}
               label="City"
               labelFor="city"
@@ -370,7 +370,7 @@ export const NewProductPage = () => {
                 setNewSupplier({ ...newSupplier, city: e.target.value })
               }
             />
-            <StockInputField
+            <InputField
               loading={loading}
               label="Contact Number"
               labelFor="phone_number"
@@ -380,7 +380,7 @@ export const NewProductPage = () => {
                 setNewSupplier({ ...newSupplier, phone_number: e.target.value })
               }
             />
-            <StockInputField
+            <InputField
               loading={loading}
               labelFor="contact_person"
               label="Contact Person"
@@ -393,7 +393,7 @@ export const NewProductPage = () => {
                 })
               }
             />
-            <StockInputField
+            <InputField
               loading={loading}
               label="Bank Number"
               labelFor="bank_number"
@@ -403,7 +403,7 @@ export const NewProductPage = () => {
                 setNewSupplier({ ...newSupplier, bank_number: e.target.value })
               }
             />
-            <StockInputField
+            <InputField
               loading={loading}
               labelFor="bank_owner"
               label="Bank Owner"
