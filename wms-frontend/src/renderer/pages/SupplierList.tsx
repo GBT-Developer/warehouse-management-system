@@ -1,6 +1,7 @@
 import { db } from 'firebase';
 import { collection, doc, getDocs, query, updateDoc } from 'firebase/firestore';
 import { FormEvent, useEffect, useRef, useState } from 'react';
+import { AiOutlineLoading3Quarters } from 'react-icons/ai';
 import { useNavigate } from 'react-router-dom';
 import { SingleTableItem } from 'renderer/components/TableComponents/SingleTableItem';
 import { TableHeader } from 'renderer/components/TableComponents/TableHeader';
@@ -87,7 +88,13 @@ export default function SupplierList() {
               Supplier List
             </h1>
           </TableTitle>
-          <div className="overflow-y-auto h-full">
+          <div className="overflow-y-auto h-full relative">
+            {loading && (
+              <div className="absolute flex justify-center items-center py-2 px-3 top-0 left-0 w-full h-full bg-gray-50 rounded-lg z-0 bg-opacity-50">
+                <AiOutlineLoading3Quarters className="animate-spin flex justify-center text-4xl" />
+              </div>
+            )}
+
             <table className="w-full text-sm text-left text-gray-500">
               <TableHeader>
                 <th className="px-4 py-3">Factory Name</th>
@@ -101,7 +108,9 @@ export default function SupplierList() {
                   <tr
                     key={index}
                     className="border-b hover:shadow-md cursor-pointer"
-                    onClick={() => navigate('/supplier-detail/' + supplier.id)}
+                    onClick={() =>
+                      supplier.id && navigate('/supplier/' + supplier.id)
+                    }
                   >
                     <SingleTableItem>{supplier.company_name} </SingleTableItem>
                     <SingleTableItem>
