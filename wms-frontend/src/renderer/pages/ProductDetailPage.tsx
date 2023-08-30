@@ -1,18 +1,24 @@
 import { db } from 'firebase';
 import {
   collection,
+  collectionGroup,
   doc,
   getDoc,
   getDocs,
   query,
   updateDoc,
+  where,
 } from 'firebase/firestore';
 import { useEffect, useRef, useState } from 'react';
 import { AiFillEdit, AiOutlineLoading3Quarters } from 'react-icons/ai';
 import { GiCancel } from 'react-icons/gi';
+import { GoTriangleDown, GoTriangleUp } from 'react-icons/go';
 import { useNavigate, useParams } from 'react-router-dom';
 import { StockInputField } from 'renderer/components/StockInputField';
+import { SingleTableItem } from 'renderer/components/TableComponents/SingleTableItem';
+import { TableHeader } from 'renderer/components/TableComponents/TableHeader';
 import { Product } from 'renderer/interfaces/Product';
+import { StockHistory } from 'renderer/interfaces/StockHistory';
 import { Supplier } from 'renderer/interfaces/Supplier';
 import { PageLayout } from 'renderer/layout/PageLayout';
 export default function ProductDetailPage() {
@@ -24,6 +30,7 @@ export default function ProductDetailPage() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const supplierOptionRef = useRef<HTMLSelectElement>(null);
   const [suppliers, setSupplier] = useState<Supplier[]>([]);
+  const [stockHistory, setStockHistory] = useState<StockHistory[]>([]);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -38,16 +45,32 @@ export default function ProductDetailPage() {
         setProduct(data);
 
         // Fetch supplier
-        const q = query(collection(db, 'supplier'));
-        const querySnapshot = await getDocs(q);
+        const supplierQeury = query(collection(db, 'supplier'));
+        const supplierQuerySnapshot = await getDocs(supplierQeury);
 
         const supplierData: Supplier[] = [];
-        querySnapshot.forEach((theSupplier) => {
+        supplierQuerySnapshot.forEach((theSupplier) => {
           const data = theSupplier.data() as Supplier;
           data.id = theSupplier.id;
           supplierData.push(data);
         });
         setSupplier(supplierData);
+        //fetch stock history
+        // Fetch stock history
+        const stockHistoryQuery = query(
+          collectionGroup(db, 'stock_history'),
+          where('product', '==', productRef)
+        );
+        const stockHistoryQuerySnapshot = await getDocs(stockHistoryQuery);
+
+        const stockHistoryData: StockHistory[] = [];
+        stockHistoryQuerySnapshot.forEach((theStockHistory) => {
+          const stockHistory = theStockHistory.data() as StockHistory;
+          if (stockHistory.updated_at === undefined) return;
+          stockHistory.id = theStockHistory.id;
+          stockHistoryData.push(stockHistory);
+        });
+        setStockHistory(stockHistoryData);
 
         setLoading(false);
       } catch (error) {
@@ -58,6 +81,7 @@ export default function ProductDetailPage() {
       console.log(error);
     });
   }, []);
+  console.log('product', stockHistory);
 
   function handleSubmit(e: { preventDefault: () => void }) {
     e.preventDefault();
@@ -373,6 +397,35 @@ export default function ProductDetailPage() {
                 </div>
               </div>
             </div>
+            <table className="w-full text-sm text-left text-gray-500 dark:text-gray-400">
+              <TableHeader>
+                <td className="px-4 py-3">Date</td>
+                <td className="px-4 py-3">Old count</td>
+                <td className="px-4 py-3">New count</td>
+                <td className="px-4 py-3">Difference</td>
+              </TableHeader>
+              <tbody className="overflow-y-auto">
+                {stockHistory.map((stock_history: StockHistory, index) => (
+                  <tr key={index} className="border-b dark:border-gray-700">
+                    <SingleTableItem>
+                      {stock_history.updated_at?.toDate().toLocaleDateString()}
+                    </SingleTableItem>
+                    <SingleTableItem>{stock_history.old_count}</SingleTableItem>
+                    <SingleTableItem>{stock_history.new_count}</SingleTableItem>
+                    <SingleTableItem>
+                      <div className="flex items-center justify-between">
+                        {stock_history.difference}
+                        {Number(stock_history.difference) > 0 ? (
+                          <GoTriangleUp size={23} className="text-green-500" />
+                        ) : (
+                          <GoTriangleDown size={23} className="text-red-500" />
+                        )}
+                      </div>
+                    </SingleTableItem>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
             <div className="flex flex-row-reverse gap-2 w-full justify-start">
               {editToggle && (
                 <button
