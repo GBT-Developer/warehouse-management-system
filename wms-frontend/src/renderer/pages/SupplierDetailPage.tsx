@@ -36,15 +36,19 @@ export default function SupplierDetailPage() {
       console.log(error);
     });
   }, []);
-  console.log('supplier', supplier);
+
   function handleSubmit(e: { preventDefault: () => void }) {
     e.preventDefault();
-    // If one or more fields are empty, return early
+    // If one or more fields are empty except remarks, return
     if (!supplier) return;
     if (
-      Object.values(supplier).some(
-        (value) => value === '' || value === undefined
-      )
+      !supplier.company_name ||
+      !supplier.address ||
+      !supplier.city ||
+      !supplier.phone_number ||
+      !supplier.contact_person ||
+      !supplier.bank_number ||
+      !supplier.bank_owner
     ) {
       setErrorMessage('Mohon isi semua kolom');
       setTimeout(() => {
@@ -75,7 +79,7 @@ export default function SupplierDetailPage() {
       company_name: supplier.company_name,
       phone_number: supplier.phone_number,
       contact_person: supplier.contact_person,
-      remarks: supplier.remarks,
+      remarks: supplier.remarks ?? '',
     };
     setLoading(true);
 
@@ -139,15 +143,9 @@ export default function SupplierDetailPage() {
                 if (supplier === undefined) return;
                 setSupplier({ ...supplier, company_name: e.target.value });
               }}
-              style={
-                editToggle
-                  ? {} // No additional styles when editToggle is true
-                  : {
-                      border: 'none',
-                      outline: 'none',
-                      backgroundColor: 'inherit',
-                    } // Remove border, outline, and inherit background when editToggle is false
-              }
+              additionalStyle={`${
+                editToggle ? '' : 'border-none outline-none bg-inherit'
+              }`}
             />
             <StockInputField
               loading={loading || !editToggle}
@@ -158,15 +156,9 @@ export default function SupplierDetailPage() {
                 if (supplier === undefined) return;
                 setSupplier({ ...supplier, address: e.target.value });
               }}
-              style={
-                editToggle
-                  ? {} // No additional styles when editToggle is true
-                  : {
-                      border: 'none',
-                      outline: 'none',
-                      backgroundColor: 'inherit',
-                    } // Remove border, outline, and inherit background when editToggle is false
-              }
+              additionalStyle={`${
+                editToggle ? '' : 'border-none outline-none bg-inherit'
+              }`}
             />
             <StockInputField
               loading={loading || !editToggle}
@@ -177,15 +169,9 @@ export default function SupplierDetailPage() {
                 if (supplier === undefined) return;
                 setSupplier({ ...supplier, city: e.target.value });
               }}
-              style={
-                editToggle
-                  ? {} // No additional styles when editToggle is true
-                  : {
-                      border: 'none',
-                      outline: 'none',
-                      backgroundColor: 'inherit',
-                    } // Remove border, outline, and inherit background when editToggle is false
-              }
+              additionalStyle={`${
+                editToggle ? '' : 'border-none outline-none bg-inherit'
+              }`}
             />
             <StockInputField
               loading={loading || !editToggle}
@@ -196,15 +182,9 @@ export default function SupplierDetailPage() {
                 if (supplier === undefined) return;
                 setSupplier({ ...supplier, phone_number: e.target.value });
               }}
-              style={
-                editToggle
-                  ? {} // No additional styles when editToggle is true
-                  : {
-                      border: 'none',
-                      outline: 'none',
-                      backgroundColor: 'inherit',
-                    } // Remove border, outline, and inherit background when editToggle is false
-              }
+              additionalStyle={`${
+                editToggle ? '' : 'border-none outline-none bg-inherit'
+              }`}
             />
             <StockInputField
               loading={loading || !editToggle}
@@ -215,15 +195,9 @@ export default function SupplierDetailPage() {
                 if (supplier === undefined) return;
                 setSupplier({ ...supplier, contact_person: e.target.value });
               }}
-              style={
-                editToggle
-                  ? {} // No additional styles when editToggle is true
-                  : {
-                      border: 'none',
-                      outline: 'none',
-                      backgroundColor: 'inherit',
-                    } // Remove border, outline, and inherit background when editToggle is false
-              }
+              additionalStyle={`${
+                editToggle ? '' : 'border-none outline-none bg-inherit'
+              }`}
             />
             <StockInputField
               loading={loading || !editToggle}
@@ -234,15 +208,9 @@ export default function SupplierDetailPage() {
                 if (supplier === undefined) return;
                 setSupplier({ ...supplier, bank_number: e.target.value });
               }}
-              style={
-                editToggle
-                  ? {} // No additional styles when editToggle is true
-                  : {
-                      border: 'none',
-                      outline: 'none',
-                      backgroundColor: 'inherit',
-                    } // Remove border, outline, and inherit background when editToggle is false
-              }
+              additionalStyle={`${
+                editToggle ? '' : 'border-none outline-none bg-inherit'
+              }`}
             />
             <StockInputField
               loading={loading || !editToggle}
@@ -253,15 +221,9 @@ export default function SupplierDetailPage() {
                 if (supplier === undefined) return;
                 setSupplier({ ...supplier, bank_owner: e.target.value });
               }}
-              style={
-                editToggle
-                  ? {} // No additional styles when editToggle is true
-                  : {
-                      border: 'none',
-                      outline: 'none',
-                      backgroundColor: 'inherit',
-                    } // Remove border, outline, and inherit background when editToggle is false
-              }
+              additionalStyle={`${
+                editToggle ? '' : 'border-none outline-none bg-inherit'
+              }`}
             />
             <AreaField
               loading={loading || !editToggle}
@@ -269,12 +231,15 @@ export default function SupplierDetailPage() {
               labelFor="remarks"
               maxLength={300}
               rows={7}
-              value={supplier?.remarks ?? ''}
+              value={supplier?.remarks ? supplier.remarks : '-'}
               placeholder="Additional info... (max. 300 characters)"
               onChange={(e) => {
                 if (supplier === undefined) return;
                 setSupplier({ ...supplier, remarks: e.target.value });
               }}
+              additionalStyle={`${
+                editToggle ? '' : 'border-none outline-none bg-inherit'
+              }`}
             />
             <div className="flex flex-row-reverse gap-2 w-full justify-start">
               {editToggle && (

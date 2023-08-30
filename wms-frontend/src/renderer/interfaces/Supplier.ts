@@ -7,5 +7,5 @@ export interface Supplier {
   city: string;
   bank_number: string;
   bank_owner: string;
-  remarks: string;
+  remarks?: string;
 }
