@@ -9,7 +9,7 @@ service cloud.firestore {
 
 		// Function to check if the user is the owner
     function isUserOwner() {
-      return get(/databases/$(database)/documents/user/$(request.auth.uid)).data.isOwner == true;
+      return request.auth.uid != null && request.auth.token.owner == true;
     }
 
   }
