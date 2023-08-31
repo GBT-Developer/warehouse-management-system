@@ -37,6 +37,7 @@ export default function PurchaseHistoryPage() {
         const historyData: Purchase_History[] = [];
         querySnapshot.forEach((doc) => {
           const data = doc.data() as Purchase_History;
+          data.id = doc.id;
           console.log(data);
           historyData.push(data);
         });
@@ -48,9 +49,8 @@ export default function PurchaseHistoryPage() {
         productSnapshot.forEach((doc) => {
           console.log(doc.id, ' => ', doc.data());
           historyData.forEach((history) => {
-            if (doc.id === history.product.id) {
+            if (doc.id === history.product.id)
               history.product = doc.data() as Product;
-            }
           });
         });
         setPurchaseList(historyData);

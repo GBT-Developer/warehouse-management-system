@@ -101,7 +101,8 @@ export default function SupplierList() {
                         className="text-gray-500 p-2 hover:text-gray-700 cursor-pointer bg-gray-100 rounded-md"
                         onClick={(e) => {
                           e.stopPropagation();
-                          navigate('/purchase-report/' + supplier.id);
+                          supplier.id &&
+                            navigate('/supplier-detail/' + supplier.id);
                         }}
                       >
                         Purchase History
