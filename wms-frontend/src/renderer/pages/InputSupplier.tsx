@@ -73,7 +73,7 @@ function InputSupplier() {
   return (
     <PageLayout>
       <h1 className="text-4xl font-extrabold tracking-tight text-gray-900 md:text-5xl">
-        Add New Supplier waw
+        Add New Supplier
       </h1>
       <form
         onSubmit={handleSubmit}
