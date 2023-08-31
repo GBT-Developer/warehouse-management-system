@@ -180,6 +180,15 @@ export const ManageProductPage = () => {
               </tbody>
             </table>
           </div>
+          <div className="flex flex-row-reverse gap-2 w-full justify-start">
+            <button
+              type="submit"
+              className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 focus:outline-none hover:-translate-y-1 "
+              onClick={() => navigate('/new-product-page')}
+            >
+              + New
+            </button>
+          </div>
         </div>
       </div>
     </PageLayout>
