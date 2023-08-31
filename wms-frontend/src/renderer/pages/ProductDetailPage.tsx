@@ -351,6 +351,15 @@ export default function ProductDetailPage() {
                 )}
               </div>
             </div>
+            <div className="w-full flex justify-end">
+              <button
+                type="button"
+                className="px-4 py-2 font-medium text-white bg-gray-600  focus:ring-4 focus:ring-gray-300 rounded-lg text-sm h-[max-content] w-[max-content] flex justify-center gap-2 text-center items-center"
+                onClick={() => navigate(-1)}
+              >
+                Back
+              </button>
+            </div>
             <div className="flex flex-row-reverse gap-2 w-full justify-start">
               {editToggle && (
                 <button
