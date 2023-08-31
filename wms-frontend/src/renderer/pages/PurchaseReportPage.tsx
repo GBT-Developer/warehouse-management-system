@@ -1,6 +1,7 @@
 import { db } from 'firebase';
 import { collection, doc, getDocs, query, where } from 'firebase/firestore';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
+import { BiSolidTrash } from 'react-icons/bi';
 import { useNavigate, useParams } from 'react-router-dom';
 import { SingleTableItem } from 'renderer/components/TableComponents/SingleTableItem';
 import { TableHeader } from 'renderer/components/TableComponents/TableHeader';
@@ -14,11 +15,9 @@ export default function PurchaseHistoryPage() {
   const param = useParams();
   const [purchaseList, setPurchaseList] = useState<Purchase_History[]>([]);
   const [search, setSearch] = useState('');
-  const [telephone, setTelephone] = useState<string[]>([]);
-  const [updatedProduct, setUpdatedProduct] = useState('');
-  const [editingIndex, setEditingIndex] = useState<number>(-1);
-  const inputRef = useRef<HTMLInputElement>(null);
-  const [editTelephoneToggle, setEditTelephoneToggle] = useState(false);
+  const [filteredHistory, setFilteredHistory] = useState<Purchase_History[]>(
+    []
+  );
   const navigate = useNavigate();
   // Take product from firebase
   useEffect(() => {
@@ -38,6 +37,7 @@ export default function PurchaseHistoryPage() {
         const historyData: Purchase_History[] = [];
         querySnapshot.forEach((doc) => {
           const data = doc.data() as Purchase_History;
+          console.log(data);
           historyData.push(data);
         });
         const myquery = query(
@@ -54,6 +54,7 @@ export default function PurchaseHistoryPage() {
           });
         });
         setPurchaseList(historyData);
+        setFilteredHistory(historyData);
         setLoading(false);
       } catch (error) {
         console.error('Error fetching data:', error);
@@ -65,14 +66,24 @@ export default function PurchaseHistoryPage() {
     });
   }, [param.id]);
 
-  function handleSubmit(e: { preventDefault: () => void }) {
-    e.preventDefault();
-    // Declare the index
-    const index = 0;
+  useEffect(() => {
+    setFilteredHistory(
+      purchaseList.filter((purchase) =>
+        purchase.product.brand
+          .concat(
+            ' ',
+            purchase.product.motor_type,
+            ' ',
+            purchase.product.part,
+            ' ',
+            purchase.product.available_color
+          )
+          .toLowerCase()
+          .includes(search.toLowerCase())
+      )
+    );
+  }, [search, purchaseList]);
 
-    setEditingIndex(-1);
-    inputRef.current?.blur();
-  }
   return (
     <PageLayout>
       <div className="w-full h-full bg-transparent overflow-hidden">
@@ -90,16 +101,23 @@ export default function PurchaseHistoryPage() {
                 <th className="px-4 py-3">Quantity</th>
                 <th className="px-4 py-3">Amount</th>
                 <th className="px-4 py-3">Status</th>
+                <th className="px-1 py-3"></th>
               </TableHeader>
               <tbody className="overflow-y-auto">
-                {purchaseList.map(
+                {filteredHistory.map(
                   (purchase_history: Purchase_History, index) => (
                     <tr
                       key={index}
                       className="border-b hover:shadow-md cursor-pointer"
                     >
                       <SingleTableItem>
-                        {purchase_history.product.brand}
+                        {purchase_history.product.brand +
+                          ' ' +
+                          purchase_history.product.motor_type +
+                          ' ' +
+                          purchase_history.product.part +
+                          ' ' +
+                          purchase_history.product.available_color}
                       </SingleTableItem>
                       <SingleTableItem>
                         {purchase_history.created_at.toDate().toLocaleString()}
@@ -140,6 +158,14 @@ export default function PurchaseHistoryPage() {
                             </option>
                           </select>
                         </form>
+                      </SingleTableItem>
+                      <SingleTableItem>
+                        <button
+                          type="button"
+                          className="text-red-500 text-lg p-2 hover:text-red-700 cursor-pointer bg-transparent rounded-md"
+                        >
+                          <BiSolidTrash />
+                        </button>
                       </SingleTableItem>
                     </tr>
                   )
