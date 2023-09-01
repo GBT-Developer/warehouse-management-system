@@ -49,10 +49,10 @@ function StockHistoryPage() {
           <div className="overflow-y-auto h-full">
             <table className="w-full text-sm text-left text-gray-500 dark:text-gray-400">
               <TableHeader>
-                <td className="px-4 py-3">Date</td>
-                <td className="px-4 py-3">Old count</td>
-                <td className="px-4 py-3">New count</td>
-                <td className="px-4 py-3">Difference</td>
+                <td className=" py-3">Date</td>
+                <td className=" py-3">Old count</td>
+                <td className=" py-3">New count</td>
+                <td className=" py-3">Difference</td>
               </TableHeader>
               <tbody className="overflow-y-auto">
                 {stockHistory.map((stock_history: StockHistory, index) => (

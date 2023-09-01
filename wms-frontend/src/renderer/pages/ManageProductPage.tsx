@@ -91,19 +91,12 @@ export const ManageProductPage = () => {
 
   return (
     <PageLayout>
-      <h1 className="mb-[4rem] text-4xl font-extrabold tracking-tight text-gray-900 md:text-5xl">
-        Manage Products
-      </h1>
       <div className="w-full h-full bg-transparent overflow-hidden">
         <div className="relative shadow-md sm:rounded-lg overflow-auto h-full flex flex-col justify-between">
           <TableTitle setSearch={setSearch}>
-            <button
-              type="button"
-              className="px-4 py-2 font-medium text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 rounded-lg text-sm flex justify-center"
-              onClick={() => navigate('/new-product-page')}
-            >
-              Create new Product
-            </button>
+            <h1 className="text-4xl font-extrabold tracking-tight text-gray-900 md:text-5xl">
+              Manage Product
+            </h1>
           </TableTitle>
           <div className="overflow-y-auto h-full relative">
             {loading && (
@@ -114,18 +107,20 @@ export const ManageProductPage = () => {
 
             <table className="w-full text-sm text-left text-gray-500">
               <TableHeader>
-                <th className="px-4 py-3">Name</th>
-                <th className="px-4 py-3">Amount</th>
-                <th className="px-4 py-3">Selling Price</th>
-                <th className="px-4 py-3">Warehouse</th>
-                <th className="px-4 py-3"></th>
+                <th className=" py-3">Name</th>
+                <th className=" py-3">Amount</th>
+                <th className=" py-3">Selling Price</th>
+                <th className=" py-3">Warehouse</th>
+                <th className=" py-3"></th>
               </TableHeader>
               <tbody>
                 {filteredProducts.map((product, index) => (
                   <tr
                     key={product.id}
                     className="border-b hover:shadow-md cursor-pointer hover:underline"
-                    onClick={() => navigate('/manage-product/' + product.id)}
+                    onClick={() =>
+                      product.id && navigate('/manage-product/' + product.id)
+                    }
                   >
                     <SingleTableItem>
                       {product.brand +
@@ -184,6 +179,15 @@ export const ManageProductPage = () => {
                 ))}
               </tbody>
             </table>
+          </div>
+          <div className="flex flex-row-reverse gap-2 w-full justify-start">
+            <button
+              type="submit"
+              className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 focus:outline-none hover:-translate-y-1 "
+              onClick={() => navigate('/new-product-page')}
+            >
+              + New
+            </button>
           </div>
         </div>
       </div>

@@ -1,6 +1,7 @@
 import { db } from 'firebase';
-import { collection, doc, getDocs, query, updateDoc } from 'firebase/firestore';
-import { FormEvent, useEffect, useRef, useState } from 'react';
+import { collection, getDocs, query } from 'firebase/firestore';
+import { useEffect, useState } from 'react';
+import { AiOutlineLoading3Quarters } from 'react-icons/ai';
 import { useNavigate } from 'react-router-dom';
 import { SingleTableItem } from 'renderer/components/TableComponents/SingleTableItem';
 import { TableHeader } from 'renderer/components/TableComponents/TableHeader';
@@ -11,12 +12,7 @@ import { PageLayout } from 'renderer/layout/PageLayout';
 export default function SupplierList() {
   const [supplierList, setSupplierList] = useState<Supplier[]>([]);
   const [search, setSearch] = useState('');
-  const [telephone, setTelephone] = useState<string[]>([]);
-  const [updatedProduct, setUpdatedProduct] = useState('');
-  const [editingIndex, setEditingIndex] = useState<number>(-1);
   const [loading, setLoading] = useState(true);
-  const inputRef = useRef<HTMLInputElement>(null);
-  const [editTelephoneToggle, setEditTelephoneToggle] = useState(false);
   const navigate = useNavigate();
   // Take product from firebase
   useEffect(() => {
@@ -33,7 +29,6 @@ export default function SupplierList() {
         });
 
         setSupplierList(supplierData);
-        setTelephone(supplierData.map((supplier) => supplier.phone_number));
         setLoading(false);
       } catch (error) {
         console.error('Error fetching data:', error);
@@ -45,39 +40,6 @@ export default function SupplierList() {
     });
   }, []);
 
-  const handleEditClick = (index: number) => {
-    setEditingIndex(index); // Set the editing index to enable editing for this row
-  };
-
-  const handleBlur = () => {
-    setEditingIndex(-1); // Reset the editing index when blurred
-  };
-  const handleTelephoneChange = (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    const supplier = supplierList[editingIndex];
-    if (!supplier.id) return;
-    const supplierRef = doc(db, 'supplier', supplier.id);
-
-    const updatedSupplier = {
-      ...supplier,
-      phone_number: supplier.phone_number,
-    };
-
-    updateDoc(supplierRef, updatedSupplier).catch((error) => {
-      console.error('Error updating document: ', error);
-    });
-
-    setEditTelephoneToggle(false);
-  };
-
-  function handleSubmit(e: { preventDefault: () => void }) {
-    e.preventDefault();
-    // Declare the index
-    const index = 0;
-
-    setEditingIndex(-1);
-    inputRef.current?.blur();
-  }
   return (
     <PageLayout>
       <div className="w-full h-full bg-transparent overflow-hidden">
@@ -87,37 +49,60 @@ export default function SupplierList() {
               Supplier List
             </h1>
           </TableTitle>
-          <div className="overflow-y-auto h-full">
+          <div className="overflow-y-auto h-full relative">
+            {loading && (
+              <div className="absolute flex justify-center items-center py-2 px-3 top-0 left-0 w-full h-full bg-gray-50 rounded-lg z-0 bg-opacity-50">
+                <AiOutlineLoading3Quarters className="animate-spin flex justify-center text-4xl" />
+              </div>
+            )}
+
             <table className="w-full text-sm text-left text-gray-500">
               <TableHeader>
-                <th className="px-4 py-3">Factory Name</th>
-                <th className="px-4 py-3">Address</th>
-                <th className="px-4 py-3">Telephone</th>
-                <th className="px-4 py-3">Bank Account</th>
-                <th className="px-4 py-3"></th>
+                <th className=" py-3">Factory Name</th>
+                <th className=" py-3">Address</th>
+                <th className=" py-3">Telephone</th>
+                <th className=" py-3">Bank Account</th>
+                <th className=" py-3"></th>
               </TableHeader>
               <tbody className="overflow-y-auto">
                 {supplierList.map((supplier: Supplier, index) => (
                   <tr
                     key={index}
                     className="border-b hover:shadow-md cursor-pointer"
+                    onClick={() =>
+                      supplier.id && navigate('/supplier-detail/' + supplier.id)
+                    }
                   >
                     <SingleTableItem>{supplier.company_name} </SingleTableItem>
                     <SingleTableItem>
                       {supplier.address}, {supplier.city}
                     </SingleTableItem>
-                    <SingleTableItem>{supplier.phone_number}</SingleTableItem>
+                    <SingleTableItem>
+                      <span className="font-medium text-md">
+                        {supplier.phone_number}
+                        <br />
+                        <span className="text-sm font-normal">
+                          {'a.n.' + supplier.contact_person}
+                        </span>
+                      </span>
+                    </SingleTableItem>
                     <SingleTableItem>
                       <span className="font-medium text-md">
                         {supplier.bank_number}
+                        <br />
+                        <span className="text-sm font-normal">
+                          {'a.n.' + supplier.bank_owner}
+                        </span>
                       </span>
                     </SingleTableItem>
                     <SingleTableItem>
                       <button
                         type="button"
                         className="text-gray-500 p-2 hover:text-gray-700 cursor-pointer bg-gray-100 rounded-md"
-                        onClick={() => {
-                          navigate('/transactionhistory');
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          supplier.id &&
+                            navigate('/purchase-report/' + supplier.id);
                         }}
                       >
                         Purchase History

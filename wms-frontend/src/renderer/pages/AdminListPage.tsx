@@ -68,10 +68,10 @@ export const AdminListPage = () => {
           <div className="overflow-y-auto h-full">
             <table className="w-full text-sm text-left text-gray-500">
               <TableHeader>
-                <th className="px-4 py-3">No</th>
-                <th className="px-4 py-3">Nama</th>
-                <th className="px-4 py-3">Email</th>
-                <th className="px-4 py-3">Aksi</th>
+                <th className=" py-3">No</th>
+                <th className=" py-3">Nama</th>
+                <th className=" py-3">Email</th>
+                <th className=" py-3">Aksi</th>
               </TableHeader>
               <tbody>
                 {filteredAdminList.map((admin, index) => (
@@ -95,7 +95,7 @@ export const AdminListPage = () => {
                           admin.uid !== user?.uid && handleDelete(admin.uid)
                         }
                       >
-                        {admin.uid === user?.uid ? "It's you! " : 'Delete'}
+                        {admin.uid === user?.uid ? 'You!' : 'Delete'}
                       </button>
                     </SingleTableItem>
                   </tr>

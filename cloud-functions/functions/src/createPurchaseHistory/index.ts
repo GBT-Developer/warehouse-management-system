@@ -14,8 +14,14 @@ exports.createPurchaseHistory = onDocumentCreated(
       .collection("product")
       .doc(event.params.docId);
 
+    const supplierRef = firebaseAdmin
+      .firestore()
+      .collection("supplier")
+      .doc(newObject.supplier.id);
+
     await firebaseAdmin.firestore().collection("purchase_history").add({
       product: productRef,
+      supplier: supplierRef,
       count: newObject.count,
       payment_status: "Unpaid",
       created_at: new Date(),
