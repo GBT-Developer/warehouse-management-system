@@ -37,8 +37,9 @@ export default function PurchaseHistoryPage() {
         const historyData: Purchase_History[] = [];
         querySnapshot.forEach((doc) => {
           const data = doc.data() as Purchase_History;
-          data.id = doc.id;
           console.log(data);
+          data.id = doc.id;
+          console.log(doc.id);
           historyData.push(data);
         });
         const myquery = query(
@@ -47,7 +48,6 @@ export default function PurchaseHistoryPage() {
         );
         const productSnapshot = await getDocs(myquery);
         productSnapshot.forEach((doc) => {
-          console.log(doc.id, ' => ', doc.data());
           historyData.forEach((history) => {
             if (doc.id === history.product.id)
               history.product = doc.data() as Product;
@@ -142,6 +142,15 @@ export default function PurchaseHistoryPage() {
                               newPurchaseList[index].payment_status =
                                 e.target.value;
                               setPurchaseList(newPurchaseList);
+
+                              // Update the data in firebase
+                              if (!purchase_history.id) return;
+                              const purchaseRef = doc(
+                                db,
+                                'purchase_history',
+                                purchase_history.id
+                              );
+                              purchase_history.payment_status = e.target.value;
                             }}
                             className={` ${
                               purchase_history.payment_status.toLowerCase() ===
