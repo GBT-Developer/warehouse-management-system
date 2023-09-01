@@ -102,7 +102,7 @@ export default function SupplierList() {
                         onClick={(e) => {
                           e.stopPropagation();
                           supplier.id &&
-                            navigate('/supplier-detail/' + supplier.id);
+                            navigate('/purchase-report/' + supplier.id);
                         }}
                       >
                         Purchase History
