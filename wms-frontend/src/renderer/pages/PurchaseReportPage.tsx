@@ -1,5 +1,13 @@
 import { db } from 'firebase';
-import { collection, doc, getDocs, query, where } from 'firebase/firestore';
+import {
+  collection,
+  deleteDoc,
+  doc,
+  getDocs,
+  query,
+  updateDoc,
+  where,
+} from 'firebase/firestore';
 import { useEffect, useState } from 'react';
 import { BiSolidTrash } from 'react-icons/bi';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -150,7 +158,9 @@ export default function PurchaseHistoryPage() {
                                 'purchase_history',
                                 purchase_history.id
                               );
-                              purchase_history.payment_status = e.target.value;
+                              updateDoc(purchaseRef, {
+                                payment_status: e.target.value,
+                              });
                             }}
                             className={` ${
                               purchase_history.payment_status.toLowerCase() ===
@@ -172,6 +182,18 @@ export default function PurchaseHistoryPage() {
                         <button
                           type="button"
                           className="text-red-500 text-lg p-2 hover:text-red-700 cursor-pointer bg-transparent rounded-md"
+                          onClick={async () => {
+                            setLoading(true);
+                            if (!purchase_history.id) return;
+                            const purchaseRef = doc(
+                              db,
+                              'purchase_history',
+                              purchase_history.id
+                            );
+                            await deleteDoc(purchaseRef);
+                            filteredHistory.splice(index, 1);
+                            setLoading(false);
+                          }}
                         >
                           <BiSolidTrash />
                         </button>
