@@ -140,9 +140,9 @@ export const AppSidebar = ({
               <SidebarItem
                 icon={<TbPackageExport />}
                 onClick={() => {
-                  navigate('/');
+                  navigate('/transfer-item');
                 }}
-                selected={location.pathname === '/'}
+                selected={location.pathname === '/transfer-item'}
               >
                 Transfer Item
               </SidebarItem>
