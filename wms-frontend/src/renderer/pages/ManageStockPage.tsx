@@ -1,5 +1,12 @@
 import { db } from 'firebase';
-import { collection, doc, getDocs, query, where } from 'firebase/firestore';
+import {
+  collection,
+  doc,
+  getDocs,
+  query,
+  runTransaction,
+  where,
+} from 'firebase/firestore';
 import { useEffect, useState } from 'react';
 import { AiOutlineLoading3Quarters } from 'react-icons/ai';
 import { useNavigate } from 'react-router-dom';
@@ -27,6 +34,7 @@ export const ManageStockPage = () => {
   const [quantity, setQuantity] = useState<number>(0);
   const [purchasePrice, setPurchasePrice] = useState<number>(0);
   const [dispatchNote, setDispatchNote] = useState<string>('');
+  const [date, setDate] = useState<string>('');
 
   useEffect(() => {
     setLoading(true);
@@ -82,6 +90,48 @@ export const ManageStockPage = () => {
     setLoading(false);
   }, [manageStockMode, selectedSupplier, selectedWarehouse]);
 
+  const handleSubmit = async () => {
+    if (
+      manageStockMode === '' ||
+      selectedWarehouse === '' ||
+      selectedProduct === null ||
+      quantity === 0 ||
+      (manageStockMode === 'purchase' && selectedSupplier === null) ||
+      (manageStockMode === 'purchase' && purchasePrice === 0) ||
+      (manageStockMode === 'from_other_warehouse' && dispatchNote === '')
+    )
+      return;
+
+    setLoading(true);
+
+    if (!selectedProduct.id) return;
+    const productRef = doc(db, 'product', selectedProduct.id);
+
+    if (manageStockMode === 'purchase')
+      await runTransaction(db, (transaction) => {
+        if (!selectedSupplier?.id) return Promise.reject();
+
+        transaction.update(productRef, {
+          count: quantity,
+        });
+
+        const newDocRef = doc(collection(db, 'purchase_history'));
+
+        transaction.set(newDocRef, {
+          product: selectedProduct.id,
+          supplier: selectedSupplier.id,
+          quantity: (quantity - Number(selectedProduct.count)).toString(),
+          price: purchasePrice.toString(),
+          date: date,
+        });
+
+        return Promise.resolve();
+      });
+
+    setLoading(false);
+    navigate(-1);
+  };
+
   return (
     <PageLayout>
       <h1 className="text-4xl font-extrabold tracking-tight text-gray-900 md:text-5xl">
@@ -91,6 +141,9 @@ export const ManageStockPage = () => {
         onSubmit={(e) => {
           e.preventDefault();
           console.log('submit');
+          handleSubmit().catch(() => {
+            setErrorMessage('An error occured while submitting data');
+          });
         }}
         className={`w-2/3 py-14 my-10 flex flex-col gap-3 relative${
           loading ? 'p-2' : ''
@@ -278,6 +331,22 @@ export const ManageStockPage = () => {
             }
           />
         )}
+        <div className="flex justify-between">
+          <div className="w-1/3 flex items-center">
+            <label htmlFor={'date-id'} className="text-md">
+              Purchase date
+            </label>
+          </div>
+          <div className="w-2/3">
+            <input
+              disabled={loading}
+              type="date"
+              name="date"
+              className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
+              onChange={(e) => setDate(() => e.target.value)}
+            />
+          </div>
+        </div>
         <div className="flex flex-row-reverse gap-2 justify-start">
           <button
             disabled={loading}
