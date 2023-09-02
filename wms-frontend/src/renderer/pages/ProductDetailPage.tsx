@@ -55,7 +55,7 @@ export default function ProductDetailPage() {
           supplierData.push(data);
         });
         setSupplier(supplierData);
-        // Fetch stock history
+
         // Fetch stock history
         const stockHistoryQuery = query(
           collectionGroup(db, 'stock_history'),
@@ -100,10 +100,8 @@ export default function ProductDetailPage() {
 
     if (
       Number.isNaN(Number(product.sell_price)) ||
-      Number.isNaN(Number(product.buy_price)) ||
       Number.isNaN(Number(product.count)) ||
       Number(product.sell_price) <= 0 ||
-      Number(product.buy_price) <= 0 ||
       Number(product.count) <= 0
     ) {
       setErrorMessage('Harga atau jumlah barang tidak valid');
@@ -122,7 +120,6 @@ export default function ProductDetailPage() {
       part: product.part,
       available_color: product.available_color,
       count: product.count,
-      buy_price: product.buy_price,
       sell_price: product.sell_price,
       warehouse_position: product.warehouse_position,
       supplier: product.supplier,
@@ -235,19 +232,6 @@ export default function ProductDetailPage() {
               onChange={(e) => {
                 if (product === undefined) return;
                 setProduct({ ...product, count: e.target.value });
-              }}
-              additionalStyle={`${
-                editToggle ? '' : 'border-none outline-none bg-inherit'
-              }`}
-            />
-            <InputField
-              loading={loading || !editToggle}
-              labelFor="purchase_price"
-              label="Purchase Price"
-              value={product?.buy_price ?? ''}
-              onChange={(e) => {
-                if (product === undefined) return;
-                setProduct({ ...product, buy_price: e.target.value });
               }}
               additionalStyle={`${
                 editToggle ? '' : 'border-none outline-none bg-inherit'
@@ -386,9 +370,7 @@ export default function ProductDetailPage() {
             <tbody className="overflow-y-auto">
               {stockHistory.map((stock_history: StockHistory, index) => (
                 <tr key={index} className="border-b dark:border-gray-700">
-                  <SingleTableItem>
-                    {stock_history.updated_at?.toDate().toLocaleDateString()}
-                  </SingleTableItem>
+                  <SingleTableItem>{stock_history.updated_at}</SingleTableItem>
                   <SingleTableItem>{stock_history.old_count}</SingleTableItem>
                   <SingleTableItem>{stock_history.new_count}</SingleTableItem>
                   <SingleTableItem>
