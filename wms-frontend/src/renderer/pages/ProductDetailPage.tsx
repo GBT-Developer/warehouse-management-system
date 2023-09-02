@@ -239,7 +239,7 @@ export default function ProductDetailPage() {
               }`}
             />
             <InputField
-              loading={loading || !editToggle}
+              loading={true}
               labelFor="count"
               label="Product Count"
               value={product?.count ?? ''}
