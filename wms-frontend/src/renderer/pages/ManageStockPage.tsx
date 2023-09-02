@@ -126,12 +126,29 @@ export const ManageStockPage = () => {
           count: newPurchase.count,
         });
 
-        const newDocRef = doc(collection(db, 'purchase_history'));
+        const newPurchaseHistoryDocRef = doc(
+          collection(db, 'purchase_history')
+        );
 
-        transaction.set(newDocRef, {
+        transaction.set(newPurchaseHistoryDocRef, {
           ...newPurchase,
           product: newPurchase.product?.id,
           supplier: selectedSupplier.id,
+        });
+
+        const newStockHistoryDocRef = doc(collection(db, 'stock_history'));
+
+        transaction.set(newStockHistoryDocRef, {
+          product: newPurchase.product?.id,
+          count: newPurchase.count,
+          old_count: newPurchase.product?.count,
+          difference: (
+            Number(newPurchase.count) - Number(newPurchase.product?.count)
+          ).toString(),
+          warehouse_position: selectedWarehouse,
+          type: 'purchase',
+          created_at: newPurchase.created_at,
+          purchase_history: newPurchaseHistoryDocRef.id,
         });
 
         return Promise.resolve();
