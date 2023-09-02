@@ -40,21 +40,35 @@ export default function ProductDetailPage() {
         if (param.id === undefined) return;
         const productRef = doc(db, 'product', param.id);
         const theProduct = await getDoc(productRef);
-        const data = theProduct.data() as Product;
-        data.id = theProduct.id;
-        setProduct(data);
+        const productData = theProduct.data() as Product;
+        productData.id = theProduct.id;
+        setProduct(productData);
 
         // Fetch supplier
         const supplierQeury = query(collection(db, 'supplier'));
         const supplierQuerySnapshot = await getDocs(supplierQeury);
 
-        const supplierData: Supplier[] = [];
+        const supplierList: Supplier[] = [];
         supplierQuerySnapshot.forEach((theSupplier) => {
-          const data = theSupplier.data() as Supplier;
-          data.id = theSupplier.id;
-          supplierData.push(data);
+          const supplierData = theSupplier.data() as Supplier;
+          supplierData.id = theSupplier.id;
+          supplierList.push(supplierData);
         });
-        setSupplier(supplierData);
+        const supplierOfTheProduct = supplierList.find((supplier) => {
+          return supplier.id === productData.supplier;
+        });
+        if (supplierOfTheProduct === undefined) {
+          setLoading(false);
+          return;
+        }
+        setProduct((prev) => {
+          if (prev === undefined) return;
+          return {
+            ...prev,
+            supplier: supplierOfTheProduct,
+          };
+        });
+        setSupplier(supplierList);
 
         // Fetch stock history
         const stockHistoryQuery = query(
