@@ -11,11 +11,9 @@ setGlobalOptions({
 
 export const firebaseAdmin = admin.initializeApp();
 
-export * from "./createPurchaseHistory";
 export * from "./createUser";
 export * from "./deleteUser";
 export * from "./getUsers";
-export * from "./updateProductStock";
 
 if (process.env.NODE_ENV === "development") {
   const NUM_USERS = 10;
