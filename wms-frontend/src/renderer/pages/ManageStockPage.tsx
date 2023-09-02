@@ -12,8 +12,18 @@ import { AiOutlineLoading3Quarters } from 'react-icons/ai';
 import { useNavigate } from 'react-router-dom';
 import { InputField } from 'renderer/components/InputField';
 import { Product } from 'renderer/interfaces/Product';
+import { Purchase_History } from 'renderer/interfaces/PurchaseHistory';
 import { Supplier } from 'renderer/interfaces/Supplier';
 import { PageLayout } from 'renderer/layout/PageLayout';
+
+const newPurchaseInitialState = {
+  created_at: '',
+  count: '',
+  purchase_price: '',
+  supplier: null,
+  product: null,
+  payment_status: '',
+} as Purchase_History;
 
 export const ManageStockPage = () => {
   const navigate = useNavigate();
@@ -30,11 +40,10 @@ export const ManageStockPage = () => {
   const [selectedWarehouse, setSelectedWarehouse] = useState<
     'Gudang Jadi' | 'Gudang Bahan' | ''
   >('');
-  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
-  const [quantity, setQuantity] = useState<number>(0);
-  const [purchasePrice, setPurchasePrice] = useState<number>(0);
+  const [newPurchase, setNewPurchase] = useState<Purchase_History>(
+    newPurchaseInitialState
+  );
   const [dispatchNote, setDispatchNote] = useState<string>('');
-  const [date, setDate] = useState<string>('');
 
   useEffect(() => {
     setLoading(true);
@@ -94,35 +103,36 @@ export const ManageStockPage = () => {
     if (
       manageStockMode === '' ||
       selectedWarehouse === '' ||
-      selectedProduct === null ||
-      quantity === 0 ||
+      newPurchase.product === null ||
       (manageStockMode === 'purchase' && selectedSupplier === null) ||
-      (manageStockMode === 'purchase' && purchasePrice === 0) ||
+      (manageStockMode === 'purchase' && newPurchase.purchase_price === '') ||
       (manageStockMode === 'from_other_warehouse' && dispatchNote === '')
     )
       return;
 
     setLoading(true);
 
-    if (!selectedProduct.id) return;
-    const productRef = doc(db, 'product', selectedProduct.id);
+    if (!newPurchase.product.id) return;
+    const productRef = doc(db, 'product', newPurchase.product.id);
 
     if (manageStockMode === 'purchase')
       await runTransaction(db, (transaction) => {
         if (!selectedSupplier?.id) return Promise.reject();
 
         transaction.update(productRef, {
-          count: quantity,
+          count: newPurchase.count,
         });
 
         const newDocRef = doc(collection(db, 'purchase_history'));
 
         transaction.set(newDocRef, {
-          product: selectedProduct.id,
+          product: newPurchase.product?.id,
           supplier: selectedSupplier.id,
-          quantity: (quantity - Number(selectedProduct.count)).toString(),
-          price: purchasePrice.toString(),
-          date: date,
+          quantity: (
+            Number(newPurchase.count) - Number(newPurchase.product?.count)
+          ).toString(),
+          price: newPurchase.purchase_price,
+          date: newPurchase.created_at,
         });
 
         return Promise.resolve();
@@ -276,11 +286,12 @@ export const ManageStockPage = () => {
               disabled={loading}
               name="product-id"
               onChange={(e) => {
-                setSelectedProduct(
-                  () =>
+                setNewPurchase(() => ({
+                  ...newPurchase,
+                  product:
                     products.find((product) => product.id === e.target.value) ??
-                    null
-                );
+                    null,
+                }));
               }}
               className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
             >
@@ -311,11 +322,12 @@ export const ManageStockPage = () => {
           loading={loading}
           label="Quantity"
           labelFor="quantity"
-          value={quantity.toString()}
+          value={newPurchase.product?.count ?? '0'}
           onChange={(e) =>
-            setQuantity(() =>
-              parseInt(e.target.value === '' ? '0' : e.target.value)
-            )
+            setNewPurchase(() => ({
+              ...newPurchase,
+              count: e.target.value,
+            }))
           }
         />
         {manageStockMode === 'purchase' && (
@@ -323,11 +335,12 @@ export const ManageStockPage = () => {
             loading={loading}
             label="Purchase price"
             labelFor="purchase-price"
-            value={purchasePrice.toString()}
+            value={newPurchase.purchase_price}
             onChange={(e) =>
-              setPurchasePrice(() =>
-                parseInt(e.target.value === '' ? '0' : e.target.value)
-              )
+              setNewPurchase(() => ({
+                ...newPurchase,
+                purchase_price: e.target.value,
+              }))
             }
           />
         )}
@@ -343,7 +356,12 @@ export const ManageStockPage = () => {
               type="date"
               name="date"
               className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
-              onChange={(e) => setDate(() => e.target.value)}
+              onChange={(e) => {
+                setNewPurchase(() => ({
+                  ...newPurchase,
+                  created_at: e.target.value,
+                }));
+              }}
             />
           </div>
         </div>
