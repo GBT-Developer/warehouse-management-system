@@ -73,14 +73,14 @@ export default function ProductDetailPage() {
         // Fetch stock history
         const stockHistoryQuery = query(
           collectionGroup(db, 'stock_history'),
-          where('product', '==', productRef)
+          where('product', '==', productRef.id)
         );
         const stockHistoryQuerySnapshot = await getDocs(stockHistoryQuery);
 
         const stockHistoryData: StockHistory[] = [];
         stockHistoryQuerySnapshot.forEach((theStockHistory) => {
           const stockHistory = theStockHistory.data() as StockHistory;
-          if (stockHistory.updated_at === undefined) return;
+          if (stockHistory.created_at === undefined) return;
           stockHistory.id = theStockHistory.id;
           stockHistoryData.push(stockHistory);
         });
@@ -380,15 +380,16 @@ export default function ProductDetailPage() {
               <td className=" py-3">Old count</td>
               <td className=" py-3">New count</td>
               <td className=" py-3">Difference</td>
+              <td className=" py-3">Type</td>
             </TableHeader>
             <tbody className="overflow-y-auto">
               {stockHistory.map((stock_history: StockHistory, index) => (
                 <tr key={index} className="border-b dark:border-gray-700">
-                  <SingleTableItem>{stock_history.updated_at}</SingleTableItem>
+                  <SingleTableItem>{stock_history.created_at}</SingleTableItem>
                   <SingleTableItem>{stock_history.old_count}</SingleTableItem>
-                  <SingleTableItem>{stock_history.new_count}</SingleTableItem>
+                  <SingleTableItem>{stock_history.count}</SingleTableItem>
                   <SingleTableItem>
-                    <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-[1.75rem]">
                       {stock_history.difference}
                       {Number(stock_history.difference) > 0 ? (
                         <GoTriangleUp size={23} className="text-green-500" />
