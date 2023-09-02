@@ -75,7 +75,7 @@ export const ManageStockPage = () => {
     ) => {
       const productQuery = query(
         collection(db, 'product'),
-        where('supplier', '==', doc(db, 'supplier', supplier_id)),
+        where('supplier', '==', supplier_id),
         where('warehouse_position', '==', the_warehouse)
       );
       const res = await getDocs(productQuery);
@@ -85,6 +85,9 @@ export const ManageStockPage = () => {
         productList.push({
           id: doc.id,
           ...doc.data(),
+          supplier: supplierList.find(
+            (supplier) => supplier.id === doc.data().supplier
+          ),
         } as Product);
       });
 
@@ -126,13 +129,9 @@ export const ManageStockPage = () => {
         const newDocRef = doc(collection(db, 'purchase_history'));
 
         transaction.set(newDocRef, {
+          ...newPurchase,
           product: newPurchase.product?.id,
           supplier: selectedSupplier.id,
-          quantity: (
-            Number(newPurchase.count) - Number(newPurchase.product?.count)
-          ).toString(),
-          price: newPurchase.purchase_price,
-          date: newPurchase.created_at,
         });
 
         return Promise.resolve();
@@ -322,7 +321,7 @@ export const ManageStockPage = () => {
           loading={loading}
           label="Quantity"
           labelFor="quantity"
-          value={newPurchase.product?.count ?? '0'}
+          value={newPurchase.count}
           onChange={(e) =>
             setNewPurchase(() => ({
               ...newPurchase,
