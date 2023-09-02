@@ -259,7 +259,11 @@ export const ManageStockPage = () => {
           label="Quantity"
           labelFor="quantity"
           value={quantity.toString()}
-          onChange={(e) => setQuantity(() => parseInt(e.target.value))}
+          onChange={(e) =>
+            setQuantity(() =>
+              parseInt(e.target.value === '' ? '0' : e.target.value)
+            )
+          }
         />
         {manageStockMode === 'purchase' && (
           <InputField
@@ -267,7 +271,11 @@ export const ManageStockPage = () => {
             label="Purchase price"
             labelFor="purchase-price"
             value={purchasePrice.toString()}
-            onChange={(e) => setPurchasePrice(() => parseInt(e.target.value))}
+            onChange={(e) =>
+              setPurchasePrice(() =>
+                parseInt(e.target.value === '' ? '0' : e.target.value)
+              )
+            }
           />
         )}
         <div className="flex flex-row-reverse gap-2 justify-start">
