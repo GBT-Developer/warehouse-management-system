@@ -41,7 +41,7 @@ const newPurchaseInitialState = {
   purchase_price: '',
   supplier: null,
   product: null,
-  payment_status: '',
+  payment_status: 'unpaid',
 } as Purchase_History;
 
 export const NewProductPage = () => {
@@ -136,8 +136,7 @@ export const NewProductPage = () => {
       const newPurchaseRef = doc(collection(db, 'purchase_history'));
       transaction.set(newPurchaseRef, {
         ...newPurchase,
-        payment_status: 'unpaid',
-        created_at: new Date().toISOString(),
+        payment_status: newPurchase.payment_status,
         product: newProductRef.id,
         supplier: newSupplierRef ? newSupplierRef.id : newProduct.supplier?.id,
       });
@@ -266,6 +265,28 @@ export const NewProductPage = () => {
                 <option value="Gudang Bahan">Gudang Bahan</option>
               </select>
             </div>
+          </div>
+        </div>
+
+        <div className="flex justify-between">
+          <div className="w-1/3 flex items-center">
+            <label htmlFor={'date-id'} className="text-md">
+              Purchase date
+            </label>
+          </div>
+          <div className="w-2/3">
+            <input
+              disabled={loading}
+              type="date"
+              name="date"
+              className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
+              onChange={(e) => {
+                setNewPurchase(() => ({
+                  ...newPurchase,
+                  created_at: e.target.value,
+                }));
+              }}
+            />
           </div>
         </div>
 
