@@ -18,11 +18,11 @@ import { PageLayout } from 'renderer/layout/PageLayout';
 
 const newPurchaseInitialState = {
   created_at: '',
-  count: '',
-  purchase_price: '',
+  count: '0',
+  purchase_price: '0',
   supplier: null,
   product: null,
-  payment_status: '',
+  payment_status: 'unpaid',
 } as Purchase_History;
 
 export const ManageStockPage = () => {
