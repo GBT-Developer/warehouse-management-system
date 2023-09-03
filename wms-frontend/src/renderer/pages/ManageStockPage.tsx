@@ -11,6 +11,8 @@ import { useEffect, useState } from 'react';
 import { AiOutlineLoading3Quarters } from 'react-icons/ai';
 import { useNavigate } from 'react-router-dom';
 import { InputField } from 'renderer/components/InputField';
+import { SingleTableItem } from 'renderer/components/TableComponents/SingleTableItem';
+import { TableModal } from 'renderer/components/TableComponents/TableModal';
 import { Product } from 'renderer/interfaces/Product';
 import { Purchase_History } from 'renderer/interfaces/PurchaseHistory';
 import { Supplier } from 'renderer/interfaces/Supplier';
@@ -44,6 +46,7 @@ export const ManageStockPage = () => {
     newPurchaseInitialState
   );
   const [dispatchNote, setDispatchNote] = useState<string>('');
+  const [modalOpen, setModalOpen] = useState(false);
 
   useEffect(() => {
     setLoading(true);
@@ -297,41 +300,25 @@ export const ManageStockPage = () => {
             </label>
           </div>
           <div className="w-2/3">
-            <select
-              defaultValue={''}
-              disabled={loading}
-              name="product-id"
-              onChange={(e) => {
-                setNewPurchase(() => ({
-                  ...newPurchase,
-                  product:
-                    products.find((product) => product.id === e.target.value) ??
-                    null,
-                }));
-              }}
+            <button
               className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
+              type="button"
+              onClick={() => setModalOpen(() => !modalOpen)}
             >
-              <option value={''} disabled>
-                Choose product
-              </option>
-              {products
-                .filter((product) => {
-                  if (manageStockMode === 'purchase')
-                    if (selectedSupplier)
-                      return product.supplier?.id === selectedSupplier.id;
-                })
-                .map((product) => (
-                  <option key={product.id} value={product.id}>
-                    {product.brand +
-                      ' ' +
-                      product.motor_type +
-                      ' ' +
-                      product.part +
-                      ' ' +
-                      product.available_color}
-                  </option>
-                ))}
-            </select>
+              {newPurchase.product ? (
+                <p className="flex justify-start">
+                  {newPurchase.product.brand +
+                    ' ' +
+                    newPurchase.product.motor_type +
+                    ' ' +
+                    newPurchase.product.part +
+                    ' ' +
+                    newPurchase.product.available_color}
+                </p>
+              ) : (
+                'Choose product(s)'
+              )}
+            </button>
           </div>
         </div>
         <InputField
@@ -402,6 +389,37 @@ export const ManageStockPage = () => {
           <p className="text-red-500 text-sm ">{errorMessage}</p>
         )}
       </form>
+      <TableModal
+        modalOpen={modalOpen}
+        setModalOpen={setModalOpen}
+        title={'Choose Product'}
+        headerList={['Product name', 'Count']}
+      >
+        {products.map((product, index) => (
+          <tr
+            key={index}
+            className="border-b hover:shadow-md cursor-pointer"
+            onClick={() => {
+              setNewPurchase(() => ({
+                ...newPurchase,
+                product: product,
+              }));
+              setModalOpen(() => false);
+            }}
+          >
+            <SingleTableItem key={index}>
+              {product.brand +
+                ' ' +
+                product.motor_type +
+                ' ' +
+                product.part +
+                ' ' +
+                product.available_color}
+            </SingleTableItem>
+            <SingleTableItem>{product.count}</SingleTableItem>
+          </tr>
+        ))}
+      </TableModal>
     </PageLayout>
   );
 };
