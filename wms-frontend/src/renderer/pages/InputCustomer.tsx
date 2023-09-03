@@ -1,6 +1,6 @@
 import { collection, getDocs, query } from '@firebase/firestore';
 import { db } from 'firebase';
-import { where } from 'firebase/firestore';
+import { and, or, where } from 'firebase/firestore';
 import { useState } from 'react';
 import { AiOutlineLoading3Quarters } from 'react-icons/ai';
 import { useNavigate } from 'react-router-dom';
@@ -41,14 +41,31 @@ function InputCustomerPage() {
   const handleSearch = async (search: string) => {
     const productsQuery = query(
       collection(db, 'product'),
-      where('brand', '>=', search),
-      where('motor_type', '>=', search),
-      where('part', '>=', search),
-      where('available_color', '>=', search),
-      where('brand', '<=', search),
-      where('motor_type', '<=', search),
-      where('part', '<=', search),
-      where('available_color', '<=', search)
+      or(
+        // query as-is:
+        and(
+          where('brand', '>=', search),
+          where('brand', '<=', search + '\uf8ff')
+        ),
+        // capitalize first letter:
+        and(
+          where(
+            'brand',
+            '>=',
+            search.charAt(0).toUpperCase() + search.slice(1)
+          ),
+          where(
+            'brand',
+            '<=',
+            search.charAt(0).toUpperCase() + search.slice(1) + '\uf8ff'
+          )
+        ),
+        // lowercase:
+        and(
+          where('brand', '>=', search.toLowerCase()),
+          where('brand', '<=', search.toLowerCase() + '\uf8ff')
+        )
+      )
     );
     setLoading(true);
     const querySnapshot = await getDocs(productsQuery);
@@ -143,6 +160,7 @@ function InputCustomerPage() {
         )}
       </form>
       <TableModal
+        placeholder="Search by product brand"
         modalOpen={modalOpen}
         handleSearch={handleSearch}
         setModalOpen={setModalOpen}
