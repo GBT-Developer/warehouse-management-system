@@ -11,6 +11,8 @@ import {
 import { AdminListPage } from './pages/AdminListPage';
 import { ChangePasswordPage } from './pages/ChangePasswordPage';
 import { CreateAdminPage } from './pages/CreateAdminPage';
+import CustomerListPage from './pages/CustomerListPage';
+import InputCustomerPage from './pages/InputCustomer';
 import InputSupplier from './pages/InputSupplier';
 import { AuthPage } from './pages/LoginPage';
 import { ManageProductPage } from './pages/ManageProductPage';
@@ -102,6 +104,14 @@ export const routes: RouteConfig[] = [
   {
     path: '/transfer-item',
     element: <TransferItemPage />,
+  },
+  {
+    path: '/customer-list',
+    element: <CustomerListPage />,
+  },
+  {
+    path: '/input-customer',
+    element: <InputCustomerPage />,
   },
 ];
 
