@@ -396,32 +396,40 @@ export const ManageStockPage = () => {
         modalOpen={modalOpen}
         setModalOpen={setModalOpen}
         title={'Choose Product'}
-        headerList={['Product name', 'Count']}
+        headerList={products.length > 0 ? ['Product name', 'Count'] : []}
       >
-        {products.map((product, index) => (
-          <tr
-            key={index}
-            className="border-b hover:shadow-md cursor-pointer"
-            onClick={() => {
-              setNewPurchase(() => ({
-                ...newPurchase,
-                product: product,
-              }));
-              setModalOpen(() => false);
-            }}
-          >
-            <SingleTableItem key={index}>
-              {product.brand +
-                ' ' +
-                product.motor_type +
-                ' ' +
-                product.part +
-                ' ' +
-                product.available_color}
+        {products.length > 0 ? (
+          products.map((product, index) => (
+            <tr
+              key={index}
+              className="border-b hover:shadow-md cursor-pointer"
+              onClick={() => {
+                setNewPurchase(() => ({
+                  ...newPurchase,
+                  product: product,
+                }));
+                setModalOpen(() => false);
+              }}
+            >
+              <SingleTableItem key={index}>
+                {product.brand +
+                  ' ' +
+                  product.motor_type +
+                  ' ' +
+                  product.part +
+                  ' ' +
+                  product.available_color}
+              </SingleTableItem>
+              <SingleTableItem>{product.count}</SingleTableItem>
+            </tr>
+          ))
+        ) : (
+          <tr className="border-b">
+            <SingleTableItem>
+              <p className="flex justify-center">No products found</p>
             </SingleTableItem>
-            <SingleTableItem>{product.count}</SingleTableItem>
           </tr>
-        ))}
+        )}
       </TableModal>
     </PageLayout>
   );
