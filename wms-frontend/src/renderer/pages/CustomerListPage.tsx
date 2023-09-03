@@ -1,14 +1,44 @@
-import { useState } from 'react';
+import { db } from 'firebase';
+import { collection, getDocs, query } from 'firebase/firestore';
+import { useEffect, useState } from 'react';
 import { AiOutlineLoading3Quarters } from 'react-icons/ai';
 import { useNavigate } from 'react-router-dom';
+import { SingleTableItem } from 'renderer/components/TableComponents/SingleTableItem';
 import { TableHeader } from 'renderer/components/TableComponents/TableHeader';
 import { TableTitle } from 'renderer/components/TableComponents/TableTitle';
+import { Customer } from 'renderer/interfaces/Customer';
 import { PageLayout } from 'renderer/layout/PageLayout';
 
 export default function CustomerListPage() {
+  const [customerList, setCustomerList] = useState<Customer[]>([]); // [1
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const q = query(collection(db, 'customer'));
+        const querySnapshot = await getDocs(q);
+
+        const customerData: Customer[] = [];
+        querySnapshot.forEach((theCustomer) => {
+          const data = theCustomer.data() as Customer;
+          data.id = theCustomer.id;
+          customerData.push(data);
+        });
+
+        setCustomerList(customerData);
+        setLoading(false);
+      } catch (error) {
+        console.error('Error fetching data:', error);
+      }
+    };
+
+    fetchData().catch((error) => {
+      console.log(error);
+    });
+  }, []);
 
   return (
     <PageLayout>
@@ -33,6 +63,19 @@ export default function CustomerListPage() {
                 <th className=" py-3">Telephone</th>
                 <th className=" py-3"></th>
               </TableHeader>
+              <tbody className="overflow-y-auto">
+                {customerList.map((customer, index) => (
+                  <tr
+                    key={customer.id}
+                    className="border-b hover:shadow-md cursor-pointer hover:underline"
+                    onClick={() => navigate('')}
+                  >
+                    <SingleTableItem>{customer.name}</SingleTableItem>
+                    <SingleTableItem>{customer.address}</SingleTableItem>
+                    <SingleTableItem>{customer.phone_number}</SingleTableItem>
+                  </tr>
+                ))}
+              </tbody>
             </table>
           </div>
           <div className="flex flex-row-reverse gap-2 w-full justify-start">
