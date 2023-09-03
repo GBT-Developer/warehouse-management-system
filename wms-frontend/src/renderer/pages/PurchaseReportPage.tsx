@@ -14,17 +14,15 @@ import { SingleTableItem } from 'renderer/components/TableComponents/SingleTable
 import { TableHeader } from 'renderer/components/TableComponents/TableHeader';
 import { TableTitle } from 'renderer/components/TableComponents/TableTitle';
 import { Product } from 'renderer/interfaces/Product';
-import { Purchase_History } from 'renderer/interfaces/PurchaseHistory';
+import { PurchaseHistory } from 'renderer/interfaces/PurchaseHistory';
 import { PageLayout } from 'renderer/layout/PageLayout';
 
 export default function PurchaseHistoryPage() {
   const [loading, setLoading] = useState(false);
   const param = useParams();
-  const [purchaseList, setPurchaseList] = useState<Purchase_History[]>([]);
+  const [purchaseList, setPurchaseList] = useState<PurchaseHistory[]>([]);
   const [search, setSearch] = useState('');
-  const [filteredHistory, setFilteredHistory] = useState<Purchase_History[]>(
-    []
-  );
+  const [filteredHistory, setFilteredHistory] = useState<PurchaseHistory[]>([]);
   const navigate = useNavigate();
   // Take product from firebase
   useEffect(() => {
@@ -39,9 +37,9 @@ export default function PurchaseHistoryPage() {
         );
         const querySnapshot = await getDocs(q);
 
-        const historyData: Purchase_History[] = [];
+        const historyData: PurchaseHistory[] = [];
         querySnapshot.forEach((doc) => {
-          const data = doc.data() as Purchase_History;
+          const data = doc.data() as PurchaseHistory;
           data.id = doc.id;
           historyData.push(data);
         });
@@ -109,7 +107,7 @@ export default function PurchaseHistoryPage() {
               </TableHeader>
               <tbody className="overflow-y-auto">
                 {filteredHistory.map(
-                  (purchase_history: Purchase_History, index) => (
+                  (purchase_history: PurchaseHistory, index) => (
                     <tr
                       key={index}
                       className="border-b hover:shadow-md cursor-pointer"

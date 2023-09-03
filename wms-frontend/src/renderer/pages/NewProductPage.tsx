@@ -12,7 +12,7 @@ import { useNavigate } from 'react-router-dom';
 import { AreaField } from 'renderer/components/AreaField';
 import { InputField } from 'renderer/components/InputField';
 import { Product } from 'renderer/interfaces/Product';
-import { Purchase_History } from 'renderer/interfaces/PurchaseHistory';
+import { PurchaseHistory } from 'renderer/interfaces/PurchaseHistory';
 import { Supplier } from 'renderer/interfaces/Supplier';
 import { PageLayout } from 'renderer/layout/PageLayout';
 
@@ -42,7 +42,7 @@ const newPurchaseInitialState = {
   supplier: null,
   product: null,
   payment_status: 'unpaid',
-} as Purchase_History;
+} as PurchaseHistory;
 
 export const NewProductPage = () => {
   const [newProduct, setNewProduct] = useState<Product>(newProductInitialState);
@@ -56,7 +56,7 @@ export const NewProductPage = () => {
   const [newSupplier, setNewSupplier] = useState<Supplier>(
     newSupplierInitialState
   );
-  const [newPurchase, setNewPurchase] = useState<Purchase_History>(
+  const [newPurchase, setNewPurchase] = useState<PurchaseHistory>(
     newPurchaseInitialState
   );
 
