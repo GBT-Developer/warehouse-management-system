@@ -1,7 +1,8 @@
 import { db } from 'firebase';
-import { collection, getDocs, query } from 'firebase/firestore';
+import { collection, deleteDoc, doc, getDocs, query } from 'firebase/firestore';
 import { useEffect, useState } from 'react';
 import { AiOutlineLoading3Quarters } from 'react-icons/ai';
+import { BiSolidTrash } from 'react-icons/bi';
 import { useNavigate } from 'react-router-dom';
 import { SingleTableItem } from 'renderer/components/TableComponents/SingleTableItem';
 import { TableHeader } from 'renderer/components/TableComponents/TableHeader';
@@ -73,6 +74,22 @@ export default function CustomerListPage() {
                     <SingleTableItem>{customer.name}</SingleTableItem>
                     <SingleTableItem>{customer.address}</SingleTableItem>
                     <SingleTableItem>{customer.phone_number}</SingleTableItem>
+                    <SingleTableItem>
+                      <button
+                        type="button"
+                        className="text-red-500 text-lg p-2 hover:text-red-700 cursor-pointer bg-transparent rounded-md"
+                        onClick={async () => {
+                          setLoading(true);
+                          if (!customer.id) return;
+                          const purchaseRef = doc(db, 'customer', customer.id);
+                          await deleteDoc(purchaseRef);
+                          customerList.splice(index, 1);
+                          setLoading(false);
+                        }}
+                      >
+                        <BiSolidTrash />
+                      </button>
+                    </SingleTableItem>
                   </tr>
                 ))}
               </tbody>
