@@ -20,7 +20,7 @@ export const InputField = ({
   additionalStyle,
 }: InputFieldProps) => {
   return (
-    <div className="flex justify-between items-center">
+    <div className="w-full flex justify-between items-center">
       <div className="w-1/3">
         <label htmlFor={labelFor} className="text-md">
           {label}

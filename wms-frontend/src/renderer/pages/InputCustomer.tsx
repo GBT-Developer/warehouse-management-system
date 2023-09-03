@@ -1,7 +1,7 @@
 import { collection, getDocs, query } from '@firebase/firestore';
 import { db } from 'firebase';
-import { and, or, where } from 'firebase/firestore';
-import { useState } from 'react';
+import { addDoc, and, or, where } from 'firebase/firestore';
+import { FormEvent, useState } from 'react';
 import { AiOutlineLoading3Quarters } from 'react-icons/ai';
 import { useNavigate } from 'react-router-dom';
 import { InputField } from 'renderer/components/InputField';
@@ -9,7 +9,6 @@ import { SingleTableItem } from 'renderer/components/TableComponents/SingleTable
 import { TableModal } from 'renderer/components/TableComponents/TableModal';
 import { Customer } from 'renderer/interfaces/Customer';
 import { Product } from 'renderer/interfaces/Product';
-import { SpecialPrice } from 'renderer/interfaces/SpecialPrice';
 import { PageLayout } from 'renderer/layout/PageLayout';
 
 const newCustomerInitialState = {
@@ -18,12 +17,6 @@ const newCustomerInitialState = {
   phone_number: '',
   SpecialPrice: [],
 } as Customer;
-
-const newSpecialPriceInitialState = {
-  product_id: '',
-  product_name: '',
-  price: 0,
-} as SpecialPrice;
 
 function InputCustomerPage() {
   const navigate = useNavigate();
@@ -35,9 +28,45 @@ function InputCustomerPage() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [selectedProducts, setSelectedProducts] = useState<Product[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
-  const handleSelectionConfirmed = (selectedProducts: Product[]) => {
-    setSelectedProducts(selectedProducts);
-  };
+
+  async function handleSubmit(e: FormEvent) {
+    e.preventDefault();
+    // If one or more fields are empty except remarks, return early
+    if (
+      !newCustomer.name ||
+      !newCustomer.address ||
+      !newCustomer.phone_number
+    ) {
+      setErrorMessage('Please fill all the fields');
+      setTimeout(() => {
+        setErrorMessage(null);
+      }, 3000);
+      return;
+    }
+
+    // Check data type
+    if (Number.isNaN(Number(newCustomer.phone_number))) {
+      setErrorMessage('Please input a valid number');
+      setTimeout(() => {
+        setErrorMessage(null);
+      }, 3000);
+      return;
+    }
+
+    // Make a code to input my data to firebase
+    const productCollection = collection(db, '/customer');
+    setLoading(true);
+    addDoc(productCollection, newCustomer)
+      .then(() => {
+        setLoading(false);
+        navigate(-1);
+      })
+      .catch((error) => {
+        console.error('Error adding document: ', error);
+        setLoading(false);
+      });
+  }
+
   const handleSearch = async (search: string) => {
     const productsQuery = query(
       collection(db, 'product'),
@@ -128,12 +157,49 @@ function InputCustomerPage() {
         />
 
         <hr className="my-4" />
+        <h2 className="text-2xl font-bold">Special Price</h2>
+        <ul className="my-3 space-y-2 font-regular">
+          {selectedProducts.map((product, index) => (
+            <li key={index}>
+              <div className="flex justify-between items-center">
+                <InputField
+                  loading={loading}
+                  label={
+                    product.brand +
+                    ' ' +
+                    product.motor_type +
+                    ' ' +
+                    product.part +
+                    ' ' +
+                    product.available_color
+                  }
+                  labelFor="price"
+                  value={
+                    newCustomer.SpecialPrice.find(
+                      (sp) => sp.product_id === product.id
+                    )?.price.toString() || ''
+                  }
+                  onChange={(e) => {
+                    setNewCustomer({
+                      ...newCustomer,
+                      SpecialPrice: newCustomer.SpecialPrice.map((sp) =>
+                        sp.product_id === product.id
+                          ? { ...sp, price: e.target.value }
+                          : sp
+                      ),
+                    });
+                  }}
+                />
+              </div>
+            </li>
+          ))}
+        </ul>
         <button
           type="button"
-          className="text-white bg-blue-700 text-center font-medium text-sm rounded-lg px-5 py-2-5"
+          className="py-2 px-5 text-sm font-medium text-red-500 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-red-700 focus:z-10 focus:ring-4 focus:ring-gray-200"
           onClick={() => setModalOpen(true)}
         >
-          Select Products
+          + Add Products
         </button>
 
         <h2 className="text-2xl font-bold">Special Price</h2>
@@ -143,6 +209,9 @@ function InputCustomerPage() {
             disabled={loading}
             type="submit"
             className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2 focus:outline-none"
+            onClick={(e) => {
+              handleSubmit(e);
+            }}
           >
             Submit
           </button>
@@ -179,10 +248,24 @@ function InputCustomerPage() {
               onClick={() => {
                 if (!selectedProducts.includes(product)) {
                   setSelectedProducts([...selectedProducts, product]);
+                  if (product.id) {
+                    newCustomer.SpecialPrice = [
+                      ...newCustomer.SpecialPrice,
+                      {
+                        product_id: product.id,
+                        price: product.sell_price,
+                      },
+                    ];
+                  }
                 } else {
                   setSelectedProducts(
                     selectedProducts.filter((p) => p !== product)
                   );
+                  if (product.id) {
+                    newCustomer.SpecialPrice = newCustomer.SpecialPrice.filter(
+                      (sp) => sp.product_id !== product.id
+                    );
+                  }
                 }
               }}
             >
