@@ -14,7 +14,7 @@ import { InputField } from 'renderer/components/InputField';
 import { SingleTableItem } from 'renderer/components/TableComponents/SingleTableItem';
 import { TableModal } from 'renderer/components/TableComponents/TableModal';
 import { Product } from 'renderer/interfaces/Product';
-import { Purchase_History } from 'renderer/interfaces/PurchaseHistory';
+import { PurchaseHistory } from 'renderer/interfaces/PurchaseHistory';
 import { Supplier } from 'renderer/interfaces/Supplier';
 import { PageLayout } from 'renderer/layout/PageLayout';
 
@@ -25,7 +25,7 @@ const newPurchaseInitialState = {
   supplier: null,
   product: null,
   payment_status: 'unpaid',
-} as Purchase_History;
+} as PurchaseHistory;
 
 export const ManageStockPage = () => {
   const navigate = useNavigate();
@@ -42,7 +42,7 @@ export const ManageStockPage = () => {
   const [selectedWarehouse, setSelectedWarehouse] = useState<
     'Gudang Jadi' | 'Gudang Bahan' | ''
   >('');
-  const [newPurchase, setNewPurchase] = useState<Purchase_History>(
+  const [newPurchase, setNewPurchase] = useState<PurchaseHistory>(
     newPurchaseInitialState
   );
   const [dispatchNote, setDispatchNote] = useState<string>('');
@@ -135,6 +135,9 @@ export const ManageStockPage = () => {
 
         transaction.set(newPurchaseHistoryDocRef, {
           ...newPurchase,
+          count: (
+            Number(newPurchase.count) - Number(newPurchase.product?.count)
+          ).toString(),
           product: newPurchase.product?.id,
           supplier: selectedSupplier.id,
         });
@@ -169,7 +172,6 @@ export const ManageStockPage = () => {
       <form
         onSubmit={(e) => {
           e.preventDefault();
-          console.log('submit');
           handleSubmit().catch(() => {
             setErrorMessage('An error occured while submitting data');
           });
@@ -326,12 +328,13 @@ export const ManageStockPage = () => {
           label="Quantity"
           labelFor="quantity"
           value={newPurchase.count}
-          onChange={(e) =>
+          onChange={(e) => {
+            if (isNaN(Number(e.target.value))) return;
             setNewPurchase(() => ({
               ...newPurchase,
               count: e.target.value,
-            }))
-          }
+            }));
+          }}
         />
         {manageStockMode === 'purchase' && (
           <InputField
