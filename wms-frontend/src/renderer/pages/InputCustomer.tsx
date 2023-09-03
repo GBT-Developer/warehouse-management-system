@@ -1,9 +1,14 @@
+import { collection, getDocs, query } from '@firebase/firestore';
+import { db } from 'firebase';
+import { where } from 'firebase/firestore';
 import { useState } from 'react';
 import { AiOutlineLoading3Quarters } from 'react-icons/ai';
 import { useNavigate } from 'react-router-dom';
 import { InputField } from 'renderer/components/InputField';
-import ListModal from 'renderer/components/TableComponents/ListModal';
+import { SingleTableItem } from 'renderer/components/TableComponents/SingleTableItem';
+import { TableModal } from 'renderer/components/TableComponents/TableModal';
 import { Customer } from 'renderer/interfaces/Customer';
+import { Product } from 'renderer/interfaces/Product';
 import { SpecialPrice } from 'renderer/interfaces/SpecialPrice';
 import { PageLayout } from 'renderer/layout/PageLayout';
 
@@ -26,12 +31,37 @@ function InputCustomerPage() {
     newCustomerInitialState
   );
   const [loading, setLoading] = useState(false);
-  const [showModal, setShowModal] = useState(false);
+  const [modalOpen, setModalOpen] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [selectedProducts, setSelectedProducts] = useState<string[]>([]);
-
-  const handleSelectionConfirmed = (selectedProducts: string[]) => {
+  const [selectedProducts, setSelectedProducts] = useState<Product[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
+  const handleSelectionConfirmed = (selectedProducts: Product[]) => {
     setSelectedProducts(selectedProducts);
+  };
+  const handleSearch = async (search: string) => {
+    const productsQuery = query(
+      collection(db, 'product'),
+      where('brand', '>=', search),
+      where('motor_type', '>=', search),
+      where('part', '>=', search),
+      where('available_color', '>=', search),
+      where('brand', '<=', search),
+      where('motor_type', '<=', search),
+      where('part', '<=', search),
+      where('available_color', '<=', search)
+    );
+    setLoading(true);
+    const querySnapshot = await getDocs(productsQuery);
+
+    const productData: Product[] = [];
+    querySnapshot.forEach((theProduct) => {
+      const data = theProduct.data() as Product;
+      data.id = theProduct.id;
+      productData.push(data);
+    });
+
+    setProducts(productData);
+    setLoading(false);
   };
 
   return (
@@ -84,7 +114,7 @@ function InputCustomerPage() {
         <button
           type="button"
           className="text-white bg-blue-700 text-center font-medium text-sm rounded-lg px-5 py-2-5"
-          onClick={() => setShowModal(true)}
+          onClick={() => setModalOpen(true)}
         >
           Select Products
         </button>
@@ -112,15 +142,59 @@ function InputCustomerPage() {
           <p className="text-red-500 text-sm ">{errorMessage}</p>
         )}
       </form>
-      <ListModal
-        isOpen={showModal}
-        onClose={() => setShowModal(false)}
-        onSelectionConfirmed={handleSelectionConfirmed}
+      <TableModal
+        modalOpen={modalOpen}
+        handleSearch={handleSearch}
+        setModalOpen={setModalOpen}
+        title={'Choose Product'}
+        headerList={
+          products.length > 0
+            ? ['', 'Product name', 'Sell Price', 'Warehouse']
+            : []
+        }
       >
-        <div>
-          <h1 className="text-2xl font-bold">Special Price</h1>
-        </div>
-      </ListModal>
+        {products.length > 0 ? (
+          products.map((product, index) => (
+            <tr
+              key={index}
+              className="border-b hover:shadow-md cursor-pointer"
+              onClick={() => {
+                if (!selectedProducts.includes(product)) {
+                  setSelectedProducts([...selectedProducts, product]);
+                } else {
+                  setSelectedProducts(
+                    selectedProducts.filter((p) => p !== product)
+                  );
+                }
+              }}
+            >
+              <SingleTableItem>
+                <input
+                  type="checkbox"
+                  checked={selectedProducts.includes(product)}
+                />
+              </SingleTableItem>
+              <SingleTableItem key={index}>
+                {product.brand +
+                  ' ' +
+                  product.motor_type +
+                  ' ' +
+                  product.part +
+                  ' ' +
+                  product.available_color}
+              </SingleTableItem>
+              <SingleTableItem>{product.sell_price}</SingleTableItem>
+              <SingleTableItem>{product.warehouse_position}</SingleTableItem>
+            </tr>
+          ))
+        ) : (
+          <tr className="border-b">
+            <SingleTableItem>
+              <p className="flex justify-center">No products found</p>
+            </SingleTableItem>
+          </tr>
+        )}
+      </TableModal>
     </PageLayout>
   );
 }
