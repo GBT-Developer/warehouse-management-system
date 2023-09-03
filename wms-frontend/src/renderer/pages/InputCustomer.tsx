@@ -3,6 +3,7 @@ import { db } from 'firebase';
 import { addDoc, and, or, where } from 'firebase/firestore';
 import { FormEvent, useState } from 'react';
 import { AiOutlineLoading3Quarters } from 'react-icons/ai';
+import { IoRemoveCircleOutline } from 'react-icons/io5';
 import { useNavigate } from 'react-router-dom';
 import { InputField } from 'renderer/components/InputField';
 import { SingleTableItem } from 'renderer/components/TableComponents/SingleTableItem';
@@ -47,6 +48,14 @@ function InputCustomerPage() {
     // Check data type
     if (Number.isNaN(Number(newCustomer.phone_number))) {
       setErrorMessage('Please input a valid number');
+      setTimeout(() => {
+        setErrorMessage(null);
+      }, 3000);
+      return;
+    }
+
+    if (newCustomer.SpecialPrice.some((sp) => sp.price === '')) {
+      setErrorMessage('Please enter prices for all selected products');
       setTimeout(() => {
         setErrorMessage(null);
       }, 3000);
@@ -158,10 +167,10 @@ function InputCustomerPage() {
 
         <hr className="my-4" />
         <h2 className="text-2xl font-bold">Special Price</h2>
-        <ul className="my-3 space-y-2 font-regular">
+        <ul className="my-3 space-y-3 font-regular">
           {selectedProducts.map((product, index) => (
             <li key={index}>
-              <div className="flex justify-between items-center">
+              <div className="flex flex-row gap-2 justify-between items-center">
                 <InputField
                   loading={loading}
                   label={
@@ -190,7 +199,27 @@ function InputCustomerPage() {
                     });
                   }}
                 />
+                <button
+                  type="button"
+                  className="py-2 px-5 text-sm font-medium text-red-500 focus:outline-none bg-white rounded-lg border:none hover:text-red-900 focus:z-10 focus:ring-4 focus:ring-gray-200"
+                  onClick={() => {
+                    setSelectedProducts(
+                      selectedProducts.filter((p) => p !== product)
+                    );
+                    if (product.id) {
+                      newCustomer.SpecialPrice =
+                        newCustomer.SpecialPrice.filter(
+                          (sp) => sp.product_id !== product.id
+                        );
+                    }
+                  }}
+                >
+                  <IoRemoveCircleOutline size={20} />
+                </button>
               </div>
+              <p className="text-sm text-gray-500">
+                {product.warehouse_position}
+              </p>
             </li>
           ))}
         </ul>
