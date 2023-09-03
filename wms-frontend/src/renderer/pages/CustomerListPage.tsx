@@ -69,7 +69,7 @@ export default function CustomerListPage() {
                   <tr
                     key={customer.id}
                     className="border-b hover:shadow-md cursor-pointer hover:underline"
-                    onClick={() => navigate('')}
+                    onClick={() => navigate('/edit-customer/' + customer.id)}
                   >
                     <SingleTableItem>{customer.name}</SingleTableItem>
                     <SingleTableItem>{customer.address}</SingleTableItem>

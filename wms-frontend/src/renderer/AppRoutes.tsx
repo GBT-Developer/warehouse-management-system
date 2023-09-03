@@ -12,6 +12,7 @@ import { AdminListPage } from './pages/AdminListPage';
 import { ChangePasswordPage } from './pages/ChangePasswordPage';
 import { CreateAdminPage } from './pages/CreateAdminPage';
 import CustomerListPage from './pages/CustomerListPage';
+import EditCustomerPage from './pages/EditCustomerPage';
 import InputCustomerPage from './pages/InputCustomer';
 import InputSupplier from './pages/InputSupplier';
 import { AuthPage } from './pages/LoginPage';
@@ -112,6 +113,10 @@ export const routes: RouteConfig[] = [
   {
     path: '/input-customer',
     element: <InputCustomerPage />,
+  },
+  {
+    path: '/edit-customer/:id',
+    element: <EditCustomerPage />,
   },
 ];
 
