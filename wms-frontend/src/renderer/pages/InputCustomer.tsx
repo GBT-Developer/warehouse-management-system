@@ -9,7 +9,7 @@ import { InputField } from 'renderer/components/InputField';
 import { SingleTableItem } from 'renderer/components/TableComponents/SingleTableItem';
 import { TableModal } from 'renderer/components/TableComponents/TableModal';
 import { Customer } from 'renderer/interfaces/Customer';
-import { Product } from 'renderer/interfaces/Product';
+import { SpecialPrice } from 'renderer/interfaces/SpecialPrice';
 import { PageLayout } from 'renderer/layout/PageLayout';
 
 const newCustomerInitialState = {
@@ -27,8 +27,8 @@ function InputCustomerPage() {
   const [loading, setLoading] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [selectedProducts, setSelectedProducts] = useState<Product[]>([]);
-  const [products, setProducts] = useState<Product[]>([]);
+  const [selectedProducts, setSelectedProducts] = useState<SpecialPrice[]>([]);
+  const [products, setProducts] = useState<SpecialPrice[]>([]);
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
@@ -54,6 +54,9 @@ function InputCustomerPage() {
       return;
     }
 
+    // add selected products to newCustomer
+    newCustomer.SpecialPrice = selectedProducts;
+
     if (newCustomer.SpecialPrice.some((sp) => sp.price === '')) {
       setErrorMessage('Please enter prices for all selected products');
       setTimeout(() => {
@@ -61,6 +64,7 @@ function InputCustomerPage() {
       }, 3000);
       return;
     }
+    console.log(newCustomer);
 
     // Make a code to input my data to firebase
     const productCollection = collection(db, '/customer');
@@ -108,10 +112,11 @@ function InputCustomerPage() {
     setLoading(true);
     const querySnapshot = await getDocs(productsQuery);
 
-    const productData: Product[] = [];
+    const productData: SpecialPrice[] = [];
     querySnapshot.forEach((theProduct) => {
-      const data = theProduct.data() as Product;
-      data.id = theProduct.id;
+      const data = theProduct.data() as SpecialPrice;
+      data.product_id = theProduct.id;
+      data.price = theProduct.get('sell_price');
       productData.push(data);
     });
 
@@ -183,20 +188,16 @@ function InputCustomerPage() {
                     product.available_color
                   }
                   labelFor="price"
-                  value={
-                    newCustomer.SpecialPrice.find(
-                      (sp) => sp.product_id === product.id
-                    )?.price.toString() || ''
-                  }
+                  value={product.price}
                   onChange={(e) => {
-                    setNewCustomer({
-                      ...newCustomer,
-                      SpecialPrice: newCustomer.SpecialPrice.map((sp) =>
-                        sp.product_id === product.id
-                          ? { ...sp, price: e.target.value }
-                          : sp
-                      ),
-                    });
+                    setSelectedProducts(
+                      selectedProducts.map((p) => {
+                        if (p === product) {
+                          p.price = e.target.value;
+                        }
+                        return p;
+                      })
+                    );
                   }}
                 />
                 <button
@@ -280,10 +281,7 @@ function InputCustomerPage() {
                   if (product.id) {
                     newCustomer.SpecialPrice = [
                       ...newCustomer.SpecialPrice,
-                      {
-                        product_id: product.id,
-                        price: product.sell_price,
-                      },
+                      product,
                     ];
                   }
                 } else {
