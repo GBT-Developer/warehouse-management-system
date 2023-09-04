@@ -1,6 +1,6 @@
 import { collection, getDocs, query } from '@firebase/firestore';
 import { db } from 'firebase';
-import { addDoc, and, doc, getDoc, or, where } from 'firebase/firestore';
+import { and, doc, getDoc, or, updateDoc, where } from 'firebase/firestore';
 import { FormEvent, useEffect, useState } from 'react';
 import { AiOutlineLoading3Quarters } from 'react-icons/ai';
 import { IoRemoveCircleOutline } from 'react-icons/io5';
@@ -9,7 +9,7 @@ import { InputField } from 'renderer/components/InputField';
 import { SingleTableItem } from 'renderer/components/TableComponents/SingleTableItem';
 import { TableModal } from 'renderer/components/TableComponents/TableModal';
 import { Customer } from 'renderer/interfaces/Customer';
-import { Product } from 'renderer/interfaces/Product';
+import { SpecialPrice } from 'renderer/interfaces/SpecialPrice';
 import { PageLayout } from 'renderer/layout/PageLayout';
 
 const newCustomerInitialState = {
@@ -28,8 +28,8 @@ function EditCustomerPage() {
   const [loading, setLoading] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [selectedProducts, setSelectedProducts] = useState<Product[]>([]);
-  const [products, setProducts] = useState<Product[]>([]);
+  const [selectedProducts, setSelectedProducts] = useState<SpecialPrice[]>([]);
+  const [products, setProducts] = useState<SpecialPrice[]>([]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -41,6 +41,8 @@ function EditCustomerPage() {
         const customerData = customerSnap.data() as Customer;
         customerData.id = customerSnap.id;
         setNewCustomer(customerData);
+
+        setSelectedProducts(customerData.SpecialPrice);
 
         setLoading(false);
       } catch (error) {
@@ -84,18 +86,22 @@ function EditCustomerPage() {
       return;
     }
 
-    // Make a code to input my data to firebase
-    const productCollection = collection(db, '/customer');
+    // Update customer data
     setLoading(true);
-    addDoc(productCollection, newCustomer)
-      .then(() => {
-        setLoading(false);
-        navigate(-1);
-      })
-      .catch((error) => {
-        console.error('Error adding document: ', error);
-        setLoading(false);
+    try {
+      if (!param.id) return;
+      const customerRef = doc(db, 'customer', param.id);
+      await updateDoc(customerRef, {
+        name: newCustomer.name,
+        address: newCustomer.address,
+        phone_number: newCustomer.phone_number,
+        SpecialPrice: selectedProducts,
       });
+      setLoading(false);
+      navigate(-1);
+    } catch (error) {
+      console.error('Error updating document:', error);
+    }
   }
 
   const handleSearch = async (search: string) => {
@@ -130,10 +136,11 @@ function EditCustomerPage() {
     setLoading(true);
     const querySnapshot = await getDocs(productsQuery);
 
-    const productData: Product[] = [];
+    const productData: SpecialPrice[] = [];
     querySnapshot.forEach((theProduct) => {
-      const data = theProduct.data() as Product;
-      data.id = theProduct.id;
+      const data = theProduct.data() as SpecialPrice;
+      data.product_id = theProduct.id;
+      data.price = theProduct.get('sell_price');
       productData.push(data);
     });
 
@@ -144,7 +151,7 @@ function EditCustomerPage() {
   return (
     <PageLayout>
       <h1 className="text-4xl font-extrabold tracking-tight text-gray-900 md:text-5xl">
-        Add New Customer
+        Edit Customer
       </h1>
       <form
         className={`w-2/3 py-14 my-10 flex flex-col gap-3 relative ${
@@ -205,20 +212,16 @@ function EditCustomerPage() {
                     product.available_color
                   }
                   labelFor="price"
-                  value={
-                    newCustomer.SpecialPrice.find(
-                      (sp) => sp.product_id === product.id
-                    )?.price.toString() || ''
-                  }
+                  value={product.price}
                   onChange={(e) => {
-                    setNewCustomer({
-                      ...newCustomer,
-                      SpecialPrice: newCustomer.SpecialPrice.map((sp) =>
-                        sp.product_id === product.id
-                          ? { ...sp, price: e.target.value }
-                          : sp
-                      ),
-                    });
+                    setSelectedProducts(
+                      selectedProducts.map((p) => {
+                        if (p === product) {
+                          p.price = e.target.value;
+                        }
+                        return p;
+                      })
+                    );
                   }}
                 />
                 <button
@@ -252,8 +255,6 @@ function EditCustomerPage() {
         >
           + Add Products
         </button>
-
-        <h2 className="text-2xl font-bold">Special Price</h2>
 
         <div className="flex flex-row-reverse gap-2 justify-start">
           <button
@@ -297,15 +298,16 @@ function EditCustomerPage() {
               key={index}
               className="border-b hover:shadow-md cursor-pointer"
               onClick={() => {
-                if (!selectedProducts.includes(product)) {
+                if (
+                  !selectedProducts.some(
+                    (sp) => sp.product_id === product.product_id
+                  )
+                ) {
                   setSelectedProducts([...selectedProducts, product]);
                   if (product.id) {
                     newCustomer.SpecialPrice = [
                       ...newCustomer.SpecialPrice,
-                      {
-                        product_id: product.id,
-                        price: product.sell_price,
-                      },
+                      product,
                     ];
                   }
                 } else {
@@ -323,7 +325,9 @@ function EditCustomerPage() {
               <SingleTableItem>
                 <input
                   type="checkbox"
-                  checked={selectedProducts.includes(product)}
+                  checked={selectedProducts.some(
+                    (sp) => sp.product_id === product.product_id
+                  )}
                 />
               </SingleTableItem>
               <SingleTableItem key={index}>
