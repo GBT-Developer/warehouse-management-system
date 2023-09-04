@@ -78,7 +78,8 @@ export default function CustomerListPage() {
                       <button
                         type="button"
                         className="text-red-500 text-lg p-2 hover:text-red-700 cursor-pointer bg-transparent rounded-md"
-                        onClick={async () => {
+                        onClick={async (e) => {
+                          e.stopPropagation();
                           setLoading(true);
                           if (!customer.id) return;
                           const purchaseRef = doc(db, 'customer', customer.id);
