@@ -248,7 +248,7 @@ function EditCustomerPage() {
                       value={
                         newCustomer.special_price_products.find(
                           (sp) => sp.product === product.id
-                        )?.price ?? 'product.sell_price'
+                        )?.price ?? product.sell_price
                       }
                       onChange={(e) => {
                         const newSpecialPriceProducts = [
