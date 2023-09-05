@@ -9,14 +9,14 @@ import { InputField } from 'renderer/components/InputField';
 import { SingleTableItem } from 'renderer/components/TableComponents/SingleTableItem';
 import { TableModal } from 'renderer/components/TableComponents/TableModal';
 import { Customer } from 'renderer/interfaces/Customer';
-import { SpecialPrice } from 'renderer/interfaces/SpecialPrice';
+import { Product } from 'renderer/interfaces/Product';
 import { PageLayout } from 'renderer/layout/PageLayout';
 
 const newCustomerInitialState = {
   name: '',
   address: '',
   phone_number: '',
-  SpecialPrice: [],
+  special_price_products: [],
 } as Customer;
 
 function InputCustomerPage() {
@@ -27,10 +27,10 @@ function InputCustomerPage() {
   const [loading, setLoading] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [selectedProducts, setSelectedProducts] = useState<SpecialPrice[]>([]);
-  const [products, setProducts] = useState<SpecialPrice[]>([]);
+  const [selectedProducts, setSelectedProducts] = useState<Product[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
 
-  async function handleSubmit(e: FormEvent) {
+  function handleSubmit(e: FormEvent) {
     e.preventDefault();
     // If one or more fields are empty except remarks, return early
     if (
@@ -54,10 +54,7 @@ function InputCustomerPage() {
       return;
     }
 
-    // add selected products to newCustomer
-    newCustomer.SpecialPrice = selectedProducts;
-
-    if (newCustomer.SpecialPrice.some((sp) => sp.price === '')) {
+    if (newCustomer.special_price_products.some((sp) => sp.price === '')) {
       setErrorMessage('Please enter prices for all selected products');
       setTimeout(() => {
         setErrorMessage(null);
@@ -84,12 +81,12 @@ function InputCustomerPage() {
     const productsQuery = query(
       collection(db, 'product'),
       or(
-        // query as-is:
+        // Query as-is:
         and(
           where('brand', '>=', search),
           where('brand', '<=', search + '\uf8ff')
         ),
-        // capitalize first letter:
+        // Capitalize first letter:
         and(
           where(
             'brand',
@@ -102,26 +99,24 @@ function InputCustomerPage() {
             search.charAt(0).toUpperCase() + search.slice(1) + '\uf8ff'
           )
         ),
-        // lowercase:
+        // Lowercase:
         and(
           where('brand', '>=', search.toLowerCase()),
           where('brand', '<=', search.toLowerCase() + '\uf8ff')
         )
       )
     );
-    setLoading(true);
     const querySnapshot = await getDocs(productsQuery);
 
-    const productData: SpecialPrice[] = [];
+    const productData: Product[] = [];
     querySnapshot.forEach((theProduct) => {
-      const data = theProduct.data() as SpecialPrice;
-      data.product_id = theProduct.id;
-      data.price = theProduct.get('sell_price');
+      const data = theProduct.data() as Product;
+      data.id = theProduct.id;
+      data.sell_price = theProduct.get('sell_price') as string;
       productData.push(data);
     });
 
     setProducts(productData);
-    setLoading(false);
   };
 
   return (
@@ -176,30 +171,49 @@ function InputCustomerPage() {
           {selectedProducts.map((product, index) => (
             <li key={index}>
               <div className="flex flex-row gap-2 justify-between items-center">
-                <InputField
-                  loading={loading}
-                  label={
-                    product.brand +
-                    ' ' +
-                    product.motor_type +
-                    ' ' +
-                    product.part +
-                    ' ' +
-                    product.available_color
-                  }
-                  labelFor="price"
-                  value={product.price}
-                  onChange={(e) => {
-                    setSelectedProducts(
-                      selectedProducts.map((p) => {
-                        if (p === product) {
-                          p.price = e.target.value;
-                        }
-                        return p;
-                      })
-                    );
-                  }}
-                />
+                <div className="w-full flex justify-between items-center">
+                  <div className="w-4/5">
+                    <label htmlFor="price" className="text-md">
+                      {product.brand +
+                        ' ' +
+                        product.motor_type +
+                        ' ' +
+                        product.part +
+                        ' ' +
+                        product.available_color}
+                    </label>
+                  </div>
+                  <div className="w-1/5">
+                    <input
+                      disabled={loading}
+                      id={'price'}
+                      name={'price'}
+                      type="text"
+                      className={`placeholder:text-xs placeholder:font-light bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 p-2 w-full
+                      `}
+                      value={
+                        newCustomer.special_price_products.find(
+                          (sp) => sp.product === product.id
+                        )?.price ?? 'product.sell_price'
+                      }
+                      onChange={(e) => {
+                        const newSpecialPriceProducts = [
+                          ...newCustomer.special_price_products,
+                        ];
+                        const index = newSpecialPriceProducts.findIndex(
+                          (sp) => sp.product === product.id
+                        );
+                        newSpecialPriceProducts[index].price = e.target.value;
+                        setNewCustomer(() => {
+                          return {
+                            ...newCustomer,
+                            special_price_products: newSpecialPriceProducts,
+                          };
+                        });
+                      }}
+                    />
+                  </div>
+                </div>
                 <button
                   type="button"
                   className="py-2 px-5 text-sm font-medium text-red-500 focus:outline-none bg-white rounded-lg border:none hover:text-red-900 focus:z-10 focus:ring-4 focus:ring-gray-200"
@@ -207,12 +221,11 @@ function InputCustomerPage() {
                     setSelectedProducts(
                       selectedProducts.filter((p) => p !== product)
                     );
-                    if (product.id) {
-                      newCustomer.SpecialPrice =
-                        newCustomer.SpecialPrice.filter(
-                          (sp) => sp.product_id !== product.id
+                    if (product.id)
+                      newCustomer.special_price_products =
+                        newCustomer.special_price_products.filter(
+                          (sp) => sp.product !== product.id
                         );
-                    }
                   }}
                 >
                   <IoRemoveCircleOutline size={20} />
@@ -231,8 +244,6 @@ function InputCustomerPage() {
         >
           + Add Products
         </button>
-
-        <h2 className="text-2xl font-bold">Special Price</h2>
 
         <div className="flex flex-row-reverse gap-2 justify-start">
           <button
@@ -278,21 +289,23 @@ function InputCustomerPage() {
               onClick={() => {
                 if (!selectedProducts.includes(product)) {
                   setSelectedProducts([...selectedProducts, product]);
-                  if (product.id) {
-                    newCustomer.SpecialPrice = [
-                      ...newCustomer.SpecialPrice,
-                      product,
+                  if (product.id)
+                    newCustomer.special_price_products = [
+                      ...newCustomer.special_price_products,
+                      {
+                        product: product.id,
+                        price: product.sell_price,
+                      },
                     ];
-                  }
                 } else {
                   setSelectedProducts(
                     selectedProducts.filter((p) => p !== product)
                   );
-                  if (product.id) {
-                    newCustomer.SpecialPrice = newCustomer.SpecialPrice.filter(
-                      (sp) => sp.product_id !== product.id
-                    );
-                  }
+                  if (product.id)
+                    newCustomer.special_price_products =
+                      newCustomer.special_price_products.filter(
+                        (sp) => sp.product !== product.id
+                      );
                 }
               }}
             >
@@ -300,6 +313,7 @@ function InputCustomerPage() {
                 <input
                   type="checkbox"
                   checked={selectedProducts.includes(product)}
+                  readOnly
                 />
               </SingleTableItem>
               <SingleTableItem key={index}>
