@@ -13,7 +13,7 @@ export const TableTitle = ({
   placeholder,
 }: TableTitleProps) => {
   return (
-    <div className="sticky flex flex-col md:flex-row items-center justify-between space-y-3 md:space-y-0 md:space-x-4 py-4 mb-[2rem]">
+    <div className="flex flex-col md:flex-row items-center justify-between space-y-3 md:space-y-0 md:space-x-4 py-4 mb-[2rem]">
       {children}
       <SearchBar
         placeholder={placeholder}
