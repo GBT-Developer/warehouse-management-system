@@ -1,6 +1,7 @@
 import { db } from 'firebase';
 import {
   collection,
+  deleteDoc,
   doc,
   getDocs,
   query,
@@ -50,7 +51,10 @@ export default function PurchaseHistoryPage() {
         const productSnapshot = await getDocs(myquery);
         productSnapshot.forEach((doc) => {
           historyData.forEach((history) => {
-            if (history.product && doc.id === history.product)
+            if (
+              history.product &&
+              doc.id === (history.product as unknown as string)
+            )
               history.product = doc.data() as Product;
           });
         });
@@ -178,6 +182,26 @@ export default function PurchaseHistoryPage() {
                         <button
                           type="button"
                           className="text-red-500 text-lg p-2 hover:text-red-700 cursor-pointer bg-transparent rounded-md"
+                          onClick={() => {
+                            setLoading(true);
+                            if (!purchase_history.id) return;
+                            const purchaseRef = doc(
+                              db,
+                              'purchase_history',
+                              purchase_history.id
+                            );
+                            deleteDoc(purchaseRef)
+                              .then(() => {
+                                setFilteredHistory((prev) => {
+                                  return prev.filter(
+                                    (history) =>
+                                      history.id !== purchase_history.id
+                                  );
+                                });
+                              })
+                              .catch((error) => console.log(error));
+                            setLoading(false);
+                          }}
                         >
                           <BiSolidTrash />
                         </button>
