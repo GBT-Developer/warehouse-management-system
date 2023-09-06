@@ -3,9 +3,11 @@ import {
   addDoc,
   and,
   collection,
+  doc,
   getDocs,
   or,
   query,
+  runTransaction,
   where,
 } from 'firebase/firestore';
 import { FormEvent, useState } from 'react';
@@ -91,7 +93,39 @@ export const TransferItemPage = () => {
     try {
       setLoading(true);
       const dispatchNoteRef = collection(db, 'dispatch_note');
-      addDoc(dispatchNoteRef, dispatchNote);
+      const dispatchNoteDoc = await addDoc(dispatchNoteRef, dispatchNote);
+
+      //update product count, set new product with new status
+      runTransaction(db, async (transaction) => {
+        for (const item of dispatchNote.dispatch_items) {
+          const currentProduct = selectedProducts.find(
+            (p) => p.id === item.product_id
+          );
+          if (!currentProduct) return;
+          const difference =
+            parseInt(currentProduct.count) - parseInt(item.amount);
+          transaction.update(
+            doc(db, 'product', item.product_id),
+            'count',
+            difference.toString()
+          );
+        }
+
+        //set new product with new status
+        for (const item of dispatchNote.dispatch_items) {
+          const currentProduct = selectedProducts.find(
+            (p) => p.id === item.product_id
+          );
+          if (!currentProduct) return;
+          transaction.set(doc(collection(db, 'on_dispatch')), {
+            ...currentProduct,
+            status: 'Under painting',
+            count: item.amount,
+            dispatch_note_id: dispatchNoteDoc.id,
+          });
+        }
+      });
+
       // clear form
       setDispatchNote(newDispatchNoteInitialStates);
       setSelectedProducts([]);
