@@ -19,6 +19,7 @@ import { NewProductPage } from './pages/NewProductPage';
 import ProductDetailPage from './pages/ProductDetailPage';
 import ProfilePage from './pages/ProfilePage';
 import PurchaseReportPage from './pages/PurchaseReportPage';
+import ReturnPage from './pages/ReturnPage';
 import StockHistoryPage from './pages/StockHistoryPage';
 import SupplierDetailPage from './pages/SupplierDetailPage';
 import SupplierList from './pages/SupplierList';
@@ -97,6 +98,10 @@ export const routes: RouteConfig[] = [
   {
     path: '/supplier-detail/:id',
     element: <SupplierDetailPage />,
+  },
+  {
+    path: '/retourepage',
+    element: <ReturnPage />,
   },
 ];
 
