@@ -1,4 +1,6 @@
-import { useRef, useState } from 'react';
+import { db } from 'firebase';
+import { collection, getDocs, query } from 'firebase/firestore';
+import { useEffect, useRef, useState } from 'react';
 import { AiOutlineLoading3Quarters } from 'react-icons/ai';
 import { useParams } from 'react-router-dom';
 import { AreaField } from 'renderer/components/AreaField';
@@ -11,13 +13,38 @@ import { PageLayout } from 'renderer/layout/PageLayout';
 export default function ReturnPage() {
   const [loading, setLoading] = useState(false);
   const param = useParams();
-  const [product, setProduct] = useState<Product>();
+  const [products, setProducts] = useState<Product[]>([]);
   const [editToggle, setEditToggle] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [supplier, setSupplier] = useState<Supplier>();
   const statusOptionRef = useRef<HTMLSelectElement>(null);
   const [newRetoure, setNewRetoure] = useState<Retoure>();
+  const productOptionRef = useRef<HTMLSelectElement>(null);
 
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        //take products from firestore
+        const productsQuery = query(collection(db, 'product'));
+        const querySnapshot = await getDocs(productsQuery);
+
+        const productData: Product[] = [];
+        querySnapshot.forEach((theProduct) => {
+          const data = theProduct.data() as Product;
+          data.id = theProduct.id;
+          productData.push(data);
+        });
+
+        setProducts(productData);
+      } catch (error) {
+        console.error('Error fetching data:', error);
+      }
+    };
+    fetchData().catch((error) => {
+      console.log(error);
+    });
+  }, []);
+  console.log(products);
   return (
     <PageLayout>
       <h1 className="text-4xl font-extrabold tracking-tight text-gray-900 md:text-5xl">
@@ -34,6 +61,39 @@ export default function ReturnPage() {
             <AiOutlineLoading3Quarters className="animate-spin flex justify-center text-4xl" />
           </div>
         )}
+        <div>
+          <div className="flex justify-between">
+            <div className="w-1/3 py-1.5">
+              <label htmlFor={'invoice'} className="text-md">
+                Invoice Number
+              </label>
+            </div>
+            <div className="w-2/3">
+              <select
+                ref={productOptionRef}
+                defaultValue={''}
+                disabled={loading}
+                id="supplier"
+                name="supplier"
+                onChange={(e) => {
+                  const product = products.find(
+                    (product) => product.id === e.target.value
+                  );
+                }}
+                className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
+              >
+                <option value={''} disabled>
+                  Choose Invoice number
+                </option>
+                {products.map((product) => (
+                  <option key={product.id} value={product.id}>
+                    {product.id}
+                  </option>
+                ))}
+              </select>{' '}
+            </div>
+          </div>
+        </div>
         <InputField
           loading={loading}
           label="Product"
