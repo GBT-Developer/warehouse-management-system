@@ -4,7 +4,7 @@ import { BsChevronDown, BsChevronUp } from 'react-icons/bs';
 import { CiLogout } from 'react-icons/ci';
 import { LiaFileInvoiceDollarSolid } from 'react-icons/lia';
 import { LuFolderEdit, LuHistory, LuPackageOpen } from 'react-icons/lu';
-import { MdInventory2 } from 'react-icons/md';
+import { MdInventory2, MdOutlinePeopleAlt } from 'react-icons/md';
 import { PiPasswordLight, PiUserListLight } from 'react-icons/pi';
 import { TbPackageExport, TbTruckReturn } from 'react-icons/tb';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
@@ -140,9 +140,9 @@ export const AppSidebar = ({
               <SidebarItem
                 icon={<TbPackageExport />}
                 onClick={() => {
-                  navigate('/');
+                  navigate('/transfer-item');
                 }}
-                selected={location.pathname === '/'}
+                selected={location.pathname === '/transfer-item'}
               >
                 Transfer Item
               </SidebarItem>
@@ -177,6 +177,16 @@ export const AppSidebar = ({
             selected={location.pathname === '/'}
           >
             Retoure
+          </SidebarItem>
+
+          <SidebarItem
+            onClick={() => {
+              navigate('/customer-list');
+            }}
+            icon={<MdOutlinePeopleAlt />}
+            selected={location.pathname === '/customer-list'}
+          >
+            Customer
           </SidebarItem>
         </ul>
 

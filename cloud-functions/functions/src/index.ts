@@ -11,15 +11,20 @@ setGlobalOptions({
 
 export const firebaseAdmin = admin.initializeApp();
 
-export * from "./createPurchaseHistory";
 export * from "./createUser";
 export * from "./deleteUser";
 export * from "./getUsers";
-export * from "./updateProductStock";
 
 if (process.env.NODE_ENV === "development") {
   const NUM_USERS = 10;
-  import("./seeding/user").then((module) => {
-    module.seedUser(NUM_USERS);
+  const NUM_SUPPLIERS = 15;
+  const NUM_PRODUCTS = 100;
+
+  import("./seeding").then(async (module) => {
+    await module.seedUser(NUM_USERS); // Create 10 users and one 'owner' user
+    const supplier_ids = await module.seedSupplier(NUM_SUPPLIERS); // Create 10 suppliers
+    if (supplier_ids.length !== 0) {
+      await module.seedProduct(NUM_PRODUCTS, supplier_ids); // Create 100 products
+    }
   });
 }

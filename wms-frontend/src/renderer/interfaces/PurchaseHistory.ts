@@ -1,12 +1,12 @@
-import { Timestamp } from 'firebase/firestore';
 import { Product } from './Product';
 import { Supplier } from './Supplier';
 
-export interface Purchase_History {
+export interface PurchaseHistory {
   id?: string;
-  count: number;
+  count: string;
   payment_status: string;
-  created_at: Timestamp;
-  product: Product;
-  supplier: Supplier;
+  purchase_price: string;
+  created_at: string;
+  product: Product | null;
+  supplier: Supplier | null;
 }
