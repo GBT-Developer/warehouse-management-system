@@ -50,7 +50,7 @@ export default function PurchaseHistoryPage() {
         const productSnapshot = await getDocs(myquery);
         productSnapshot.forEach((doc) => {
           historyData.forEach((history) => {
-            if (history.product && doc.id === history.product)
+            if (history.product && doc.id === history.product.id)
               history.product = doc.data() as Product;
           });
         });
