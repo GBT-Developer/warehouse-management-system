@@ -1,5 +1,5 @@
 import { db } from 'firebase';
-import { collection, getDocs, query } from 'firebase/firestore';
+import { addDoc, collection, getDocs, query } from 'firebase/firestore';
 import { useEffect, useRef, useState } from 'react';
 import { AiOutlineLoading3Quarters } from 'react-icons/ai';
 import { useParams } from 'react-router-dom';
@@ -45,13 +45,32 @@ export default function ReturnPage() {
     });
   }, []);
   console.log(products);
+
+  function handleSubmit(e: { preventDefault: () => void }) {
+    //input newRetoure to the database
+    e.preventDefault();
+    if (!newRetoure) return;
+    setLoading(true);
+    const newRetoureRef = collection(db, 'retoure');
+    addDoc(newRetoureRef, newRetoure)
+      .then(() => {
+        console.log('Document successfully written!');
+        setLoading(false);
+        setNewRetoure(undefined);
+      })
+      .catch((error) => {
+        console.error('Error writing document: ', error);
+        setLoading(false);
+      });
+  }
+
   return (
     <PageLayout>
       <h1 className="text-4xl font-extrabold tracking-tight text-gray-900 md:text-5xl">
         Retoure Page
       </h1>
       <form
-        onSubmit={}
+        onSubmit={handleSubmit}
         className={`w-2/3 py-14 my-10 flex flex-col gap-3 relative ${
           loading ? 'p-2' : ''
         }`}
@@ -71,7 +90,7 @@ export default function ReturnPage() {
             <div className="w-2/3">
               <select
                 ref={productOptionRef}
-                defaultValue={''}
+                defaultValue={newRetoure?.id ?? ''}
                 disabled={loading}
                 id="supplier"
                 name="supplier"
@@ -79,6 +98,7 @@ export default function ReturnPage() {
                   const product = products.find(
                     (product) => product.id === e.target.value
                   );
+                  setNewRetoure({ ...newRetoure, id: e.target.value });
                 }}
                 className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
               >
@@ -155,6 +175,15 @@ export default function ReturnPage() {
               </select>
             </div>
           </div>
+        </div>
+        <div className="flex flex-row-reverse gap-2 justify-start">
+          <button
+            disabled={loading}
+            type="submit"
+            className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5"
+          >
+            Submit
+          </button>
         </div>
       </form>
     </PageLayout>
