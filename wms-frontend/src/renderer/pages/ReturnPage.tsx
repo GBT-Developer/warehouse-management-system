@@ -67,8 +67,18 @@ export default function ReturnPage() {
       }, 3000);
       return;
     }
+    if (
+      Number.isNaN(Number(newRetoure.count)) ||
+      Number(newRetoure.count) <= 0
+    ) {
+      setErrorMessage('Please input a valid number');
+      setTimeout(() => {
+        setErrorMessage(null);
+      }, 3000);
+      return;
+    }
     setLoading(true);
-    const newRetoureRef = collection(db, 'retoure');
+    const newRetoureRef = collection(db, 'broken_products');
     addDoc(newRetoureRef, newRetoure)
       .then(() => {
         console.log('Document successfully written!');
