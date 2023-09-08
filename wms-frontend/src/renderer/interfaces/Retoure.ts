@@ -1,8 +1,7 @@
-import { Timestamp } from '@firebase/firestore';
-
+import { Product } from './Product';
 export interface Retoure {
-  id?: string;
-  created_at?: Timestamp;
+  product?: Product;
+  created_at?: string;
   product_name?: string;
   count?: string;
   remarks?: string;

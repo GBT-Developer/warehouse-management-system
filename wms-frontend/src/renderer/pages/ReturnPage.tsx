@@ -100,30 +100,27 @@ export default function ReturnPage() {
         <div>
           <div className="flex justify-between">
             <div className="w-1/3 py-1.5">
-              <label htmlFor={'invoice'} className="text-md">
+              <label htmlFor={'product'} className="text-md">
                 Invoice Number
               </label>
             </div>
             <div className="w-2/3">
               <select
                 ref={productOptionRef}
-                defaultValue={newRetoure?.id ?? ''}
+                defaultValue={''}
                 disabled={loading}
-                id="supplier"
-                name="supplier"
+                id="product"
+                name="product"
                 onChange={(e) => {
                   const product = products.find(
                     (product) => product.id === e.target.value
                   );
-                  setNewRetoure({ ...newRetoure, id: e.target.value });
-                  setNewRetoure({
-                    ...newRetoure,
-                    created_at: currentTimeStamp,
-                  });
+                  if (!product) return;
+                  setNewRetoure({ ...newRetoure, product: product });
                 }}
                 className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
               >
-                <option value={''} disabled selected>
+                <option value={''} disabled>
                   Choose Invoice number
                 </option>
                 {products.map((product) => (
@@ -188,13 +185,34 @@ export default function ReturnPage() {
                 }}
                 className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
               >
-                <option value={''} disabled selected>
+                <option value={''} disabled>
                   Choose Status
                 </option>
                 <option value="Return">Return</option>
                 <option value="Exchanged">Exchanged</option>
               </select>
             </div>
+          </div>
+        </div>
+        <div className="flex justify-between">
+          <div className="w-1/3 flex items-center">
+            <label htmlFor={'date-id'} className="text-md">
+              Retoure date
+            </label>
+          </div>
+          <div className="w-2/3">
+            <input
+              disabled={loading}
+              type="date"
+              name="date"
+              className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
+              onChange={(e) => {
+                setNewRetoure(() => ({
+                  ...newRetoure,
+                  created_at: e.target.value,
+                }));
+              }}
+            />
           </div>
         </div>
         <div className="flex flex-row-reverse gap-2 justify-start">
