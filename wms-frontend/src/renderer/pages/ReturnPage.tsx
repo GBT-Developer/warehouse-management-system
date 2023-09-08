@@ -1,5 +1,11 @@
 import { db } from 'firebase';
-import { addDoc, collection, getDocs, query } from 'firebase/firestore';
+import {
+  Timestamp,
+  addDoc,
+  collection,
+  getDocs,
+  query,
+} from 'firebase/firestore';
 import { useEffect, useRef, useState } from 'react';
 import { AiOutlineLoading3Quarters } from 'react-icons/ai';
 import { useParams } from 'react-router-dom';
@@ -20,6 +26,7 @@ export default function ReturnPage() {
   const statusOptionRef = useRef<HTMLSelectElement>(null);
   const [newRetoure, setNewRetoure] = useState<Retoure>();
   const productOptionRef = useRef<HTMLSelectElement>(null);
+  const currentTimeStamp = Timestamp.now();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -49,7 +56,17 @@ export default function ReturnPage() {
   function handleSubmit(e: { preventDefault: () => void }) {
     //input newRetoure to the database
     e.preventDefault();
-    if (!newRetoure) return;
+    if (
+      !newRetoure?.product_name ||
+      !newRetoure?.count ||
+      !newRetoure?.remarks
+    ) {
+      setErrorMessage('Please fill all the fields');
+      setTimeout(() => {
+        setErrorMessage(null);
+      }, 3000);
+      return;
+    }
     setLoading(true);
     const newRetoureRef = collection(db, 'retoure');
     addDoc(newRetoureRef, newRetoure)
@@ -99,10 +116,14 @@ export default function ReturnPage() {
                     (product) => product.id === e.target.value
                   );
                   setNewRetoure({ ...newRetoure, id: e.target.value });
+                  setNewRetoure({
+                    ...newRetoure,
+                    created_at: currentTimeStamp,
+                  });
                 }}
                 className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
               >
-                <option value={''} disabled>
+                <option value={''} disabled selected>
                   Choose Invoice number
                 </option>
                 {products.map((product) => (
@@ -167,7 +188,7 @@ export default function ReturnPage() {
                 }}
                 className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
               >
-                <option value={''} disabled>
+                <option value={''} disabled selected>
                   Choose Status
                 </option>
                 <option value="Return">Return</option>
@@ -185,6 +206,9 @@ export default function ReturnPage() {
             Submit
           </button>
         </div>
+        {errorMessage && (
+          <p className="text-red-500 text-sm ">{errorMessage}</p>
+        )}
       </form>
     </PageLayout>
   );
