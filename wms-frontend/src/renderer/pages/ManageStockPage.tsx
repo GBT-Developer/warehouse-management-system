@@ -450,7 +450,7 @@ export const ManageStockPage = () => {
 
               if (product && Number(e.target.value) > Number(product.count)) {
                 setErrorMessage(
-                  'Quantity cannot be more than available stock. Max quantity is ' +
+                  'Not enough stock in warehouse. Stock in warehouse: ' +
                     product.count
                 );
                 setTimeout(() => {
