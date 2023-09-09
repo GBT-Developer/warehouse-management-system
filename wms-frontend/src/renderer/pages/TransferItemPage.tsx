@@ -1,11 +1,179 @@
-import { useState } from 'react';
+import { db } from 'firebase';
+import {
+  addDoc,
+  and,
+  collection,
+  doc,
+  getDocs,
+  or,
+  query,
+  runTransaction,
+  where,
+} from 'firebase/firestore';
+import { FormEvent, useState } from 'react';
 import { AiOutlineLoading3Quarters } from 'react-icons/ai';
+import { BiSolidTrash } from 'react-icons/bi';
 import { useNavigate } from 'react-router-dom';
+import { InputField } from 'renderer/components/InputField';
+import { SingleTableItem } from 'renderer/components/TableComponents/SingleTableItem';
+import { TableModal } from 'renderer/components/TableComponents/TableModal';
+import { DispatchNote } from 'renderer/interfaces/DispatchNote';
+import { Product } from 'renderer/interfaces/Product';
 import { PageLayout } from 'renderer/layout/PageLayout';
+
+const newDispatchNoteInitialStates: DispatchNote = {
+  painter: '',
+  created_at: '',
+  dispatch_items: [],
+};
 
 export const TransferItemPage = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [dispatchNote, setDispatchNote] = useState<DispatchNote>(
+    newDispatchNoteInitialStates
+  );
+  const [selectedProducts, setSelectedProducts] = useState<Product[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
+
+  async function handleSubmit(e: FormEvent) {
+    e.preventDefault();
+
+    if (!dispatchNote.created_at || !dispatchNote.painter) {
+      setErrorMessage('Please fill all fields');
+      setTimeout(() => {
+        setErrorMessage(null);
+      }, 3000);
+      return;
+    }
+
+    if (dispatchNote.dispatch_items.length === 0) {
+      setErrorMessage('Please add at least one product');
+      setTimeout(() => {
+        setErrorMessage(null);
+      }, 3000);
+      return;
+    }
+
+    //check if color and amount is filled
+    if (
+      dispatchNote.dispatch_items.some(
+        (item) => item.color === '' || item.amount === ''
+      )
+    ) {
+      setErrorMessage('Please fill all fields');
+      setTimeout(() => {
+        setErrorMessage(null);
+      }, 3000);
+      return;
+    }
+
+    //check if amount is greater than 0, is a number, is smaller or equal to available amount
+    if (
+      dispatchNote.dispatch_items.some(
+        (item) =>
+          parseInt(item.amount) <= 0 ||
+          isNaN(parseInt(item.amount)) ||
+          parseInt(item.amount) >
+            parseInt(
+              selectedProducts.find((p) => p.id === item.product_id)?.count ??
+                '0'
+            )
+      )
+    ) {
+      setErrorMessage('Invalid amount');
+      setTimeout(() => {
+        setErrorMessage(null);
+      }, 3000);
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const dispatchNoteRef = collection(db, 'dispatch_note');
+      const dispatchNoteDoc = await addDoc(dispatchNoteRef, dispatchNote);
+
+      //update product count, set new product with new status
+      runTransaction(db, async (transaction) => {
+        for (const item of dispatchNote.dispatch_items) {
+          const currentProduct = selectedProducts.find(
+            (p) => p.id === item.product_id
+          );
+          if (!currentProduct) return;
+          const difference =
+            parseInt(currentProduct.count) - parseInt(item.amount);
+          transaction.update(
+            doc(db, 'product', item.product_id),
+            'count',
+            difference.toString()
+          );
+        }
+
+        //set new product with new status
+        for (const item of dispatchNote.dispatch_items) {
+          const currentProduct = selectedProducts.find(
+            (p) => p.id === item.product_id
+          );
+          if (!currentProduct) return;
+          transaction.set(doc(collection(db, 'on_dispatch')), {
+            ...currentProduct,
+            status: 'Under painting',
+            count: item.amount,
+            dispatch_note_id: dispatchNoteDoc.id,
+          });
+        }
+      });
+
+      // clear form
+      setDispatchNote(newDispatchNoteInitialStates);
+      setSelectedProducts([]);
+      setLoading(false);
+    } catch (error) {
+      console.error('Error adding document: ', error);
+    }
+  }
+
+  const handleSearch = async (search: string) => {
+    const productsQuery = query(
+      collection(db, 'product'),
+      or(
+        // query as-is:
+        and(
+          where('brand', '>=', search),
+          where('brand', '<=', search + '\uf8ff')
+        ),
+        // capitalize first letter:
+        and(
+          where(
+            'brand',
+            '>=',
+            search.charAt(0).toUpperCase() + search.slice(1)
+          ),
+          where(
+            'brand',
+            '<=',
+            search.charAt(0).toUpperCase() + search.slice(1) + '\uf8ff'
+          )
+        ),
+        // lowercase:
+        and(
+          where('brand', '>=', search.toLowerCase()),
+          where('brand', '<=', search.toLowerCase() + '\uf8ff')
+        )
+      )
+    );
+    const querySnapshot = await getDocs(productsQuery);
+    const products: Product[] = [];
+    querySnapshot.forEach((doc) => {
+      const data = doc.data() as Product;
+      data.id = doc.id;
+      products.push(data);
+    });
+    setProducts(products);
+  };
+
   return (
     <PageLayout>
       <h1 className="text-4xl font-extrabold tracking-tight text-gray-900 md:text-5xl">
@@ -21,7 +189,217 @@ export const TransferItemPage = () => {
             <AiOutlineLoading3Quarters className="animate-spin flex justify-center text-4xl" />
           </div>
         )}
+
+        <InputField
+          label="Painter"
+          labelFor="painter"
+          loading={loading}
+          value={dispatchNote.painter}
+          onChange={(e) => {
+            setDispatchNote(() => ({
+              ...dispatchNote,
+              painter: e.target.value,
+            }));
+          }}
+        />
+
+        <div className="flex justify-between">
+          <div className="w-1/3 flex items-center">
+            <label htmlFor={'date-id'} className="text-md">
+              Date
+            </label>
+          </div>
+          <div className="w-2/3">
+            <input
+              disabled={loading}
+              type="date"
+              name="date"
+              className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
+              onChange={(e) => {
+                setDispatchNote(() => ({
+                  ...dispatchNote,
+                  created_at: e.target.value,
+                }));
+              }}
+            />
+          </div>
+        </div>
+
+        <ul className="my-3 space-y-3 font-regular">
+          {dispatchNote.dispatch_items.map((item, index) => (
+            <li key={index}>
+              <div className="flex flex-row">
+                <div className="flex flex-col gap-2 w-full">
+                  <div className="flex w-full justify-between">
+                    <p className="text-lg font-semibold">
+                      {selectedProducts[index].brand +
+                        ' ' +
+                        selectedProducts[index].motor_type +
+                        ' ' +
+                        selectedProducts[index].part +
+                        ' ' +
+                        selectedProducts[index].available_color}
+                    </p>
+                    <button
+                      type="button"
+                      className="text-red-500 text-lg p-2 hover:text-red-700 cursor-pointer bg-transparent rounded-md"
+                      onClick={() => {
+                        dispatchNote.dispatch_items.splice(index, 1);
+                        setSelectedProducts(
+                          selectedProducts.filter(
+                            (p) => p.id !== item.product_id
+                          )
+                        );
+                      }}
+                    >
+                      <BiSolidTrash />
+                    </button>
+                  </div>
+                  <InputField
+                    label="Color"
+                    labelFor="color"
+                    loading={loading}
+                    value={item.color}
+                    onChange={(e) => {
+                      if (dispatchNote === undefined) return;
+                      setDispatchNote({
+                        ...dispatchNote,
+                        dispatch_items: dispatchNote.dispatch_items.map(
+                          (i, idx) => {
+                            if (idx === index) {
+                              i.color = e.target.value;
+                            }
+                            return i;
+                          }
+                        ),
+                      });
+                    }}
+                  />
+                  <InputField
+                    label="Amount"
+                    labelFor="amount"
+                    loading={loading}
+                    value={item.amount}
+                    onChange={(e) => {
+                      if (dispatchNote === undefined) return;
+                      setDispatchNote({
+                        ...dispatchNote,
+                        dispatch_items: dispatchNote.dispatch_items.map(
+                          (i, idx) => {
+                            if (idx === index) {
+                              i.amount = e.target.value;
+                            }
+                            return i;
+                          }
+                        ),
+                      });
+                    }}
+                  />
+                </div>
+              </div>
+              <hr className="mt-3 mb-4" />
+            </li>
+          ))}
+        </ul>
+
+        <button
+          type="button"
+          className="py-2 px-5 text-sm font-medium text-red-500 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-red-700 focus:z-10 focus:ring-4 focus:ring-gray-200"
+          onClick={() => setModalOpen(true)}
+        >
+          + Add Products
+        </button>
+
+        <div className="flex flex-row-reverse gap-2 justify-start">
+          <button
+            disabled={loading}
+            type="submit"
+            className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2 focus:outline-none"
+            onClick={(e) => {
+              handleSubmit(e);
+            }}
+          >
+            Submit
+          </button>
+          <button
+            disabled={loading}
+            type="button"
+            className="py-2 px-5 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-200"
+            onClick={() => navigate(-1)}
+          >
+            Cancel
+          </button>
+        </div>
+        {errorMessage && (
+          <p className="text-red-500 text-sm ">{errorMessage}</p>
+        )}
       </form>
+
+      <TableModal
+        placeholder="Search by product brand"
+        modalOpen={modalOpen}
+        handleSearch={handleSearch}
+        setModalOpen={setModalOpen}
+        title={'Choose Product'}
+        headerList={
+          products.length > 0 ? ['', 'Product name', 'Available amount'] : []
+        }
+      >
+        {products.length > 0 ? (
+          products.map((product, index) => (
+            <tr
+              key={index}
+              className="border-b hover:shadow-md cursor-pointer"
+              onClick={() => {
+                if (selectedProducts.find((p) => p === product)) {
+                  console.log('found');
+                  setSelectedProducts(
+                    selectedProducts.filter((p) => p !== product)
+                  );
+                  dispatchNote.dispatch_items =
+                    dispatchNote.dispatch_items.filter(
+                      (p) => p.product_id !== product.id
+                    );
+                } else {
+                  console.log('not found');
+                  if (!product.id) return;
+                  console.log(product);
+                  setSelectedProducts([...selectedProducts, product]);
+                  dispatchNote.dispatch_items.push({
+                    product_id: product.id,
+                    color: '',
+                    amount: '',
+                  });
+                }
+              }}
+            >
+              <SingleTableItem>
+                <input
+                  type="checkbox"
+                  checked={selectedProducts.includes(product)}
+                  readOnly
+                />
+              </SingleTableItem>
+              <SingleTableItem key={index}>
+                {product.brand +
+                  ' ' +
+                  product.motor_type +
+                  ' ' +
+                  product.part +
+                  ' ' +
+                  product.available_color}
+              </SingleTableItem>
+              <SingleTableItem>{product.count}</SingleTableItem>
+            </tr>
+          ))
+        ) : (
+          <tr className="border-b">
+            <SingleTableItem>
+              <p className="flex justify-center">No products found</p>
+            </SingleTableItem>
+          </tr>
+        )}
+      </TableModal>
     </PageLayout>
   );
 };
