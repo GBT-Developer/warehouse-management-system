@@ -57,7 +57,7 @@ export const TransferItemPage = () => {
       return;
     }
 
-    //check if color and amount is filled
+    // Check if color and amount is filled
     if (
       dispatchNote.dispatch_items.some(
         (item) => item.color === '' || item.amount === ''
@@ -70,7 +70,7 @@ export const TransferItemPage = () => {
       return;
     }
 
-    //check if amount is greater than 0, is a number, is smaller or equal to available amount
+    // Check if amount is greater than 0, is a number, is smaller or equal to available amount
     if (
       dispatchNote.dispatch_items.some(
         (item) =>
@@ -95,13 +95,13 @@ export const TransferItemPage = () => {
       const dispatchNoteRef = collection(db, 'dispatch_note');
       const dispatchNoteDoc = await addDoc(dispatchNoteRef, dispatchNote);
 
-      //update product count, set new product with new status
-      runTransaction(db, async (transaction) => {
+      // Update product count, set new product with new status
+      await runTransaction(db, (transaction) => {
         for (const item of dispatchNote.dispatch_items) {
           const currentProduct = selectedProducts.find(
             (p) => p.id === item.product_id
           );
-          if (!currentProduct) return;
+          if (!currentProduct) return Promise.reject();
           const difference =
             parseInt(currentProduct.count) - parseInt(item.amount);
           transaction.update(
@@ -111,12 +111,12 @@ export const TransferItemPage = () => {
           );
         }
 
-        //set new product with new status
+        // Set new product with new status
         for (const item of dispatchNote.dispatch_items) {
           const currentProduct = selectedProducts.find(
             (p) => p.id === item.product_id
           );
-          if (!currentProduct) return;
+          if (!currentProduct) return Promise.reject();
           transaction.set(doc(collection(db, 'on_dispatch')), {
             ...currentProduct,
             status: 'Under painting',
@@ -124,9 +124,13 @@ export const TransferItemPage = () => {
             dispatch_note_id: dispatchNoteDoc.id,
           });
         }
+
+        return Promise.resolve();
+      }).catch((error) => {
+        console.error('Transaction failed: ', error);
       });
 
-      // clear form
+      // Clear form
       setDispatchNote(newDispatchNoteInitialStates);
       setSelectedProducts([]);
       setLoading(false);
@@ -139,12 +143,12 @@ export const TransferItemPage = () => {
     const productsQuery = query(
       collection(db, 'product'),
       or(
-        // query as-is:
+        // Query as-is:
         and(
           where('brand', '>=', search),
           where('brand', '<=', search + '\uf8ff')
         ),
-        // capitalize first letter:
+        // Capitalize first letter:
         and(
           where(
             'brand',
@@ -157,7 +161,7 @@ export const TransferItemPage = () => {
             search.charAt(0).toUpperCase() + search.slice(1) + '\uf8ff'
           )
         ),
-        // lowercase:
+        // Lowercase:
         and(
           where('brand', '>=', search.toLowerCase()),
           where('brand', '<=', search.toLowerCase() + '\uf8ff')
@@ -261,14 +265,12 @@ export const TransferItemPage = () => {
                     loading={loading}
                     value={item.color}
                     onChange={(e) => {
-                      if (dispatchNote === undefined) return;
                       setDispatchNote({
                         ...dispatchNote,
                         dispatch_items: dispatchNote.dispatch_items.map(
                           (i, idx) => {
-                            if (idx === index) {
-                              i.color = e.target.value;
-                            }
+                            if (idx === index) i.color = e.target.value;
+
                             return i;
                           }
                         ),
@@ -281,14 +283,12 @@ export const TransferItemPage = () => {
                     loading={loading}
                     value={item.amount}
                     onChange={(e) => {
-                      if (dispatchNote === undefined) return;
                       setDispatchNote({
                         ...dispatchNote,
                         dispatch_items: dispatchNote.dispatch_items.map(
                           (i, idx) => {
-                            if (idx === index) {
-                              i.amount = e.target.value;
-                            }
+                            if (idx === index) i.amount = e.target.value;
+
                             return i;
                           }
                         ),
@@ -316,7 +316,7 @@ export const TransferItemPage = () => {
             type="submit"
             className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2 focus:outline-none"
             onClick={(e) => {
-              handleSubmit(e);
+              handleSubmit(e).catch((error) => console.error(error));
             }}
           >
             Submit
@@ -352,7 +352,6 @@ export const TransferItemPage = () => {
               className="border-b hover:shadow-md cursor-pointer"
               onClick={() => {
                 if (selectedProducts.find((p) => p === product)) {
-                  console.log('found');
                   setSelectedProducts(
                     selectedProducts.filter((p) => p !== product)
                   );
@@ -361,9 +360,7 @@ export const TransferItemPage = () => {
                       (p) => p.product_id !== product.id
                     );
                 } else {
-                  console.log('not found');
                   if (!product.id) return;
-                  console.log(product);
                   setSelectedProducts([...selectedProducts, product]);
                   dispatchNote.dispatch_items.push({
                     product_id: product.id,
