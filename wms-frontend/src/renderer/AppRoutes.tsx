@@ -26,6 +26,7 @@ import StockHistoryPage from './pages/StockHistoryPage';
 import SupplierDetailPage from './pages/SupplierDetailPage';
 import SupplierList from './pages/SupplierList';
 import TransactionHistory from './pages/TransactionHistory';
+import { TransactionPage } from './pages/TransactionPage';
 import { TransferItemPage } from './pages/TransferItemPage';
 import { useAuth } from './providers/AuthProvider';
 
@@ -117,6 +118,10 @@ export const routes: RouteConfig[] = [
   {
     path: '/edit-customer/:id',
     element: <EditCustomerPage />,
+  },
+  {
+    path: '/transactionpage',
+    element: <TransactionPage />,
   },
 ];
 
