@@ -118,6 +118,7 @@ export const TransferItemPage = () => {
             (p) => p.id === item.product_id
           );
           if (!currentProduct) return Promise.reject();
+          currentProduct.available_color = item.color;
           transaction.set(doc(collection(db, 'on_dispatch')), {
             ...currentProduct,
             status: 'Under painting',
