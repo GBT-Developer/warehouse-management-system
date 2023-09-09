@@ -11,6 +11,9 @@ import {
 import { AdminListPage } from './pages/AdminListPage';
 import { ChangePasswordPage } from './pages/ChangePasswordPage';
 import { CreateAdminPage } from './pages/CreateAdminPage';
+import CustomerListPage from './pages/CustomerListPage';
+import EditCustomerPage from './pages/EditCustomerPage';
+import InputCustomerPage from './pages/InputCustomer';
 import InputSupplier from './pages/InputSupplier';
 import { AuthPage } from './pages/LoginPage';
 import { ManageProductPage } from './pages/ManageProductPage';
@@ -23,6 +26,8 @@ import StockHistoryPage from './pages/StockHistoryPage';
 import SupplierDetailPage from './pages/SupplierDetailPage';
 import SupplierList from './pages/SupplierList';
 import TransactionHistory from './pages/TransactionHistory';
+import { TransactionPage } from './pages/TransactionPage';
+import { TransferItemPage } from './pages/TransferItemPage';
 import { useAuth } from './providers/AuthProvider';
 
 type RouteConfig = RouteProps & {
@@ -97,6 +102,26 @@ export const routes: RouteConfig[] = [
   {
     path: '/supplier-detail/:id',
     element: <SupplierDetailPage />,
+  },
+  {
+    path: '/transfer-item',
+    element: <TransferItemPage />,
+  },
+  {
+    path: '/customer-list',
+    element: <CustomerListPage />,
+  },
+  {
+    path: '/input-customer',
+    element: <InputCustomerPage />,
+  },
+  {
+    path: '/edit-customer/:id',
+    element: <EditCustomerPage />,
+  },
+  {
+    path: '/transactionpage',
+    element: <TransactionPage />,
   },
 ];
 

@@ -1,5 +1,13 @@
 import { db } from 'firebase';
-import { collection, doc, getDocs, query, where } from 'firebase/firestore';
+import {
+  collection,
+  deleteDoc,
+  doc,
+  getDocs,
+  query,
+  updateDoc,
+  where,
+} from 'firebase/firestore';
 import { useEffect, useState } from 'react';
 import { BiSolidTrash } from 'react-icons/bi';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -7,17 +15,15 @@ import { SingleTableItem } from 'renderer/components/TableComponents/SingleTable
 import { TableHeader } from 'renderer/components/TableComponents/TableHeader';
 import { TableTitle } from 'renderer/components/TableComponents/TableTitle';
 import { Product } from 'renderer/interfaces/Product';
-import { Purchase_History } from 'renderer/interfaces/PurchaseHistory';
+import { PurchaseHistory } from 'renderer/interfaces/PurchaseHistory';
 import { PageLayout } from 'renderer/layout/PageLayout';
 
 export default function PurchaseHistoryPage() {
   const [loading, setLoading] = useState(false);
   const param = useParams();
-  const [purchaseList, setPurchaseList] = useState<Purchase_History[]>([]);
+  const [purchaseList, setPurchaseList] = useState<PurchaseHistory[]>([]);
   const [search, setSearch] = useState('');
-  const [filteredHistory, setFilteredHistory] = useState<Purchase_History[]>(
-    []
-  );
+  const [filteredHistory, setFilteredHistory] = useState<PurchaseHistory[]>([]);
   const navigate = useNavigate();
   // Take product from firebase
   useEffect(() => {
@@ -26,30 +32,29 @@ export default function PurchaseHistoryPage() {
         setLoading(true);
         if (!param.id) return; // Check if param.id is defined
 
-        const supplierRef = doc(db, 'supplier', param.id);
-
         const q = query(
           collection(db, 'purchase_history'),
-          where('supplier', '==', supplierRef)
+          where('supplier', '==', param.id)
         );
         const querySnapshot = await getDocs(q);
 
-        const historyData: Purchase_History[] = [];
+        const historyData: PurchaseHistory[] = [];
         querySnapshot.forEach((doc) => {
-          const data = doc.data() as Purchase_History;
-          console.log(data);
+          const data = doc.data() as PurchaseHistory;
           data.id = doc.id;
-          console.log(doc.id);
           historyData.push(data);
         });
         const myquery = query(
           collection(db, 'product'),
-          where('supplier', '==', supplierRef)
+          where('supplier', '==', param.id)
         );
         const productSnapshot = await getDocs(myquery);
         productSnapshot.forEach((doc) => {
           historyData.forEach((history) => {
-            if (doc.id === history.product.id)
+            if (
+              history.product &&
+              doc.id === (history.product as unknown as string)
+            )
               history.product = doc.data() as Product;
           });
         });
@@ -68,19 +73,20 @@ export default function PurchaseHistoryPage() {
 
   useEffect(() => {
     setFilteredHistory(
-      purchaseList.filter((purchase) =>
-        purchase.product.brand
-          .concat(
-            ' ',
-            purchase.product.motor_type,
-            ' ',
-            purchase.product.part,
-            ' ',
-            purchase.product.available_color
-          )
-          .toLowerCase()
-          .includes(search.toLowerCase())
-      )
+      purchaseList.filter((purchase) => {
+        if (purchase.product)
+          return purchase.product.brand
+            .concat(
+              ' ',
+              purchase.product.motor_type,
+              ' ',
+              purchase.product.part,
+              ' ',
+              purchase.product.available_color
+            )
+            .toLowerCase()
+            .includes(search.toLowerCase());
+      })
     );
   }, [search, purchaseList]);
 
@@ -96,38 +102,39 @@ export default function PurchaseHistoryPage() {
           <div className="overflow-y-auto h-full py-11">
             <table className="w-full text-sm text-left text-gray-500">
               <TableHeader>
-                <th className="px-4 py-3">Product Name</th>
-                <th className="px-4 py-3">Date</th>
-                <th className="px-4 py-3">Quantity</th>
-                <th className="px-4 py-3">Amount</th>
-                <th className="px-4 py-3">Status</th>
-                <th className="px-1 py-3"></th>
+                <th className="py-3">Product Name</th>
+                <th className="py-3">Date</th>
+                <th className="py-3">Quantity</th>
+                <th className="py-3">Amount</th>
+                <th className="py-3">Status</th>
+                <th className="py-3"></th>
               </TableHeader>
               <tbody className="overflow-y-auto">
                 {filteredHistory.map(
-                  (purchase_history: Purchase_History, index) => (
+                  (purchase_history: PurchaseHistory, index) => (
                     <tr
                       key={index}
                       className="border-b hover:shadow-md cursor-pointer"
                     >
                       <SingleTableItem>
-                        {purchase_history.product.brand +
-                          ' ' +
-                          purchase_history.product.motor_type +
-                          ' ' +
-                          purchase_history.product.part +
-                          ' ' +
-                          purchase_history.product.available_color}
+                        {purchase_history.product &&
+                          purchase_history.product.brand +
+                            ' ' +
+                            purchase_history.product.motor_type +
+                            ' ' +
+                            purchase_history.product.part +
+                            ' ' +
+                            purchase_history.product.available_color}
                       </SingleTableItem>
                       <SingleTableItem>
-                        {purchase_history.created_at.toDate().toLocaleString()}
+                        {purchase_history.created_at}
                       </SingleTableItem>
                       <SingleTableItem>
                         {purchase_history.count}
                       </SingleTableItem>
                       <SingleTableItem>
                         <span className="font-medium text-md">
-                          {purchase_history.product.buy_price}
+                          {purchase_history.purchase_price}
                         </span>
                       </SingleTableItem>
                       <SingleTableItem>
@@ -151,6 +158,9 @@ export default function PurchaseHistoryPage() {
                                 purchase_history.id
                               );
                               purchase_history.payment_status = e.target.value;
+                              updateDoc(purchaseRef, {
+                                payment_status: e.target.value,
+                              }).catch((error) => console.log(error));
                             }}
                             className={` ${
                               purchase_history.payment_status.toLowerCase() ===
@@ -159,10 +169,10 @@ export default function PurchaseHistoryPage() {
                                 : 'bg-green-400'
                             } border border-gray-300 text-gray-900 text-sm rounded-lg outline-none block w-fit p-2.5`}
                           >
-                            <option className="bg-gray-50" value="Unpaid">
+                            <option className="bg-gray-50" value="unpaid">
                               Unpaid
                             </option>
-                            <option className="bg-gray-50" value="Paid">
+                            <option className="bg-gray-50" value="paid">
                               Paid
                             </option>
                           </select>
@@ -172,6 +182,26 @@ export default function PurchaseHistoryPage() {
                         <button
                           type="button"
                           className="text-red-500 text-lg p-2 hover:text-red-700 cursor-pointer bg-transparent rounded-md"
+                          onClick={() => {
+                            setLoading(true);
+                            if (!purchase_history.id) return;
+                            const purchaseRef = doc(
+                              db,
+                              'purchase_history',
+                              purchase_history.id
+                            );
+                            deleteDoc(purchaseRef)
+                              .then(() => {
+                                setFilteredHistory((prev) => {
+                                  return prev.filter(
+                                    (history) =>
+                                      history.id !== purchase_history.id
+                                  );
+                                });
+                              })
+                              .catch((error) => console.log(error));
+                            setLoading(false);
+                          }}
                         >
                           <BiSolidTrash />
                         </button>
@@ -182,19 +212,13 @@ export default function PurchaseHistoryPage() {
               </tbody>
             </table>
           </div>
-          <div className="flex flex-row-reverse gap-2 w-full justify-start">
-            <button
-              type="submit"
-              className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 focus:outline-none hover:-translate-y-1 "
-              style={{
-                width: '100px', // Adjust the width as needed
-                height: '40px', // Adjust the height as needed
-              }}
-              onClick={() => navigate('/inputsupplier')}
-            >
-              + New
-            </button>
-          </div>
+          <button
+            type="button"
+            className="px-4 py-2 font-medium text-white bg-gray-600  focus:ring-4 focus:ring-gray-300 rounded-lg text-sm h-[max-content] w-[max-content] flex justify-center gap-2 text-center items-center"
+            onClick={() => navigate(-1)}
+          >
+            Back
+          </button>
         </div>
       </div>
     </PageLayout>

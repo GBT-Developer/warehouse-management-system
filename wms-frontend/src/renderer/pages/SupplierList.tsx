@@ -65,51 +65,70 @@ export default function SupplierList() {
                 <th className=" py-3"></th>
               </TableHeader>
               <tbody className="overflow-y-auto">
-                {supplierList.map((supplier: Supplier, index) => (
-                  <tr
-                    key={index}
-                    className="border-b hover:shadow-md cursor-pointer"
-                    onClick={() =>
-                      supplier.id && navigate('/supplier-detail/' + supplier.id)
-                    }
-                  >
-                    <SingleTableItem>{supplier.company_name} </SingleTableItem>
-                    <SingleTableItem>
-                      {supplier.address}, {supplier.city}
-                    </SingleTableItem>
-                    <SingleTableItem>
-                      <span className="font-medium text-md">
-                        {supplier.phone_number}
-                        <br />
-                        <span className="text-sm font-normal">
-                          {'a.n.' + supplier.contact_person}
+                {supplierList
+                  .filter((supplier) => {
+                    if (search === '') return supplier;
+                    else if (
+                      supplier.company_name
+                        .toLowerCase()
+                        .includes(search.toLowerCase())
+                    )
+                      return supplier;
+                    else if (
+                      supplier.address
+                        .toLowerCase()
+                        .includes(search.toLowerCase())
+                    )
+                      return supplier;
+                  })
+                  .map((supplier: Supplier, index) => (
+                    <tr
+                      key={index}
+                      className="border-b hover:shadow-md cursor-pointer"
+                      onClick={() =>
+                        supplier.id &&
+                        navigate('/supplier-detail/' + supplier.id)
+                      }
+                    >
+                      <SingleTableItem>
+                        {supplier.company_name}{' '}
+                      </SingleTableItem>
+                      <SingleTableItem>
+                        {supplier.address}, {supplier.city}
+                      </SingleTableItem>
+                      <SingleTableItem>
+                        <span className="font-medium text-md">
+                          {supplier.phone_number}
+                          <br />
+                          <span className="text-sm font-normal">
+                            {'a.n.' + supplier.contact_person}
+                          </span>
                         </span>
-                      </span>
-                    </SingleTableItem>
-                    <SingleTableItem>
-                      <span className="font-medium text-md">
-                        {supplier.bank_number}
-                        <br />
-                        <span className="text-sm font-normal">
-                          {'a.n.' + supplier.bank_owner}
+                      </SingleTableItem>
+                      <SingleTableItem>
+                        <span className="font-medium text-md">
+                          {supplier.bank_number}
+                          <br />
+                          <span className="text-sm font-normal">
+                            {'a.n.' + supplier.bank_owner}
+                          </span>
                         </span>
-                      </span>
-                    </SingleTableItem>
-                    <SingleTableItem>
-                      <button
-                        type="button"
-                        className="text-gray-500 p-2 hover:text-gray-700 cursor-pointer bg-gray-100 rounded-md"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          supplier.id &&
-                            navigate('/purchase-report/' + supplier.id);
-                        }}
-                      >
-                        Purchase History
-                      </button>
-                    </SingleTableItem>
-                  </tr>
-                ))}
+                      </SingleTableItem>
+                      <SingleTableItem>
+                        <button
+                          type="button"
+                          className="text-gray-500 p-2 hover:text-gray-700 cursor-pointer bg-gray-100 rounded-md"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            supplier.id &&
+                              navigate('/purchase-report/' + supplier.id);
+                          }}
+                        >
+                          Purchase History
+                        </button>
+                      </SingleTableItem>
+                    </tr>
+                  ))}
               </tbody>
             </table>
           </div>

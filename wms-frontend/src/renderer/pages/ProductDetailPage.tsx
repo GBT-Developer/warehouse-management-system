@@ -40,33 +40,47 @@ export default function ProductDetailPage() {
         if (param.id === undefined) return;
         const productRef = doc(db, 'product', param.id);
         const theProduct = await getDoc(productRef);
-        const data = theProduct.data() as Product;
-        data.id = theProduct.id;
-        setProduct(data);
+        const productData = theProduct.data() as Product;
+        productData.id = theProduct.id;
+        setProduct(productData);
 
         // Fetch supplier
         const supplierQeury = query(collection(db, 'supplier'));
         const supplierQuerySnapshot = await getDocs(supplierQeury);
 
-        const supplierData: Supplier[] = [];
+        const supplierList: Supplier[] = [];
         supplierQuerySnapshot.forEach((theSupplier) => {
-          const data = theSupplier.data() as Supplier;
-          data.id = theSupplier.id;
-          supplierData.push(data);
+          const supplierData = theSupplier.data() as Supplier;
+          supplierData.id = theSupplier.id;
+          supplierList.push(supplierData);
         });
-        setSupplier(supplierData);
-        // Fetch stock history
+        const supplierOfTheProduct = supplierList.find((supplier) => {
+          return supplier.id === productData.supplier;
+        });
+        if (supplierOfTheProduct === undefined) {
+          setLoading(false);
+          return;
+        }
+        setProduct((prev) => {
+          if (prev === undefined) return;
+          return {
+            ...prev,
+            supplier: supplierOfTheProduct,
+          };
+        });
+        setSupplier(supplierList);
+
         // Fetch stock history
         const stockHistoryQuery = query(
           collectionGroup(db, 'stock_history'),
-          where('product', '==', productRef)
+          where('product', '==', productRef.id)
         );
         const stockHistoryQuerySnapshot = await getDocs(stockHistoryQuery);
 
         const stockHistoryData: StockHistory[] = [];
         stockHistoryQuerySnapshot.forEach((theStockHistory) => {
           const stockHistory = theStockHistory.data() as StockHistory;
-          if (stockHistory.updated_at === undefined) return;
+          if (stockHistory.created_at === undefined) return;
           stockHistory.id = theStockHistory.id;
           stockHistoryData.push(stockHistory);
         });
@@ -100,10 +114,8 @@ export default function ProductDetailPage() {
 
     if (
       Number.isNaN(Number(product.sell_price)) ||
-      Number.isNaN(Number(product.buy_price)) ||
       Number.isNaN(Number(product.count)) ||
       Number(product.sell_price) <= 0 ||
-      Number(product.buy_price) <= 0 ||
       Number(product.count) <= 0
     ) {
       setErrorMessage('Harga atau jumlah barang tidak valid');
@@ -122,7 +134,6 @@ export default function ProductDetailPage() {
       part: product.part,
       available_color: product.available_color,
       count: product.count,
-      buy_price: product.buy_price,
       sell_price: product.sell_price,
       warehouse_position: product.warehouse_position,
       supplier: product.supplier,
@@ -228,26 +239,13 @@ export default function ProductDetailPage() {
               }`}
             />
             <InputField
-              loading={loading || !editToggle}
+              loading={true}
               labelFor="count"
               label="Product Count"
               value={product?.count ?? ''}
               onChange={(e) => {
                 if (product === undefined) return;
                 setProduct({ ...product, count: e.target.value });
-              }}
-              additionalStyle={`${
-                editToggle ? '' : 'border-none outline-none bg-inherit'
-              }`}
-            />
-            <InputField
-              loading={loading || !editToggle}
-              labelFor="purchase_price"
-              label="Purchase Price"
-              value={product?.buy_price ?? ''}
-              onChange={(e) => {
-                if (product === undefined) return;
-                setProduct({ ...product, buy_price: e.target.value });
               }}
               additionalStyle={`${
                 editToggle ? '' : 'border-none outline-none bg-inherit'
@@ -382,17 +380,16 @@ export default function ProductDetailPage() {
               <td className=" py-3">Old count</td>
               <td className=" py-3">New count</td>
               <td className=" py-3">Difference</td>
+              <td className=" py-3">Type</td>
             </TableHeader>
             <tbody className="overflow-y-auto">
               {stockHistory.map((stock_history: StockHistory, index) => (
                 <tr key={index} className="border-b dark:border-gray-700">
-                  <SingleTableItem>
-                    {stock_history.updated_at?.toDate().toLocaleDateString()}
-                  </SingleTableItem>
+                  <SingleTableItem>{stock_history.created_at}</SingleTableItem>
                   <SingleTableItem>{stock_history.old_count}</SingleTableItem>
-                  <SingleTableItem>{stock_history.new_count}</SingleTableItem>
+                  <SingleTableItem>{stock_history.count}</SingleTableItem>
                   <SingleTableItem>
-                    <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-[1.75rem]">
                       {stock_history.difference}
                       {Number(stock_history.difference) > 0 ? (
                         <GoTriangleUp size={23} className="text-green-500" />

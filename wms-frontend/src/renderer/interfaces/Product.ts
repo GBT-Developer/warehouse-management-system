@@ -6,7 +6,6 @@ export interface Product {
   motor_type: string;
   part: string;
   available_color: string;
-  buy_price: string;
   sell_price: string;
   warehouse_position: string;
   count: string;
