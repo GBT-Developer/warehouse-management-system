@@ -2,13 +2,14 @@ import { db } from 'firebase';
 import {
   collection,
   doc,
+  documentId,
   getDocs,
   query,
   runTransaction,
   where,
 } from 'firebase/firestore';
 import { useEffect, useState } from 'react';
-import { AiOutlineLoading3Quarters } from 'react-icons/ai';
+import { AiOutlineLoading3Quarters, AiOutlineReload } from 'react-icons/ai';
 import { useNavigate } from 'react-router-dom';
 import { InputField } from 'renderer/components/InputField';
 import { SingleTableItem } from 'renderer/components/TableComponents/SingleTableItem';
@@ -113,16 +114,21 @@ export const ManageStockPage = () => {
       (manageStockMode === 'purchase' && selectedSupplier === null) ||
       (manageStockMode === 'purchase' && newPurchase.purchase_price === '') ||
       (manageStockMode === 'from_other_warehouse' && dispatchNote === '')
-    )
+    ) {
+      setErrorMessage('Please fill all the required fields');
+      setTimeout(() => {
+        setErrorMessage(null);
+      }, 3000);
       return;
+    }
 
     setLoading(true);
 
-    if (!newPurchase.product.id) return;
-    const productRef = doc(db, 'product', newPurchase.product.id);
-
     if (manageStockMode === 'purchase')
       await runTransaction(db, (transaction) => {
+        if (!newPurchase.product?.id) return Promise.reject();
+
+        const productRef = doc(db, 'product', newPurchase.product.id);
         if (!selectedSupplier?.id) return Promise.reject();
 
         transaction.update(productRef, {
@@ -136,20 +142,20 @@ export const ManageStockPage = () => {
         transaction.set(newPurchaseHistoryDocRef, {
           ...newPurchase,
           count: (
-            Number(newPurchase.count) - Number(newPurchase.product?.count)
+            Number(newPurchase.count) - Number(newPurchase.product.count)
           ).toString(),
-          product: newPurchase.product?.id,
+          product: newPurchase.product.id,
           supplier: selectedSupplier.id,
         });
 
         const newStockHistoryDocRef = doc(collection(db, 'stock_history'));
 
         transaction.set(newStockHistoryDocRef, {
-          product: newPurchase.product?.id,
+          product: newPurchase.product.id,
           count: newPurchase.count,
-          old_count: newPurchase.product?.count,
+          old_count: newPurchase.product.count,
           difference: (
-            Number(newPurchase.count) - Number(newPurchase.product?.count)
+            Number(newPurchase.count) - Number(newPurchase.product.count)
           ).toString(),
           warehouse_position: selectedWarehouse,
           type: 'purchase',
@@ -159,9 +165,103 @@ export const ManageStockPage = () => {
 
         return Promise.resolve();
       });
+    else
+      await runTransaction(db, async (transaction) => {
+        if (!newPurchase.product?.id) return Promise.reject();
+
+        const productQuery = query(
+          collection(db, 'product'),
+          where(documentId(), '==', newPurchase.product.id),
+          where('warehouse_position', '==', 'Gudang Jadi'),
+          where('available_color', '==', newPurchase.product.available_color),
+          where('brand', '==', newPurchase.product.brand),
+          where('motor_type', '==', newPurchase.product.motor_type),
+          where('part', '==', newPurchase.product.part)
+        );
+
+        const productQuerySnapshot = await getDocs(productQuery);
+
+        if (productQuerySnapshot.empty) {
+          // Create new product
+          const newProductDocRef = doc(collection(db, 'product'));
+
+          transaction.set(newProductDocRef, {
+            ...newPurchase.product,
+            count: newPurchase.count,
+            warehouse_position: 'Gudang Jadi',
+          });
+
+          const newStockHistoryDocRef = doc(collection(db, 'stock_history'));
+
+          transaction.set(newStockHistoryDocRef, {
+            product: newProductDocRef.id,
+            count: newPurchase.count,
+            old_count: '0',
+            difference: newPurchase.count,
+            warehouse_position: selectedWarehouse,
+            type: 'from_other_warehouse',
+            created_at: newPurchase.created_at,
+          });
+
+          return Promise.resolve();
+        }
+
+        const product = productQuerySnapshot.docs[0];
+
+        transaction.update(product.ref, {
+          count: newPurchase.count,
+        });
+
+        const newStockHistoryDocRef = doc(collection(db, 'stock_history'));
+
+        transaction.set(newStockHistoryDocRef, {
+          product: newPurchase.product.id,
+          count: newPurchase.count,
+          old_count: newPurchase.product.count,
+          difference: (
+            Number(newPurchase.product.count) - Number(newPurchase.count)
+          ).toString(),
+          warehouse_position: selectedWarehouse,
+          type: 'from_other_warehouse',
+          created_at: newPurchase.created_at,
+        });
+
+        return Promise.resolve();
+      });
+
+    setNewPurchase(newPurchaseInitialState);
 
     setLoading(false);
     navigate(-1);
+  };
+
+  const handleFetchDispatchNote = async () => {
+    if (dispatchNote === '') return;
+
+    setLoading(true);
+    console.log(dispatchNote);
+
+    const dispatchedProductQuery = query(
+      collection(db, 'on_dispatch'),
+      where('dispatch_note_id', '==', dispatchNote)
+    );
+
+    const dispatchedProductQuerySnapshot = await getDocs(
+      dispatchedProductQuery
+    );
+
+    const dispatchedProductList: Product[] = [];
+
+    dispatchedProductQuerySnapshot.forEach((doc) => {
+      dispatchedProductList.push({
+        id: doc.id,
+        ...doc.data(),
+      } as Product);
+    });
+
+    setProducts(dispatchedProductList);
+
+    setLoading(false);
   };
 
   return (
@@ -286,13 +386,26 @@ export const ManageStockPage = () => {
               </div>
             </div>
           ) : manageStockMode === 'from_other_warehouse' ? (
-            <InputField
-              loading={loading}
-              label="Dispatch note"
-              labelFor="dispatch-note"
-              value={dispatchNote}
-              onChange={(e) => setDispatchNote(() => e.target.value)}
-            />
+            <div className="flex items-center relative">
+              <InputField
+                loading={loading}
+                label="Dispatch note"
+                labelFor="dispatch-note"
+                value={dispatchNote}
+                onChange={(e) => setDispatchNote(() => e.target.value)}
+                additionalStyle="pr-10"
+              />
+              <button
+                disabled={loading}
+                type="button"
+                className="absolute right-2 text-white bg-gray-600 hover:bg-gray-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm p-[0.25rem]"
+                onClick={() => {
+                  handleFetchDispatchNote().catch(() => console.log('error'));
+                }}
+              >
+                <AiOutlineReload />
+              </button>
+            </div>
           ) : null // Default
         }
         <div className="flex justify-between">
@@ -330,6 +443,23 @@ export const ManageStockPage = () => {
           value={newPurchase.count}
           onChange={(e) => {
             if (isNaN(Number(e.target.value))) return;
+            if (manageStockMode === 'from_other_warehouse') {
+              const product = products.find(
+                (product) => product.id === newPurchase.product?.id
+              );
+
+              if (product && Number(e.target.value) > Number(product.count)) {
+                setErrorMessage(
+                  'Quantity cannot be more than available stock. Max quantity is ' +
+                    product.count
+                );
+                setTimeout(() => {
+                  setErrorMessage(null);
+                }, 3000);
+                return;
+              }
+            }
+
             setNewPurchase(() => ({
               ...newPurchase,
               count: e.target.value,
