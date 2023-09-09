@@ -64,7 +64,7 @@ export const TransactionPage = () => {
           customerData.push(data);
         });
 
-        //set Customer List sorted by name
+        // Set Customer List sorted by name
         setCustomerList(
           customerData.sort((a, b) => {
             if (a.name < b.name) return -1;
@@ -100,31 +100,32 @@ export const TransactionPage = () => {
 
     try {
       setLoading(true);
-      // update product count
-      runTransaction(db, async (transaction) => {
+      // Update product count
+      runTransaction(db, (transaction) => {
         for (const item of invoice.items) {
           const currentProduct = selectedProducts.find(
             (p) => p.id === item.product_id
           );
-          if (!currentProduct) continue;
+          if (!currentProduct) return Promise.reject();
 
           const difference =
             parseInt(currentProduct.count) - parseInt(item.amount);
+
           transaction.update(
             doc(db, 'product', item.product_id),
             'count',
             difference.toString()
           );
         }
-      });
+        return Promise.resolve();
+      }).catch((error) => console.error('Transaction failed: ', error));
 
       const invoiceRef = collection(db, 'invoice');
       await addDoc(invoiceRef, {
         customer_id: selectedCustomer.id,
         total_price: invoice.items
           .reduce(
-            (acc, item) =>
-              acc + parseInt(item.price ?? '0') * parseInt(item.amount),
+            (acc, item) => acc + parseInt(item.price) * parseInt(item.amount),
             0
           )
           .toString(),
@@ -132,7 +133,7 @@ export const TransactionPage = () => {
         items: invoice.items,
       });
 
-      // clear invoice
+      // Clear invoice
       setInvoice({
         customer_id: '',
         total_price: '',
@@ -152,12 +153,12 @@ export const TransactionPage = () => {
     const productsQuery = query(
       collection(db, 'product'),
       or(
-        // query as-is:
+        // Query as-is:
         and(
           where('brand', '>=', search),
           where('brand', '<=', search + '\uf8ff')
         ),
-        // capitalize first letter:
+        // Capitalize first letter:
         and(
           where(
             'brand',
@@ -170,7 +171,7 @@ export const TransactionPage = () => {
             search.charAt(0).toUpperCase() + search.slice(1) + '\uf8ff'
           )
         ),
-        // lowercase:
+        // Lowercase:
         and(
           where('brand', '>=', search.toLowerCase()),
           where('brand', '<=', search.toLowerCase() + '\uf8ff')
@@ -311,9 +312,8 @@ export const TransactionPage = () => {
                       setInvoice({
                         ...invoice,
                         items: invoice.items.map((i, idx) => {
-                          if (idx === index) {
-                            i.amount = e.target.value;
-                          }
+                          if (idx === index) i.amount = e.target.value;
+
                           return i;
                         }),
                       });
@@ -334,8 +334,7 @@ export const TransactionPage = () => {
           <p className="text-lg font-semibold">Total: &nbsp; Rp. &nbsp;</p>
           <p className="text-lg font-semibold">
             {invoice.items.reduce(
-              (acc, item) =>
-                acc + parseInt(item.price ?? '0') * parseInt(item.amount),
+              (acc, item) => acc + parseInt(item.price) * parseInt(item.amount),
               0
             )}
             ,00

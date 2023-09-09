@@ -1,14 +1,6 @@
 import { collection, getDocs, query } from '@firebase/firestore';
 import { db } from 'firebase';
-import {
-  and,
-  doc,
-  documentId,
-  getDoc,
-  or,
-  updateDoc,
-  where,
-} from 'firebase/firestore';
+import { and, doc, getDoc, or, updateDoc, where } from 'firebase/firestore';
 import { FormEvent, useEffect, useState } from 'react';
 import { AiOutlineLoading3Quarters } from 'react-icons/ai';
 import { IoRemoveCircleOutline } from 'react-icons/io5';
@@ -17,14 +9,14 @@ import { InputField } from 'renderer/components/InputField';
 import { SingleTableItem } from 'renderer/components/TableComponents/SingleTableItem';
 import { TableModal } from 'renderer/components/TableComponents/TableModal';
 import { Customer } from 'renderer/interfaces/Customer';
-import { Product } from 'renderer/interfaces/Product';
+import { SpecialPrice } from 'renderer/interfaces/SpecialPrice';
 import { PageLayout } from 'renderer/layout/PageLayout';
 
 const newCustomerInitialState = {
   name: '',
   address: '',
   phone_number: '',
-  special_price_products: [],
+  SpecialPrice: [],
 } as Customer;
 
 function EditCustomerPage() {
@@ -36,8 +28,8 @@ function EditCustomerPage() {
   const [loading, setLoading] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [selectedProducts, setSelectedProducts] = useState<Product[]>([]);
-  const [products, setProducts] = useState<Product[]>([]);
+  const [selectedProducts, setSelectedProducts] = useState<SpecialPrice[]>([]);
+  const [products, setProducts] = useState<SpecialPrice[]>([]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -48,28 +40,9 @@ function EditCustomerPage() {
         const customerSnap = await getDoc(customerRef);
         const customerData = customerSnap.data() as Customer;
         customerData.id = customerSnap.id;
-        setNewCustomer(() => customerData);
+        setNewCustomer(customerData);
 
-        const productsQuery = query(
-          collection(db, 'product'),
-          where(
-            documentId(),
-            'in',
-            customerData.special_price_products.map((sp) => sp.product)
-          )
-        );
-
-        const querySnapshot = await getDocs(productsQuery);
-
-        const productData: Product[] = [];
-        querySnapshot.forEach((theProduct) => {
-          const data = theProduct.data() as Product;
-          data.id = theProduct.id;
-          data.sell_price = theProduct.get('sell_price') as string;
-          productData.push(data);
-        });
-
-        setSelectedProducts(productData);
+        setSelectedProducts(customerData.SpecialPrice);
 
         setLoading(false);
       } catch (error) {
@@ -105,7 +78,7 @@ function EditCustomerPage() {
       return;
     }
 
-    if (newCustomer.special_price_products.some((sp) => sp.price === '')) {
+    if (newCustomer.SpecialPrice.some((sp) => sp.price === '')) {
       setErrorMessage('Please enter prices for all selected products');
       setTimeout(() => {
         setErrorMessage(null);
@@ -122,7 +95,7 @@ function EditCustomerPage() {
         name: newCustomer.name,
         address: newCustomer.address,
         phone_number: newCustomer.phone_number,
-        special_price_products: newCustomer.special_price_products,
+        SpecialPrice: selectedProducts,
       });
       setLoading(false);
       navigate(-1);
@@ -160,17 +133,19 @@ function EditCustomerPage() {
         )
       )
     );
+    setLoading(true);
     const querySnapshot = await getDocs(productsQuery);
 
-    const productData: Product[] = [];
+    const productData: SpecialPrice[] = [];
     querySnapshot.forEach((theProduct) => {
-      const data = theProduct.data() as Product;
-      data.id = theProduct.id;
-      data.sell_price = theProduct.get('sell_price') as string;
+      const data = theProduct.data() as SpecialPrice;
+      data.product_id = theProduct.id;
+      data.price = theProduct.get('sell_price') as string;
       productData.push(data);
     });
 
     setProducts(productData);
+    setLoading(false);
   };
 
   return (
@@ -225,47 +200,29 @@ function EditCustomerPage() {
           {selectedProducts.map((product, index) => (
             <li key={index}>
               <div className="flex flex-row gap-2 justify-between items-center">
-                <div className="w-full flex justify-between items-center">
-                  <div className="w-4/5">
-                    <label htmlFor="price" className="text-md">
-                      {product.brand +
-                        ' ' +
-                        product.motor_type +
-                        ' ' +
-                        product.part +
-                        ' ' +
-                        product.available_color}
-                    </label>
-                  </div>
-                  <div className="w-1/5">
-                    <input
-                      disabled={loading}
-                      id={'price'}
-                      name={'price'}
-                      type="text"
-                      className={`placeholder:text-xs placeholder:font-light bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 p-2 w-full
-                      `}
-                      value={
-                        newCustomer.special_price_products.find(
-                          (sp) => sp.product === product.id
-                        )?.price ?? product.sell_price
-                      }
-                      onChange={(e) => {
-                        const newSpecialPriceProducts = [
-                          ...newCustomer.special_price_products,
-                        ];
-                        const index = newSpecialPriceProducts.findIndex(
-                          (sp) => sp.product === product.id
-                        );
-                        newSpecialPriceProducts[index].price = e.target.value;
-                        setNewCustomer({
-                          ...newCustomer,
-                          special_price_products: newSpecialPriceProducts,
-                        });
-                      }}
-                    />
-                  </div>
-                </div>
+                <InputField
+                  loading={loading}
+                  label={
+                    product.brand +
+                    ' ' +
+                    product.motor_type +
+                    ' ' +
+                    product.part +
+                    ' ' +
+                    product.available_color
+                  }
+                  labelFor="price"
+                  value={product.price}
+                  onChange={(e) => {
+                    setSelectedProducts(
+                      selectedProducts.map((p) => {
+                        if (p === product) p.price = e.target.value;
+
+                        return p;
+                      })
+                    );
+                  }}
+                />
                 <button
                   type="button"
                   className="py-2 px-5 text-sm font-medium text-red-500 focus:outline-none bg-white rounded-lg border:none hover:text-red-900 focus:z-10 focus:ring-4 focus:ring-gray-200"
@@ -274,9 +231,9 @@ function EditCustomerPage() {
                       selectedProducts.filter((p) => p !== product)
                     );
                     if (product.id)
-                      newCustomer.special_price_products =
-                        newCustomer.special_price_products.filter(
-                          (sp) => sp.product !== product.id
+                      newCustomer.SpecialPrice =
+                        newCustomer.SpecialPrice.filter(
+                          (sp) => sp.product_id !== product.id
                         );
                   }}
                 >
@@ -339,33 +296,34 @@ function EditCustomerPage() {
               key={index}
               className="border-b hover:shadow-md cursor-pointer"
               onClick={() => {
-                if (!selectedProducts.some((sp) => sp.id === product.id)) {
+                if (
+                  !selectedProducts.some(
+                    (sp) => sp.product_id === product.product_id
+                  )
+                ) {
                   setSelectedProducts([...selectedProducts, product]);
                   if (product.id)
-                    newCustomer.special_price_products = [
-                      ...newCustomer.special_price_products,
-                      {
-                        product: product.id,
-                        price: product.sell_price,
-                      },
+                    newCustomer.SpecialPrice = [
+                      ...newCustomer.SpecialPrice,
+                      product,
                     ];
                 } else {
                   setSelectedProducts(
                     selectedProducts.filter((p) => p !== product)
                   );
                   if (product.id)
-                    newCustomer.special_price_products =
-                      newCustomer.special_price_products.filter(
-                        (sp) => sp.product !== product.id
-                      );
+                    newCustomer.SpecialPrice = newCustomer.SpecialPrice.filter(
+                      (sp) => sp.product_id !== product.id
+                    );
                 }
               }}
             >
               <SingleTableItem>
                 <input
                   type="checkbox"
-                  checked={selectedProducts.some((sp) => sp.id === product.id)}
-                  readOnly
+                  checked={selectedProducts.some(
+                    (sp) => sp.product_id === product.product_id
+                  )}
                 />
               </SingleTableItem>
               <SingleTableItem key={index}>

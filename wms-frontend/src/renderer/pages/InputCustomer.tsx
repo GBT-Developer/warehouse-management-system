@@ -16,7 +16,7 @@ const newCustomerInitialState = {
   name: '',
   address: '',
   phone_number: '',
-  special_price_products: [],
+  SpecialPrice: [],
 } as Customer;
 
 function InputCustomerPage() {
@@ -54,7 +54,7 @@ function InputCustomerPage() {
       return;
     }
 
-    if (newCustomer.special_price_products.some((sp) => sp.price === '')) {
+    if (newCustomer.SpecialPrice.some((sp) => sp.price === '')) {
       setErrorMessage('Please enter prices for all selected products');
       setTimeout(() => {
         setErrorMessage(null);
@@ -192,22 +192,22 @@ function InputCustomerPage() {
                       className={`placeholder:text-xs placeholder:font-light bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 p-2 w-full
                       `}
                       value={
-                        newCustomer.special_price_products.find(
-                          (sp) => sp.product === product.id
+                        newCustomer.SpecialPrice.find(
+                          (sp) => sp.product_id === product.id
                         )?.price ?? product.sell_price
                       }
                       onChange={(e) => {
                         const newSpecialPriceProducts = [
-                          ...newCustomer.special_price_products,
+                          ...newCustomer.SpecialPrice,
                         ];
                         const index = newSpecialPriceProducts.findIndex(
-                          (sp) => sp.product === product.id
+                          (sp) => sp.product_id === product.id
                         );
                         newSpecialPriceProducts[index].price = e.target.value;
                         setNewCustomer(() => {
                           return {
                             ...newCustomer,
-                            special_price_products: newSpecialPriceProducts,
+                            SpecialPrice: newSpecialPriceProducts,
                           };
                         });
                       }}
@@ -222,9 +222,9 @@ function InputCustomerPage() {
                       selectedProducts.filter((p) => p !== product)
                     );
                     if (product.id)
-                      newCustomer.special_price_products =
-                        newCustomer.special_price_products.filter(
-                          (sp) => sp.product !== product.id
+                      newCustomer.SpecialPrice =
+                        newCustomer.SpecialPrice.filter(
+                          (sp) => sp.product_id !== product.id
                         );
                   }}
                 >
@@ -290,10 +290,11 @@ function InputCustomerPage() {
                 if (!selectedProducts.includes(product)) {
                   setSelectedProducts([...selectedProducts, product]);
                   if (product.id)
-                    newCustomer.special_price_products = [
-                      ...newCustomer.special_price_products,
+                    newCustomer.SpecialPrice = [
+                      ...newCustomer.SpecialPrice,
                       {
-                        product: product.id,
+                        ...product,
+                        product_id: product.id,
                         price: product.sell_price,
                       },
                     ];
@@ -302,10 +303,9 @@ function InputCustomerPage() {
                     selectedProducts.filter((p) => p !== product)
                   );
                   if (product.id)
-                    newCustomer.special_price_products =
-                      newCustomer.special_price_products.filter(
-                        (sp) => sp.product !== product.id
-                      );
+                    newCustomer.SpecialPrice = newCustomer.SpecialPrice.filter(
+                      (sp) => sp.product_id !== product.id
+                    );
                 }
               }}
             >
