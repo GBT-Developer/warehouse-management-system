@@ -244,7 +244,15 @@ export const TransferItemPage = () => {
                 <div className="flex flex-row">
                   <div className="flex flex-col gap-2 w-full">
                     <div className="flex w-full justify-between">
-                      <p className="text-lg font-semibold">waduh</p>
+                      <p className="text-lg font-semibold">
+                        {selectedProducts[index].brand +
+                          ' ' +
+                          selectedProducts[index].motor_type +
+                          ' ' +
+                          selectedProducts[index].part +
+                          ' ' +
+                          selectedProducts[index].available_color}
+                      </p>
                       <button
                         type="button"
                         className="text-red-500 text-lg p-2 hover:text-red-700 cursor-pointer bg-transparent rounded-md"
