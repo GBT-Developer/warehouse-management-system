@@ -2,7 +2,10 @@ import React, { ReactNode } from 'react';
 import { AiOutlineDatabase, AiOutlineHome } from 'react-icons/ai';
 import { BsChevronDown, BsChevronUp } from 'react-icons/bs';
 import { CiLogout } from 'react-icons/ci';
-import { LiaFileInvoiceDollarSolid } from 'react-icons/lia';
+import {
+  LiaFileInvoiceDollarSolid,
+  LiaMoneyBillWaveSolid,
+} from 'react-icons/lia';
 import { LuFolderEdit, LuHistory, LuPackageOpen } from 'react-icons/lu';
 import { MdInventory2, MdOutlinePeopleAlt } from 'react-icons/md';
 import { PiPasswordLight, PiUserListLight } from 'react-icons/pi';
@@ -148,6 +151,16 @@ export const AppSidebar = ({
               </SidebarItem>
             </ul>
           </li>
+
+          <SidebarItem
+            onClick={() => {
+              navigate('/transactionpage');
+            }}
+            icon={<LiaMoneyBillWaveSolid />}
+            selected={location.pathname === '/transactionpage'}
+          >
+            Transaction
+          </SidebarItem>
 
           <SidebarItem
             onClick={() => {
