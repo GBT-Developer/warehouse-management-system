@@ -64,7 +64,14 @@ export const TransactionPage = () => {
           customerData.push(data);
         });
 
-        setCustomerList(customerData);
+        //set Customer List sorted by name
+        setCustomerList(
+          customerData.sort((a, b) => {
+            if (a.name < b.name) return -1;
+            else if (a.name > b.name) return 1;
+            else return 0;
+          })
+        );
         setLoading(false);
       } catch (error) {
         console.error('Error fetching data:', error);
