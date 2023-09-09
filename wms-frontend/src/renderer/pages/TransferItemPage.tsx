@@ -10,7 +10,7 @@ import {
   runTransaction,
   where,
 } from 'firebase/firestore';
-import { FormEvent, useState } from 'react';
+import React, { FormEvent, useState } from 'react';
 import { AiOutlineLoading3Quarters } from 'react-icons/ai';
 import { BiSolidTrash } from 'react-icons/bi';
 import { useNavigate } from 'react-router-dom';
@@ -37,6 +37,7 @@ export const TransferItemPage = () => {
   );
   const [selectedProducts, setSelectedProducts] = useState<Product[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
+  const dateInputRef = React.useRef<HTMLInputElement>(null);
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
@@ -133,7 +134,9 @@ export const TransferItemPage = () => {
       // Clear form
       setDispatchNote(newDispatchNoteInitialStates);
       setSelectedProducts([]);
+      setProducts([]);
       setLoading(false);
+      if (dateInputRef.current) dateInputRef.current.value = '';
     } catch (error) {
       console.error('Error adding document: ', error);
     }
@@ -142,29 +145,32 @@ export const TransferItemPage = () => {
   const handleSearch = async (search: string) => {
     const productsQuery = query(
       collection(db, 'product'),
-      or(
-        // Query as-is:
-        and(
-          where('brand', '>=', search),
-          where('brand', '<=', search + '\uf8ff')
-        ),
-        // Capitalize first letter:
-        and(
-          where(
-            'brand',
-            '>=',
-            search.charAt(0).toUpperCase() + search.slice(1)
+      and(
+        where('warehouse_position', '==', 'Gudang Bahan'),
+        or(
+          // Query as-is:
+          and(
+            where('brand', '>=', search),
+            where('brand', '<=', search + '\uf8ff')
           ),
-          where(
-            'brand',
-            '<=',
-            search.charAt(0).toUpperCase() + search.slice(1) + '\uf8ff'
+          // Capitalize first letter:
+          and(
+            where(
+              'brand',
+              '>=',
+              search.charAt(0).toUpperCase() + search.slice(1)
+            ),
+            where(
+              'brand',
+              '<=',
+              search.charAt(0).toUpperCase() + search.slice(1) + '\uf8ff'
+            )
+          ),
+          // Lowercase:
+          and(
+            where('brand', '>=', search.toLowerCase()),
+            where('brand', '<=', search.toLowerCase() + '\uf8ff')
           )
-        ),
-        // Lowercase:
-        and(
-          where('brand', '>=', search.toLowerCase()),
-          where('brand', '<=', search.toLowerCase() + '\uf8ff')
         )
       )
     );
@@ -215,6 +221,7 @@ export const TransferItemPage = () => {
           </div>
           <div className="w-2/3">
             <input
+              ref={dateInputRef}
               disabled={loading}
               type="date"
               name="date"
@@ -230,76 +237,75 @@ export const TransferItemPage = () => {
         </div>
 
         <ul className="my-3 space-y-3 font-regular">
-          {dispatchNote.dispatch_items.map((item, index) => (
-            <li key={index}>
-              <div className="flex flex-row">
-                <div className="flex flex-col gap-2 w-full">
-                  <div className="flex w-full justify-between">
-                    <p className="text-lg font-semibold">
-                      {selectedProducts[index].brand +
-                        ' ' +
-                        selectedProducts[index].motor_type +
-                        ' ' +
-                        selectedProducts[index].part +
-                        ' ' +
-                        selectedProducts[index].available_color}
-                    </p>
-                    <button
-                      type="button"
-                      className="text-red-500 text-lg p-2 hover:text-red-700 cursor-pointer bg-transparent rounded-md"
-                      onClick={() => {
-                        dispatchNote.dispatch_items.splice(index, 1);
-                        setSelectedProducts(
-                          selectedProducts.filter(
-                            (p) => p.id !== item.product_id
-                          )
-                        );
+          {selectedProducts.length > 0 &&
+            dispatchNote.dispatch_items.length > 0 &&
+            dispatchNote.dispatch_items.map((item, index) => (
+              <li key={index}>
+                <div className="flex flex-row">
+                  <div className="flex flex-col gap-2 w-full">
+                    <div className="flex w-full justify-between">
+                      <p className="text-lg font-semibold">waduh</p>
+                      <button
+                        type="button"
+                        className="text-red-500 text-lg p-2 hover:text-red-700 cursor-pointer bg-transparent rounded-md"
+                        onClick={() => {
+                          setDispatchNote({
+                            ...dispatchNote,
+                            dispatch_items: dispatchNote.dispatch_items.filter(
+                              (i, idx) => idx !== index
+                            ),
+                          });
+                          setSelectedProducts(
+                            selectedProducts.filter(
+                              (p) => p.id !== item.product_id
+                            )
+                          );
+                        }}
+                      >
+                        <BiSolidTrash />
+                      </button>
+                    </div>
+                    <InputField
+                      label="Color"
+                      labelFor="color"
+                      loading={loading}
+                      value={item.color}
+                      onChange={(e) => {
+                        setDispatchNote({
+                          ...dispatchNote,
+                          dispatch_items: dispatchNote.dispatch_items.map(
+                            (i, idx) => {
+                              if (idx === index) i.color = e.target.value;
+
+                              return i;
+                            }
+                          ),
+                        });
                       }}
-                    >
-                      <BiSolidTrash />
-                    </button>
+                    />
+                    <InputField
+                      label="Amount"
+                      labelFor="amount"
+                      loading={loading}
+                      value={item.amount}
+                      onChange={(e) => {
+                        setDispatchNote({
+                          ...dispatchNote,
+                          dispatch_items: dispatchNote.dispatch_items.map(
+                            (i, idx) => {
+                              if (idx === index) i.amount = e.target.value;
+
+                              return i;
+                            }
+                          ),
+                        });
+                      }}
+                    />
                   </div>
-                  <InputField
-                    label="Color"
-                    labelFor="color"
-                    loading={loading}
-                    value={item.color}
-                    onChange={(e) => {
-                      setDispatchNote({
-                        ...dispatchNote,
-                        dispatch_items: dispatchNote.dispatch_items.map(
-                          (i, idx) => {
-                            if (idx === index) i.color = e.target.value;
-
-                            return i;
-                          }
-                        ),
-                      });
-                    }}
-                  />
-                  <InputField
-                    label="Amount"
-                    labelFor="amount"
-                    loading={loading}
-                    value={item.amount}
-                    onChange={(e) => {
-                      setDispatchNote({
-                        ...dispatchNote,
-                        dispatch_items: dispatchNote.dispatch_items.map(
-                          (i, idx) => {
-                            if (idx === index) i.amount = e.target.value;
-
-                            return i;
-                          }
-                        ),
-                      });
-                    }}
-                  />
                 </div>
-              </div>
-              <hr className="mt-3 mb-4" />
-            </li>
-          ))}
+                <hr className="mt-3 mb-4" />
+              </li>
+            ))}
         </ul>
 
         <button
@@ -355,17 +361,25 @@ export const TransferItemPage = () => {
                   setSelectedProducts(
                     selectedProducts.filter((p) => p !== product)
                   );
-                  dispatchNote.dispatch_items =
-                    dispatchNote.dispatch_items.filter(
-                      (p) => p.product_id !== product.id
-                    );
+                  setDispatchNote({
+                    ...dispatchNote,
+                    dispatch_items: dispatchNote.dispatch_items.filter(
+                      (i) => i.product_id !== product.id
+                    ),
+                  });
                 } else {
                   if (!product.id) return;
                   setSelectedProducts([...selectedProducts, product]);
-                  dispatchNote.dispatch_items.push({
-                    product_id: product.id,
-                    color: '',
-                    amount: '',
+                  setDispatchNote({
+                    ...dispatchNote,
+                    dispatch_items: [
+                      ...dispatchNote.dispatch_items,
+                      {
+                        product_id: product.id,
+                        color: '',
+                        amount: '',
+                      },
+                    ],
                   });
                 }
               }}
