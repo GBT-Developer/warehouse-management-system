@@ -302,6 +302,9 @@ export const ManageStockPage = () => {
                   e.target.value === 'from_other_warehouse'
                 )
                   setManageStockMode(e.target.value);
+
+                setProducts(() => []);
+                setNewPurchase(() => newPurchaseInitialState);
               }}
               className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
             >
@@ -332,6 +335,9 @@ export const ManageStockPage = () => {
                   e.target.value === 'Gudang Bahan'
                 )
                   setSelectedWarehouse(e.target.value);
+
+                setProducts(() => []);
+                setNewPurchase(() => newPurchaseInitialState);
               }}
               className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
             >
@@ -371,6 +377,7 @@ export const ManageStockPage = () => {
                           (supplier) => supplier.id === e.target.value
                         ) ?? null
                     );
+                    setProducts(() => []);
                   }}
                   className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
                 >
@@ -443,21 +450,19 @@ export const ManageStockPage = () => {
           value={newPurchase.count}
           onChange={(e) => {
             if (isNaN(Number(e.target.value))) return;
-            if (manageStockMode === 'from_other_warehouse') {
-              const product = products.find(
-                (product) => product.id === newPurchase.product?.id
-              );
+            const product = products.find(
+              (product) => product.id === newPurchase.product?.id
+            );
 
-              if (product && Number(e.target.value) > Number(product.count)) {
-                setErrorMessage(
-                  'Not enough stock in warehouse. Stock in warehouse: ' +
-                    product.count
-                );
-                setTimeout(() => {
-                  setErrorMessage(null);
-                }, 3000);
-                return;
-              }
+            if (product && Number(e.target.value) > Number(product.count)) {
+              setErrorMessage(
+                'Not enough stock in warehouse. Stock in warehouse: ' +
+                  product.count
+              );
+              setTimeout(() => {
+                setErrorMessage(null);
+              }, 3000);
+              return;
             }
 
             setNewPurchase(() => ({
