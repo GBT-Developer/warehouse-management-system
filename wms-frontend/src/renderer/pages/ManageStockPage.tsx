@@ -8,7 +8,7 @@ import {
   runTransaction,
   where,
 } from 'firebase/firestore';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { AiOutlineLoading3Quarters, AiOutlineReload } from 'react-icons/ai';
 import { useNavigate } from 'react-router-dom';
 import { InputField } from 'renderer/components/InputField';
@@ -48,6 +48,8 @@ export const ManageStockPage = () => {
   );
   const [dispatchNote, setDispatchNote] = useState<string>('');
   const [modalOpen, setModalOpen] = useState(false);
+  const selectedSupplierRef = useRef<HTMLSelectElement>(null);
+  const selectedWarehouseRef = useRef<HTMLSelectElement>(null);
 
   useEffect(() => {
     setLoading(true);
@@ -303,8 +305,14 @@ export const ManageStockPage = () => {
                 )
                   setManageStockMode(e.target.value);
 
-                setProducts(() => []);
-                setNewPurchase(() => newPurchaseInitialState);
+                setProducts([]);
+                setNewPurchase(newPurchaseInitialState);
+                setSelectedSupplier(null);
+                setSelectedWarehouse('');
+                if (selectedSupplierRef.current)
+                  selectedSupplierRef.current.value = '';
+                if (selectedWarehouseRef.current)
+                  selectedWarehouseRef.current.value = '';
               }}
               className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
             >
@@ -326,7 +334,7 @@ export const ManageStockPage = () => {
           </div>
           <div className="w-2/3">
             <select
-              defaultValue={''}
+              value={selectedWarehouse != '' ? selectedWarehouse : ''}
               disabled={loading}
               name="warehouse-id"
               onChange={(e) => {
@@ -336,8 +344,11 @@ export const ManageStockPage = () => {
                 )
                   setSelectedWarehouse(e.target.value);
 
-                setProducts(() => []);
-                setNewPurchase(() => newPurchaseInitialState);
+                setProducts([]);
+                setNewPurchase(newPurchaseInitialState);
+                setSelectedSupplier(null);
+                if (selectedSupplierRef.current)
+                  selectedSupplierRef.current.value = '';
               }}
               className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
             >
@@ -346,12 +357,18 @@ export const ManageStockPage = () => {
               </option>
               {manageStockMode === 'purchase' ? (
                 <>
-                  <option value="Gudang Bahan">Gudang Bahan</option>
-                  <option value="Gudang Jadi">Gudang Jadi</option>
+                  <option key={'gudang_bahan'} value="Gudang Bahan">
+                    Gudang Bahan
+                  </option>
+                  <option key={'gudang_jadi'} value="Gudang Jadi">
+                    Gudang Jadi
+                  </option>
                 </>
               ) : manageStockMode === 'from_other_warehouse' ? (
                 <>
-                  <option value="Gudang Jadi">Gudang Jadi</option>
+                  <option key={'gudang_jadi'} value="Gudang Jadi">
+                    Gudang Jadi
+                  </option>
                 </>
               ) : null}
             </select>
@@ -367,7 +384,7 @@ export const ManageStockPage = () => {
               </div>
               <div className="w-2/3">
                 <select
-                  defaultValue={''}
+                  value={selectedSupplier?.id ?? ''}
                   disabled={loading}
                   name="supplier-id"
                   onChange={(e) => {
@@ -377,7 +394,8 @@ export const ManageStockPage = () => {
                           (supplier) => supplier.id === e.target.value
                         ) ?? null
                     );
-                    setProducts(() => []);
+                    setProducts([]);
+                    setNewPurchase(newPurchaseInitialState);
                   }}
                   className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
                 >
@@ -533,7 +551,7 @@ export const ManageStockPage = () => {
         title={'Choose Product'}
         headerList={products.length > 0 ? ['Product name', 'Count'] : []}
       >
-        {products.length > 0 ? (
+        {products.length > 0 &&
           products.map((product, index) => (
             <tr
               key={index}
@@ -557,8 +575,8 @@ export const ManageStockPage = () => {
               </SingleTableItem>
               <SingleTableItem>{product.count}</SingleTableItem>
             </tr>
-          ))
-        ) : (
+          ))}
+        {products.length <= 0 && (
           <tr className="border-b">
             <SingleTableItem>
               <p className="flex justify-center">No products found</p>
