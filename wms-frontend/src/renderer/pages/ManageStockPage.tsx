@@ -468,19 +468,22 @@ export const ManageStockPage = () => {
           value={newPurchase.count}
           onChange={(e) => {
             if (isNaN(Number(e.target.value))) return;
-            const product = products.find(
-              (product) => product.id === newPurchase.product?.id
-            );
 
-            if (product && Number(e.target.value) > Number(product.count)) {
-              setErrorMessage(
-                'Not enough stock in warehouse. Stock in warehouse: ' +
-                  product.count
+            if (manageStockMode === 'from_other_warehouse') {
+              const product = products.find(
+                (product) => product.id === newPurchase.product?.id
               );
-              setTimeout(() => {
-                setErrorMessage(null);
-              }, 3000);
-              return;
+
+              if (product && Number(e.target.value) > Number(product.count)) {
+                setErrorMessage(
+                  'Not enough stock in warehouse. Stock in warehouse: ' +
+                    product.count
+                );
+                setTimeout(() => {
+                  setErrorMessage(null);
+                }, 3000);
+                return;
+              }
             }
 
             setNewPurchase(() => ({
