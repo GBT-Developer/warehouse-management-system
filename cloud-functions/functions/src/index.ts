@@ -12,6 +12,7 @@ setGlobalOptions({
 export const firebaseAdmin = admin.initializeApp();
 
 export * from "./createUser";
+export * from "./deletePurchaseHistory";
 export * from "./deleteUser";
 export * from "./getUsers";
 
