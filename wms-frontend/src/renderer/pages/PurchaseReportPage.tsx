@@ -140,7 +140,7 @@ export default function PurchaseHistoryPage() {
                       <SingleTableItem>
                         <form>
                           <select
-                            value={purchase_history.payment_status}
+                            value={purchase_history.payment_status.toLowerCase()}
                             disabled={loading}
                             id="purchase_history"
                             name="purchase_history"
