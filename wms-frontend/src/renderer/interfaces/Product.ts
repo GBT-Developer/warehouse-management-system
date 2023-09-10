@@ -10,6 +10,5 @@ export interface Product {
   warehouse_position: string;
   count: string;
   created_at?: string;
-  updated_at?: string;
   supplier?: Supplier;
 }
