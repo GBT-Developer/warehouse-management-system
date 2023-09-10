@@ -6,7 +6,7 @@ import { firebaseAdmin } from "..";
  * This function will be triggered when a product is updated.
  * It will create a new stock history entry if the count has changed.
  */
-exports.createPurchaseHistory = onDocumentUpdated(
+exports.createStockHistory = onDocumentUpdated(
   "product/{docId}",
   async (event) => {
     if (!event.data) {
@@ -34,14 +34,19 @@ exports.createPurchaseHistory = onDocumentUpdated(
 
     await firebaseAdmin
       .firestore()
-      .collection("purchase_history")
+      .collection("stock_history")
       .add({
         count: newObject.count,
-        created_at: new Date().toISOString().split("T")[0],
-        payment_status: "Unpaid",
+        old_count: previousObject.count,
+        created_at: new Date().toLocaleDateString("en-GB", {
+          day: "numeric",
+          month: "long",
+          year: "numeric",
+        }),
+        difference: newObject.count - previousObject.count,
         product: productRef.id,
-        purchase_price: "0.00", // Purchase price cannot be extracted from the product
-        supplier: newObject.supplier,
+        type: "update",
+        warehouse_position: newObject.warehouse_position,
       });
   }
 );
