@@ -184,7 +184,7 @@ export const AppSidebar = ({
 
           <SidebarItem
             onClick={() => {
-              navigate('/');
+              navigate('/retourepage');
             }}
             icon={<TbTruckReturn />}
             selected={location.pathname === '/'}
