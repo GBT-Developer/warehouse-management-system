@@ -10,6 +10,7 @@ interface TableModalProps {
   handleSearch?: (search: string) => Promise<void>;
   modalOpen: boolean;
   setModalOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  placeholder?: string;
 }
 
 export const TableModal = ({
@@ -19,6 +20,7 @@ export const TableModal = ({
   handleSearch,
   modalOpen,
   setModalOpen,
+  placeholder,
 }: TableModalProps) => {
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(false);
@@ -52,7 +54,7 @@ export const TableModal = ({
                   });
                 }}
               >
-                <TableTitle setSearch={setSearch}>
+                <TableTitle placeholder={placeholder} setSearch={setSearch}>
                   <p className="text-3xl font-medium tracking-tight text-gray-900">
                     {title}
                   </p>

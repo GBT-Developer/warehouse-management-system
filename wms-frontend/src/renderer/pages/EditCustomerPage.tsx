@@ -1,15 +1,15 @@
 import { collection, getDocs, query } from '@firebase/firestore';
 import { db } from 'firebase';
-import { addDoc, and, or, where } from 'firebase/firestore';
-import { FormEvent, useState } from 'react';
+import { and, doc, getDoc, or, updateDoc, where } from 'firebase/firestore';
+import { FormEvent, useEffect, useState } from 'react';
 import { AiOutlineLoading3Quarters } from 'react-icons/ai';
 import { IoRemoveCircleOutline } from 'react-icons/io5';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { InputField } from 'renderer/components/InputField';
 import { SingleTableItem } from 'renderer/components/TableComponents/SingleTableItem';
 import { TableModal } from 'renderer/components/TableComponents/TableModal';
 import { Customer } from 'renderer/interfaces/Customer';
-import { Product } from 'renderer/interfaces/Product';
+import { SpecialPrice } from 'renderer/interfaces/SpecialPrice';
 import { PageLayout } from 'renderer/layout/PageLayout';
 
 const newCustomerInitialState = {
@@ -19,18 +19,42 @@ const newCustomerInitialState = {
   SpecialPrice: [],
 } as Customer;
 
-function InputCustomerPage() {
+function EditCustomerPage() {
   const navigate = useNavigate();
+  const param = useParams();
   const [newCustomer, setNewCustomer] = useState<Customer>(
     newCustomerInitialState
   );
   const [loading, setLoading] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [selectedProducts, setSelectedProducts] = useState<Product[]>([]);
-  const [products, setProducts] = useState<Product[]>([]);
+  const [selectedProducts, setSelectedProducts] = useState<SpecialPrice[]>([]);
+  const [products, setProducts] = useState<SpecialPrice[]>([]);
 
-  function handleSubmit(e: FormEvent) {
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        if (param.id === undefined) return;
+        const customerRef = doc(db, 'customer', param.id);
+        const customerSnap = await getDoc(customerRef);
+        const customerData = customerSnap.data() as Customer;
+        customerData.id = customerSnap.id;
+        setNewCustomer(customerData);
+
+        setSelectedProducts(customerData.SpecialPrice);
+
+        setLoading(false);
+      } catch (error) {
+        console.error('Error fetching data:', error);
+      }
+    };
+    fetchData().catch((error) => {
+      console.log(error);
+    });
+  }, []);
+
+  async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     // If one or more fields are empty except remarks, return early
     if (
@@ -61,20 +85,23 @@ function InputCustomerPage() {
       }, 3000);
       return;
     }
-    console.log(newCustomer);
 
-    // Make a code to input my data to firebase
-    const productCollection = collection(db, '/customer');
+    // Update customer data
     setLoading(true);
-    addDoc(productCollection, newCustomer)
-      .then(() => {
-        setLoading(false);
-        navigate(-1);
-      })
-      .catch((error) => {
-        console.error('Error adding document: ', error);
-        setLoading(false);
+    try {
+      if (!param.id) return;
+      const customerRef = doc(db, 'customer', param.id);
+      await updateDoc(customerRef, {
+        name: newCustomer.name,
+        address: newCustomer.address,
+        phone_number: newCustomer.phone_number,
+        SpecialPrice: selectedProducts,
       });
+      setLoading(false);
+      navigate(-1);
+    } catch (error) {
+      console.error('Error updating document:', error);
+    }
   }
 
   const handleSearch = async (search: string) => {
@@ -106,23 +133,25 @@ function InputCustomerPage() {
         )
       )
     );
+    setLoading(true);
     const querySnapshot = await getDocs(productsQuery);
 
-    const productData: Product[] = [];
+    const productData: SpecialPrice[] = [];
     querySnapshot.forEach((theProduct) => {
-      const data = theProduct.data() as Product;
-      data.id = theProduct.id;
-      data.sell_price = theProduct.get('sell_price') as string;
+      const data = theProduct.data() as SpecialPrice;
+      data.product_id = theProduct.id;
+      data.price = theProduct.get('sell_price') as string;
       productData.push(data);
     });
 
     setProducts(productData);
+    setLoading(false);
   };
 
   return (
     <PageLayout>
       <h1 className="text-4xl font-extrabold tracking-tight text-gray-900 md:text-5xl">
-        Add New Customer
+        Edit Customer
       </h1>
       <form
         className={`w-2/3 py-14 my-10 flex flex-col gap-3 relative ${
@@ -171,49 +200,29 @@ function InputCustomerPage() {
           {selectedProducts.map((product, index) => (
             <li key={index}>
               <div className="flex flex-row gap-2 justify-between items-center">
-                <div className="w-full flex justify-between items-center">
-                  <div className="w-4/5">
-                    <label htmlFor="price" className="text-md">
-                      {product.brand +
-                        ' ' +
-                        product.motor_type +
-                        ' ' +
-                        product.part +
-                        ' ' +
-                        product.available_color}
-                    </label>
-                  </div>
-                  <div className="w-1/5">
-                    <input
-                      disabled={loading}
-                      id={'price'}
-                      name={'price'}
-                      type="text"
-                      className={`placeholder:text-xs placeholder:font-light bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 p-2 w-full
-                      `}
-                      value={
-                        newCustomer.SpecialPrice.find(
-                          (sp) => sp.product_id === product.id
-                        )?.price ?? product.sell_price
-                      }
-                      onChange={(e) => {
-                        const newSpecialPriceProducts = [
-                          ...newCustomer.SpecialPrice,
-                        ];
-                        const index = newSpecialPriceProducts.findIndex(
-                          (sp) => sp.product_id === product.id
-                        );
-                        newSpecialPriceProducts[index].price = e.target.value;
-                        setNewCustomer(() => {
-                          return {
-                            ...newCustomer,
-                            SpecialPrice: newSpecialPriceProducts,
-                          };
-                        });
-                      }}
-                    />
-                  </div>
-                </div>
+                <InputField
+                  loading={loading}
+                  label={
+                    product.brand +
+                    ' ' +
+                    product.motor_type +
+                    ' ' +
+                    product.part +
+                    ' ' +
+                    product.available_color
+                  }
+                  labelFor="price"
+                  value={product.price}
+                  onChange={(e) => {
+                    setSelectedProducts(
+                      selectedProducts.map((p) => {
+                        if (p === product) p.price = e.target.value;
+
+                        return p;
+                      })
+                    );
+                  }}
+                />
                 <button
                   type="button"
                   className="py-2 px-5 text-sm font-medium text-red-500 focus:outline-none bg-white rounded-lg border:none hover:text-red-900 focus:z-10 focus:ring-4 focus:ring-gray-200"
@@ -251,7 +260,7 @@ function InputCustomerPage() {
             type="submit"
             className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2 focus:outline-none"
             onClick={(e) => {
-              handleSubmit(e);
+              handleSubmit(e).catch((error) => console.log(error));
             }}
           >
             Submit
@@ -287,16 +296,16 @@ function InputCustomerPage() {
               key={index}
               className="border-b hover:shadow-md cursor-pointer"
               onClick={() => {
-                if (!selectedProducts.includes(product)) {
+                if (
+                  !selectedProducts.some(
+                    (sp) => sp.product_id === product.product_id
+                  )
+                ) {
                   setSelectedProducts([...selectedProducts, product]);
                   if (product.id)
                     newCustomer.SpecialPrice = [
                       ...newCustomer.SpecialPrice,
-                      {
-                        ...product,
-                        product_id: product.id,
-                        price: product.sell_price,
-                      },
+                      product,
                     ];
                 } else {
                   setSelectedProducts(
@@ -312,8 +321,9 @@ function InputCustomerPage() {
               <SingleTableItem>
                 <input
                   type="checkbox"
-                  checked={selectedProducts.includes(product)}
-                  readOnly
+                  checked={selectedProducts.some(
+                    (sp) => sp.product_id === product.product_id
+                  )}
                 />
               </SingleTableItem>
               <SingleTableItem key={index}>
@@ -341,4 +351,4 @@ function InputCustomerPage() {
   );
 }
 
-export default InputCustomerPage;
+export default EditCustomerPage;

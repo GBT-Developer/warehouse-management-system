@@ -1,6 +1,11 @@
 export interface SpecialPrice {
   id?: string;
   product_id: string;
-  product_name: string;
-  price: number;
+  brand: string;
+  motor_type: string;
+  part: string;
+  available_color: string;
+  warehouse_position: string;
+  price: string;
+  sell_price: string;
 }
