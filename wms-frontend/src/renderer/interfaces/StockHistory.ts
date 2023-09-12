@@ -7,5 +7,7 @@ export interface StockHistory {
   difference: string;
   created_at?: string;
   product: Product;
+  product_name: string;
+  warehouse_position: string;
   type: string;
 }
