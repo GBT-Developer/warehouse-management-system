@@ -154,6 +154,14 @@ export const ManageStockPage = () => {
 
         transaction.set(newStockHistoryDocRef, {
           product: newPurchase.product.id,
+          product_name:
+            newPurchase.product.brand +
+            ' ' +
+            newPurchase.product.motor_type +
+            ' ' +
+            newPurchase.product.part +
+            ' ' +
+            newPurchase.product.available_color,
           count: newPurchase.count,
           old_count: newPurchase.product.count,
           difference: (
