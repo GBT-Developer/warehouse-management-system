@@ -1,16 +1,13 @@
 import { db } from 'firebase';
-import {
-  Timestamp,
-  addDoc,
-  collection,
-  getDocs,
-  query,
-} from 'firebase/firestore';
+import { addDoc, collection, getDocs, query } from 'firebase/firestore';
 import { useEffect, useRef, useState } from 'react';
 import { AiOutlineLoading3Quarters } from 'react-icons/ai';
 import { useParams } from 'react-router-dom';
 import { AreaField } from 'renderer/components/AreaField';
 import { InputField } from 'renderer/components/InputField';
+import { SingleTableItem } from 'renderer/components/TableComponents/SingleTableItem';
+import { TableModal } from 'renderer/components/TableComponents/TableModal';
+import { Customer } from 'renderer/interfaces/Customer';
 import { Invoice } from 'renderer/interfaces/Invoice';
 import { Retoure } from 'renderer/interfaces/Retoure';
 import { Supplier } from 'renderer/interfaces/Supplier';
@@ -20,18 +17,21 @@ export default function ReturnPage() {
   const [loading, setLoading] = useState(false);
   const param = useParams();
   const [invoices, setInvoices] = useState<Invoice[]>([]);
+  const [selectedInvoice, setSelectedInvoice] = useState<Invoice>();
   const [editToggle, setEditToggle] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [supplier, setSupplier] = useState<Supplier>();
   const statusOptionRef = useRef<HTMLSelectElement>(null);
   const [newRetoure, setNewRetoure] = useState<Retoure>();
   const productOptionRef = useRef<HTMLSelectElement>(null);
-  const currentTimeStamp = Timestamp.now();
+  const [modalOpen, setModalOpen] = useState(false);
+  const [customers, setCustomers] = useState<Customer[]>();
+  const [filteredCustomers, setFilteredCustomers] = useState<Customer[]>();
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        //take products from firestore
+        //take invoice from firestore
         const invoicesQuery = query(collection(db, 'invoice'));
         const querySnapshot = await getDocs(invoicesQuery);
 
@@ -43,6 +43,31 @@ export default function ReturnPage() {
         });
 
         setInvoices(invoiceData);
+        //take customer from firestore
+        invoices.forEach(async (invoice) => {
+          if (!invoice.customer_id) return;
+          const customersQuery = query(collection(db, 'customer'));
+          const customersSnapshot = await getDocs(customersQuery);
+
+          const customerData: Customer[] = [];
+          customersSnapshot.forEach((theCustomer) => {
+            const data = theCustomer.data() as Customer;
+            data.id = theCustomer.id;
+            customerData.push(data);
+          });
+          setCustomers(customerData);
+          if (customers) {
+            invoices.forEach((invoice) => {
+              const filteredCustomers = customers.filter(
+                (customer) => customer.id === invoice.customer_id
+              );
+              setFilteredCustomers(filteredCustomers);
+            });
+          } else {
+            // Handle the case where 'customers' is undefined.
+            console.error('Customers are undefined.');
+          }
+        });
       } catch (error) {
         console.error('Error fetching data:', error);
       }
@@ -52,6 +77,7 @@ export default function ReturnPage() {
     });
   }, []);
   console.log(invoices);
+  console.log(filteredCustomers);
 
   function handleSubmit(e: { preventDefault: () => void }) {
     //input newRetoure to the database
@@ -103,41 +129,14 @@ export default function ReturnPage() {
             <AiOutlineLoading3Quarters className="animate-spin flex justify-center text-4xl" />
           </div>
         )}
-        <div>
-          <div className="flex justify-between">
-            <div className="w-1/3 py-1.5">
-              <label htmlFor={'product'} className="text-md">
-                Invoice Number
-              </label>
-            </div>
-            <div className="w-2/3">
-              <select
-                ref={productOptionRef}
-                defaultValue={''}
-                disabled={loading}
-                id="product"
-                name="product"
-                onChange={(e) => {
-                  const invoice = invoices.find(
-                    (invoice) => invoice.id === e.target.value
-                  );
-                  if (!invoice) return;
-                  setNewRetoure({ ...newRetoure, invoice: invoice });
-                }}
-                className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
-              >
-                <option value={''} disabled>
-                  Choose Invoice number
-                </option>
-                {invoices.map((invoice) => (
-                  <option key={invoice.id} value={invoice.id}>
-                    {invoice.id}
-                  </option>
-                ))}
-              </select>{' '}
-            </div>
-          </div>
-        </div>
+        <div></div>
+        <button
+          type="button"
+          className="py-2 px-5 text-sm font-medium text-red-500 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-red-700 focus:z-10 focus:ring-4 focus:ring-gray-200 disabled:opacity-50 disabled:hover:bg-white disabled:hover:text-red-500"
+          onClick={() => setModalOpen(true)}
+        >
+          Choose Invoice
+        </button>
         <InputField
           loading={loading}
           label="Product"
@@ -234,6 +233,62 @@ export default function ReturnPage() {
           <p className="text-red-500 text-sm ">{errorMessage}</p>
         )}
       </form>
+      <TableModal
+        placeholder="Search by product brand"
+        modalOpen={modalOpen}
+        setModalOpen={setModalOpen}
+        //handleSearch={handleSearch}
+        title={'Choose Product'}
+        headerList={
+          invoices.length > 0 ? ['', 'Invoice Number', 'Customer Name'] : []
+        }
+      >
+        {invoices.length > 0 ? (
+          invoices.map((invoice, index) => (
+            <tr
+              key={index}
+              className="hover:bg-gray-100 cursor-pointer"
+              onClick={() => {
+                if (
+                  selectedInvoice &&
+                  selectedInvoice.find((i) => i === invoice)
+                ) {
+                  console.log('found');
+                  setSelectedInvoice(
+                    selectedInvoice?.filter((i) => i !== invoice)
+                  );
+                  setNewRetoure({
+                    ...newRetoure,
+                    invoice: invoice.items.filter(
+                      (i) => i.invoice.id !== invoice.id
+                    ),
+                  });
+                } else {
+                  console.log('not found');
+                  if (!invoice.id) return;
+                  console.log(invoice);
+                }
+              }}
+            >
+              <SingleTableItem>
+                <input
+                  type="checkbox"
+                  checked={selectedInvoice?.includes(invoice)}
+                  readOnly
+                />
+              </SingleTableItem>
+              <SingleTableItem key={index}>{invoice.id}</SingleTableItem>
+              <SingleTableItem>{invoice.customer_id}</SingleTableItem>
+            </tr>
+          ))
+        ) : (
+          <tr className="border-b">
+            <SingleTableItem>
+              <p className="flex justify-center">No Invoice found</p>
+            </SingleTableItem>
+          </tr>
+        )}
+      </TableModal>
     </PageLayout>
   );
 }
