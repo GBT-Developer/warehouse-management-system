@@ -11,7 +11,7 @@ import { AiOutlineLoading3Quarters } from 'react-icons/ai';
 import { useParams } from 'react-router-dom';
 import { AreaField } from 'renderer/components/AreaField';
 import { InputField } from 'renderer/components/InputField';
-import { Product } from 'renderer/interfaces/Product';
+import { Invoice } from 'renderer/interfaces/Invoice';
 import { Retoure } from 'renderer/interfaces/Retoure';
 import { Supplier } from 'renderer/interfaces/Supplier';
 import { PageLayout } from 'renderer/layout/PageLayout';
@@ -19,7 +19,7 @@ import { PageLayout } from 'renderer/layout/PageLayout';
 export default function ReturnPage() {
   const [loading, setLoading] = useState(false);
   const param = useParams();
-  const [products, setProducts] = useState<Product[]>([]);
+  const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [editToggle, setEditToggle] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [supplier, setSupplier] = useState<Supplier>();
@@ -32,17 +32,17 @@ export default function ReturnPage() {
     const fetchData = async () => {
       try {
         //take products from firestore
-        const productsQuery = query(collection(db, 'product'));
-        const querySnapshot = await getDocs(productsQuery);
+        const invoicesQuery = query(collection(db, 'invoice'));
+        const querySnapshot = await getDocs(invoicesQuery);
 
-        const productData: Product[] = [];
-        querySnapshot.forEach((theProduct) => {
-          const data = theProduct.data() as Product;
-          data.id = theProduct.id;
-          productData.push(data);
+        const invoiceData: Invoice[] = [];
+        querySnapshot.forEach((theInvoice) => {
+          const data = theInvoice.data() as Invoice;
+          data.id = theInvoice.id;
+          invoiceData.push(data);
         });
 
-        setProducts(productData);
+        setInvoices(invoiceData);
       } catch (error) {
         console.error('Error fetching data:', error);
       }
@@ -51,16 +51,12 @@ export default function ReturnPage() {
       console.log(error);
     });
   }, []);
-  console.log(products);
+  console.log(invoices);
 
   function handleSubmit(e: { preventDefault: () => void }) {
     //input newRetoure to the database
     e.preventDefault();
-    if (
-      !newRetoure?.product_name ||
-      !newRetoure?.count ||
-      !newRetoure?.remarks
-    ) {
+    if (!newRetoure?.product_name || !newRetoure?.count) {
       setErrorMessage('Please fill all the fields');
       setTimeout(() => {
         setErrorMessage(null);
@@ -122,20 +118,20 @@ export default function ReturnPage() {
                 id="product"
                 name="product"
                 onChange={(e) => {
-                  const product = products.find(
-                    (product) => product.id === e.target.value
+                  const invoice = invoices.find(
+                    (invoice) => invoice.id === e.target.value
                   );
-                  if (!product) return;
-                  setNewRetoure({ ...newRetoure, product: product });
+                  if (!invoice) return;
+                  setNewRetoure({ ...newRetoure, invoice: invoice });
                 }}
                 className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
               >
                 <option value={''} disabled>
                   Choose Invoice number
                 </option>
-                {products.map((product) => (
-                  <option key={product.id} value={product.id}>
-                    {product.id}
+                {invoices.map((invoice) => (
+                  <option key={invoice.id} value={invoice.id}>
+                    {invoice.id}
                   </option>
                 ))}
               </select>{' '}
