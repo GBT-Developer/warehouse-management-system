@@ -47,7 +47,9 @@ export const ManageStockPage = () => {
   const [newPurchase, setNewPurchase] = useState<PurchaseHistory>(
     newPurchaseInitialState
   );
-  const [acceptedProducts, setAcceptedProducts] = useState<Product[]>([]); // For manage stock mode 'from_other_warehouse'
+  const [acceptedProducts, setAcceptedProducts] = useState<
+    (Product & { dispatch_note_id?: string; id?: string; status?: string })[]
+  >([]); // For manage stock mode 'from_other_warehouse'
   const [dispatchNote, setDispatchNote] = useState<string>('');
   const [modalOpen, setModalOpen] = useState(false);
   const selectedSupplierRef = useRef<HTMLSelectElement>(null);
@@ -112,7 +114,6 @@ export const ManageStockPage = () => {
   }, [manageStockMode, selectedSupplier, selectedWarehouse]);
 
   const handleSubmit = async () => {
-    console.log(newPurchase);
     if (
       manageStockMode === '' ||
       selectedWarehouse === '' ||
@@ -206,6 +207,10 @@ export const ManageStockPage = () => {
             // Create new product
             const newProductDocRef = doc(collection(db, 'product'));
 
+            delete acceptedProduct.id;
+            delete acceptedProduct.status;
+            delete acceptedProduct.dispatch_note_id;
+
             transaction.set(newProductDocRef, {
               ...acceptedProduct,
               warehouse_position: 'Gudang Jadi',
@@ -268,7 +273,6 @@ export const ManageStockPage = () => {
             warehouse_position: selectedWarehouse,
             type: 'from_other_warehouse',
             created_at: newPurchase.created_at,
-            dispatch_note: dispatchNote,
           });
 
           checkBrokenProduct(
@@ -298,13 +302,9 @@ export const ManageStockPage = () => {
 
     const docRef = doc(db, 'dispatch_note', dispatchNote);
 
-    deleteDoc(docRef)
-      .then(() => {
-        console.log('Document successfully deleted!');
-      })
-      .catch((error) => {
-        console.error('Error removing document: ', error);
-      });
+    deleteDoc(docRef).catch((error) => {
+      console.error('Error removing document: ', error);
+    });
   };
 
   const checkBrokenProduct = async (
@@ -701,7 +701,6 @@ export const ManageStockPage = () => {
               name="date"
               className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
               onChange={(e) => {
-                console.log(e.target.value);
                 setNewPurchase(() => ({
                   ...newPurchase,
                   created_at: e.target.value,
