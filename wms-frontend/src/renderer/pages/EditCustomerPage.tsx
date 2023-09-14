@@ -200,29 +200,49 @@ function EditCustomerPage() {
           {selectedProducts.map((product, index) => (
             <li key={index}>
               <div className="flex flex-row gap-2 justify-between items-center">
-                <InputField
-                  loading={loading}
-                  label={
-                    product.brand +
-                    ' ' +
-                    product.motor_type +
-                    ' ' +
-                    product.part +
-                    ' ' +
-                    product.available_color
-                  }
-                  labelFor="price"
-                  value={product.price}
-                  onChange={(e) => {
-                    setSelectedProducts(
-                      selectedProducts.map((p) => {
-                        if (p === product) p.price = e.target.value;
-
-                        return p;
-                      })
-                    );
-                  }}
-                />
+                <div className="w-full flex justify-between items-center">
+                  <div className="w-4/5">
+                    <label htmlFor="price" className="text-md">
+                      {product.brand +
+                        ' ' +
+                        product.motor_type +
+                        ' ' +
+                        product.part +
+                        ' ' +
+                        product.available_color}
+                    </label>
+                  </div>
+                  <div className="w-1/5">
+                    <input
+                      disabled={loading}
+                      id={'price'}
+                      name={'price'}
+                      type="text"
+                      className={`placeholder:text-xs placeholder:font-light bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 p-2 w-full
+                      `}
+                      value={
+                        newCustomer.SpecialPrice.find(
+                          (sp) => sp.product_id === product.id
+                        )?.price ?? product.sell_price
+                      }
+                      onChange={(e) => {
+                        const newSpecialPriceProducts = [
+                          ...newCustomer.SpecialPrice,
+                        ];
+                        const index = newSpecialPriceProducts.findIndex(
+                          (sp) => sp.product_id === product.id
+                        );
+                        newSpecialPriceProducts[index].price = e.target.value;
+                        setNewCustomer(() => {
+                          return {
+                            ...newCustomer,
+                            SpecialPrice: newSpecialPriceProducts,
+                          };
+                        });
+                      }}
+                    />
+                  </div>
+                </div>
                 <button
                   type="button"
                   className="py-2 px-5 text-sm font-medium text-red-500 focus:outline-none bg-white rounded-lg border:none hover:text-red-900 focus:z-10 focus:ring-4 focus:ring-gray-200"
