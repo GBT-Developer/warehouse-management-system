@@ -101,7 +101,7 @@ export const seedProduct = async (
         .add({
           available_color: faker.color.human(),
           brand: faker.commerce.productName(),
-          count: the_count,
+          count: the_count.toString(),
           motor_type: faker.vehicle.type(),
           part: faker.vehicle.model(),
           sell_price: faker.commerce.price(),
@@ -113,7 +113,7 @@ export const seedProduct = async (
         })
         .then(async (product) => {
           await db.collection("purchase_history").add({
-            count: the_count,
+            count: the_count.toString(),
             payment_status: "Paid",
             purchase_price: faker.commerce.price(),
             created_at: faker.date.past().toISOString(),
