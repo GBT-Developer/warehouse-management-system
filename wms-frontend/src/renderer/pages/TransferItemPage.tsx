@@ -298,6 +298,8 @@ export const TransferItemPage = () => {
                       loading={loading}
                       value={item.amount}
                       onChange={(e) => {
+                        if (!/^[0-9]+$/.test(e.target.value)) return;
+
                         setDispatchNote({
                           ...dispatchNote,
                           dispatch_items: dispatchNote.dispatch_items.map(
