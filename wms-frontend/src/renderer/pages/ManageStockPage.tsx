@@ -1,6 +1,7 @@
 import { db } from 'firebase';
 import {
   collection,
+  deleteDoc,
   doc,
   getDocs,
   query,
@@ -183,12 +184,9 @@ export const ManageStockPage = () => {
       });
     // add or update product count of arrived products on product list
     else {
-      console.log('from other warehouse');
-      console.log(acceptedProducts);
       await runTransaction(db, async (transaction) => {
         const promises = acceptedProducts.map(async (acceptedProduct) => {
           if (!acceptedProduct.id) return Promise.reject();
-          console.log('read');
           const productQuery = query(
             collection(db, 'product'),
             where('warehouse_position', '==', 'Gudang Jadi'),
@@ -203,7 +201,6 @@ export const ManageStockPage = () => {
 
           if (productQuerySnapshot.empty) {
             // Create new product
-            console.log('create new product');
             const newProductDocRef = doc(collection(db, 'product'));
 
             transaction.set(newProductDocRef, {
@@ -230,7 +227,6 @@ export const ManageStockPage = () => {
               type: 'from_other_warehouse',
               created_at: new Date().toISOString().split('T')[0],
             });
-            console.log('done');
 
             checkBrokenProduct(
               acceptedProduct,
@@ -238,13 +234,13 @@ export const ManageStockPage = () => {
                 (product) => product.id === acceptedProduct.id
               ) as Product
             );
+            deleteDispatchNote();
 
             return Promise.resolve();
           }
 
           const product = productQuerySnapshot.docs[0];
 
-          console.log('update product count');
           transaction.update(product.ref, {
             count:
               parseInt(acceptedProduct.count) + parseInt(product.data().count),
@@ -278,6 +274,7 @@ export const ManageStockPage = () => {
               (product) => product.id === acceptedProduct.id
             ) as Product
           );
+          deleteDispatchNote();
 
           return Promise.resolve();
         });
@@ -292,6 +289,22 @@ export const ManageStockPage = () => {
 
     setLoading(false);
     navigate(-1);
+  };
+
+  const deleteDispatchNote = async () => {
+    if (!dispatchNote) {
+      return;
+    }
+
+    const docRef = doc(db, 'dispatch_note', dispatchNote);
+
+    deleteDoc(docRef)
+      .then(() => {
+        console.log('Document successfully deleted!');
+      })
+      .catch((error) => {
+        console.error('Error removing document: ', error);
+      });
   };
 
   const checkBrokenProduct = async (
@@ -316,7 +329,6 @@ export const ManageStockPage = () => {
 
       if (brokenProductQuerySnapshot.empty) {
         // Create new broken product
-        console.log('new broken product');
         const newBrokenProductDocRef = doc(collection(db, 'broken_product'));
 
         runTransaction(db, (transaction) => {
@@ -330,7 +342,6 @@ export const ManageStockPage = () => {
         });
       } else {
         // Update broken product count
-        console.log('update broken product count');
         const brokenProduct = brokenProductQuerySnapshot.docs[0];
 
         runTransaction(db, (transaction) => {
@@ -351,7 +362,6 @@ export const ManageStockPage = () => {
     if (dispatchNote === '') return;
 
     setLoading(true);
-    console.log(dispatchNote);
 
     const dispatchedProductQuery = query(
       collection(db, 'on_dispatch'),
@@ -372,7 +382,6 @@ export const ManageStockPage = () => {
     });
 
     setProducts(dispatchedProductList);
-    console.log(products);
     setLoading(false);
   };
 
@@ -619,8 +628,6 @@ export const ManageStockPage = () => {
                                 count: e.target.value,
                               },
                             ]);
-
-                            console.log(acceptedProducts);
                           }}
                         />
                       </div>
