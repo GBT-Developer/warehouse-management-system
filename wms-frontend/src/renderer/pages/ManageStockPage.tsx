@@ -1,14 +1,15 @@
 import { db } from 'firebase';
 import {
+  Transaction,
   collection,
+  deleteDoc,
   doc,
-  documentId,
   getDocs,
   query,
   runTransaction,
   where,
 } from 'firebase/firestore';
-import { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { AiOutlineLoading3Quarters, AiOutlineReload } from 'react-icons/ai';
 import { useNavigate } from 'react-router-dom';
 import { InputField } from 'renderer/components/InputField';
@@ -46,10 +47,12 @@ export const ManageStockPage = () => {
   const [newPurchase, setNewPurchase] = useState<PurchaseHistory>(
     newPurchaseInitialState
   );
+  const [acceptedProducts, setAcceptedProducts] = useState<Product[]>([]); // For manage stock mode 'from_other_warehouse'
   const [dispatchNote, setDispatchNote] = useState<string>('');
   const [modalOpen, setModalOpen] = useState(false);
   const selectedSupplierRef = useRef<HTMLSelectElement>(null);
   const selectedWarehouseRef = useRef<HTMLSelectElement>(null);
+  const dateInputRef = React.useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     setLoading(true);
@@ -109,13 +112,20 @@ export const ManageStockPage = () => {
   }, [manageStockMode, selectedSupplier, selectedWarehouse]);
 
   const handleSubmit = async () => {
+    console.log(newPurchase);
     if (
       manageStockMode === '' ||
       selectedWarehouse === '' ||
-      newPurchase.product === null ||
+      (manageStockMode === 'purchase' && newPurchase.product === null) ||
       (manageStockMode === 'purchase' && selectedSupplier === null) ||
       (manageStockMode === 'purchase' && newPurchase.purchase_price === '') ||
-      (manageStockMode === 'from_other_warehouse' && dispatchNote === '')
+      (manageStockMode === 'from_other_warehouse' && dispatchNote === '') ||
+      (manageStockMode === 'from_other_warehouse' &&
+        acceptedProducts.length != products.length) ||
+      (manageStockMode === 'from_other_warehouse' &&
+        acceptedProducts.some(
+          (acceptedProduct) => acceptedProduct.count === ''
+        ))
     ) {
       setErrorMessage('Please fill all the required fields');
       setTimeout(() => {
@@ -154,6 +164,14 @@ export const ManageStockPage = () => {
 
         transaction.set(newStockHistoryDocRef, {
           product: newPurchase.product.id,
+          product_name:
+            newPurchase.product.brand +
+            ' ' +
+            newPurchase.product.motor_type +
+            ' ' +
+            newPurchase.product.part +
+            ' ' +
+            newPurchase.product.available_color,
           count: newPurchase.count,
           old_count: newPurchase.product.count,
           difference: (
@@ -167,66 +185,104 @@ export const ManageStockPage = () => {
 
         return Promise.resolve();
       });
+    // Add or update product count of arrived products on product list
     else
       await runTransaction(db, async (transaction) => {
-        if (!newPurchase.product?.id) return Promise.reject();
+        const promises = acceptedProducts.map(async (acceptedProduct) => {
+          if (!acceptedProduct.id) return Promise.reject();
+          const productQuery = query(
+            collection(db, 'product'),
+            where('warehouse_position', '==', 'Gudang Jadi'),
+            where('available_color', '==', acceptedProduct.available_color),
+            where('brand', '==', acceptedProduct.brand),
+            where('motor_type', '==', acceptedProduct.motor_type),
+            where('part', '==', acceptedProduct.part),
+            where('supplier', '==', acceptedProduct.supplier)
+          );
 
-        const productQuery = query(
-          collection(db, 'product'),
-          where(documentId(), '==', newPurchase.product.id),
-          where('warehouse_position', '==', 'Gudang Jadi'),
-          where('available_color', '==', newPurchase.product.available_color),
-          where('brand', '==', newPurchase.product.brand),
-          where('motor_type', '==', newPurchase.product.motor_type),
-          where('part', '==', newPurchase.product.part)
-        );
+          const productQuerySnapshot = await getDocs(productQuery);
 
-        const productQuerySnapshot = await getDocs(productQuery);
+          if (productQuerySnapshot.empty) {
+            // Create new product
+            const newProductDocRef = doc(collection(db, 'product'));
 
-        if (productQuerySnapshot.empty) {
-          // Create new product
-          const newProductDocRef = doc(collection(db, 'product'));
+            transaction.set(newProductDocRef, {
+              ...acceptedProduct,
+              warehouse_position: 'Gudang Jadi',
+            });
 
-          transaction.set(newProductDocRef, {
-            ...newPurchase.product,
-            count: newPurchase.count,
-            warehouse_position: 'Gudang Jadi',
+            const newStockHistoryDocRef = doc(collection(db, 'stock_history'));
+
+            transaction.set(newStockHistoryDocRef, {
+              product: newProductDocRef.id,
+              product_name:
+                acceptedProduct.brand +
+                ' ' +
+                acceptedProduct.motor_type +
+                ' ' +
+                acceptedProduct.part +
+                ' ' +
+                acceptedProduct.available_color,
+              count: acceptedProduct.count,
+              old_count: '0',
+              difference: acceptedProduct.count,
+              warehouse_position: selectedWarehouse,
+              type: 'from_other_warehouse',
+              created_at: newPurchase.created_at,
+            });
+
+            checkBrokenProduct(
+              acceptedProduct,
+              products.find((product) => product.id === acceptedProduct.id),
+              transaction
+            ).catch(() => console.log('error'));
+            deleteDispatchNote();
+
+            return Promise.resolve();
+          }
+
+          const product = productQuerySnapshot.docs[0];
+          const productData = product.data() as Product;
+
+          transaction.update(product.ref, {
+            count:
+              parseInt(acceptedProduct.count) + parseInt(productData.count),
           });
 
           const newStockHistoryDocRef = doc(collection(db, 'stock_history'));
 
           transaction.set(newStockHistoryDocRef, {
-            product: newProductDocRef.id,
-            count: newPurchase.count,
-            old_count: '0',
-            difference: newPurchase.count,
+            product: acceptedProduct.id,
+            product_name:
+              acceptedProduct.brand +
+              ' ' +
+              acceptedProduct.motor_type +
+              ' ' +
+              acceptedProduct.part +
+              ' ' +
+              acceptedProduct.available_color,
+            count:
+              parseInt(acceptedProduct.count) + parseInt(productData.count),
+            old_count: productData.count,
+            difference: acceptedProduct.count,
             warehouse_position: selectedWarehouse,
             type: 'from_other_warehouse',
             created_at: newPurchase.created_at,
+            dispatch_note: dispatchNote,
           });
 
+          checkBrokenProduct(
+            acceptedProduct,
+            products.find((product) => product.id === acceptedProduct.id),
+            transaction
+          ).catch(() => console.log('error'));
+          deleteDispatchNote();
+
           return Promise.resolve();
-        }
-
-        const product = productQuerySnapshot.docs[0];
-
-        transaction.update(product.ref, {
-          count: newPurchase.count,
         });
 
-        const newStockHistoryDocRef = doc(collection(db, 'stock_history'));
-
-        transaction.set(newStockHistoryDocRef, {
-          product: newPurchase.product.id,
-          count: newPurchase.count,
-          old_count: newPurchase.product.count,
-          difference: (
-            Number(newPurchase.product.count) - Number(newPurchase.count)
-          ).toString(),
-          warehouse_position: selectedWarehouse,
-          type: 'from_other_warehouse',
-          created_at: newPurchase.created_at,
-        });
+        // Wait for all promises in the map to resolve
+        await Promise.all(promises);
 
         return Promise.resolve();
       });
@@ -237,11 +293,69 @@ export const ManageStockPage = () => {
     navigate(-1);
   };
 
+  const deleteDispatchNote = () => {
+    if (!dispatchNote) return;
+
+    const docRef = doc(db, 'dispatch_note', dispatchNote);
+
+    deleteDoc(docRef)
+      .then(() => {
+        console.log('Document successfully deleted!');
+      })
+      .catch((error) => {
+        console.error('Error removing document: ', error);
+      });
+  };
+
+  const checkBrokenProduct = async (
+    acceptedProduct: Product,
+    product: Product | undefined,
+    transaction: Transaction
+  ) => {
+    if (!product) return;
+    // If (arrivedProduct.count < product.data().count)
+    // Add the difference to broken product database
+    if (acceptedProduct.count < product.count) {
+      // Check if the product is already in broken product database
+      const brokenProductQuery = query(
+        collection(db, 'broken_product'),
+        where('warehouse_position', '==', 'Gudang Jadi'),
+        where('available_color', '==', acceptedProduct.available_color),
+        where('brand', '==', acceptedProduct.brand),
+        where('motor_type', '==', acceptedProduct.motor_type),
+        where('part', '==', acceptedProduct.part),
+        where('supplier', '==', acceptedProduct.supplier)
+      );
+
+      const brokenProductQuerySnapshot = await getDocs(brokenProductQuery);
+
+      if (brokenProductQuerySnapshot.empty) {
+        // Create new broken product
+        const newBrokenProductDocRef = doc(collection(db, 'broken_product'));
+
+        transaction.set(newBrokenProductDocRef, {
+          ...acceptedProduct,
+          count: parseInt(product.count) - parseInt(acceptedProduct.count),
+          warehouse_position: 'Gudang Jadi',
+        });
+      } else {
+        // Update broken product count
+        const brokenProduct = brokenProductQuerySnapshot.docs[0];
+
+        transaction.update(brokenProduct.ref, {
+          count:
+            parseInt(product.count) -
+            parseInt(acceptedProduct.count) +
+            parseInt((brokenProduct.data() as Product).count),
+        });
+      }
+    }
+  };
+
   const handleFetchDispatchNote = async () => {
     if (dispatchNote === '') return;
 
     setLoading(true);
-    console.log(dispatchNote);
 
     const dispatchedProductQuery = query(
       collection(db, 'on_dispatch'),
@@ -262,7 +376,6 @@ export const ManageStockPage = () => {
     });
 
     setProducts(dispatchedProductList);
-
     setLoading(false);
   };
 
@@ -306,6 +419,7 @@ export const ManageStockPage = () => {
                   setManageStockMode(e.target.value);
 
                 setProducts([]);
+                setAcceptedProducts([]);
                 setNewPurchase(newPurchaseInitialState);
                 setSelectedSupplier(null);
                 setSelectedWarehouse('');
@@ -345,6 +459,7 @@ export const ManageStockPage = () => {
                   setSelectedWarehouse(e.target.value);
 
                 setProducts([]);
+                setAcceptedProducts([]);
                 setNewPurchase(newPurchaseInitialState);
                 setSelectedSupplier(null);
                 if (selectedSupplierRef.current)
@@ -417,7 +532,9 @@ export const ManageStockPage = () => {
                 label="Dispatch note"
                 labelFor="dispatch-note"
                 value={dispatchNote}
-                onChange={(e) => setDispatchNote(() => e.target.value)}
+                onChange={(e) => {
+                  setDispatchNote(() => e.target.value);
+                }}
                 additionalStyle="pr-10"
               />
               <button
@@ -433,80 +550,142 @@ export const ManageStockPage = () => {
             </div>
           ) : null // Default
         }
-        <div className="flex justify-between">
-          <div className="w-1/3 flex items-center">
-            <label htmlFor={'product-id'} className="text-md">
-              Choose product
-            </label>
-          </div>
-          <div className="w-2/3">
-            <button
-              className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
-              type="button"
-              onClick={() => setModalOpen(() => !modalOpen)}
-            >
-              {newPurchase.product ? (
-                <p className="flex justify-start">
-                  {newPurchase.product.brand +
-                    ' ' +
-                    newPurchase.product.motor_type +
-                    ' ' +
-                    newPurchase.product.part +
-                    ' ' +
-                    newPurchase.product.available_color}
-                </p>
-              ) : (
-                'Choose product(s)'
-              )}
-            </button>
-          </div>
-        </div>
-        <InputField
-          loading={loading}
-          label="Quantity"
-          labelFor="quantity"
-          value={newPurchase.count}
-          onChange={(e) => {
-            if (isNaN(Number(e.target.value))) return;
-
-            if (manageStockMode === 'from_other_warehouse') {
-              const product = products.find(
-                (product) => product.id === newPurchase.product?.id
-              );
-
-              if (product && Number(e.target.value) > Number(product.count)) {
-                setErrorMessage(
-                  'Not enough stock in warehouse. Stock in warehouse: ' +
-                    product.count
-                );
-                setTimeout(() => {
-                  setErrorMessage(null);
-                }, 3000);
-                return;
-              }
-            }
-
-            setNewPurchase(() => ({
-              ...newPurchase,
-              count: e.target.value,
-            }));
-          }}
-        />
+        {manageStockMode === 'from_other_warehouse' && (
+          <ul className="my-3 space-y-3 font-regular">
+            {products.length > 0 &&
+              products.map((product, index) => (
+                <li key={index}>
+                  <p className="flex justify-start">
+                    {product.count +
+                      'x ' +
+                      product.brand +
+                      ' ' +
+                      product.motor_type +
+                      ' ' +
+                      product.part +
+                      ' ' +
+                      product.available_color}
+                  </p>
+                  <div className="flex flex-row gap-2 justify-between items-center">
+                    <div className="w-full flex justify-between items-center">
+                      <div className="w-4/5">
+                        <label htmlFor={'quantity'} className="text-md">
+                          Passed quality check
+                        </label>
+                      </div>
+                      <div className="w-1/5">
+                        <input
+                          disabled={loading}
+                          type="number"
+                          name="quantity"
+                          className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
+                          onChange={(e) => {
+                            if (
+                              Number(e.target.value) > Number(product.count)
+                            ) {
+                              setErrorMessage(
+                                'Not enough stock in warehouse. Stock in warehouse: ' +
+                                  product.count
+                              );
+                              // Set e target value with the value without the last character
+                              e.target.value = e.target.value.slice(0, -1);
+                              setTimeout(() => {
+                                setErrorMessage(null);
+                              }, 3000);
+                              return;
+                            }
+                            // If the product is already in acceptedProduct, update the count
+                            if (
+                              acceptedProducts.find(
+                                (acceptedProduct) =>
+                                  acceptedProduct.id === product.id
+                              )
+                            ) {
+                              setAcceptedProducts(() =>
+                                acceptedProducts.map((acceptedProduct) => {
+                                  if (acceptedProduct.id === product.id)
+                                    return {
+                                      ...acceptedProduct,
+                                      count: e.target.value,
+                                    };
+                                  return acceptedProduct;
+                                })
+                              );
+                              return;
+                            }
+                            // If the product is not in acceptedProduct, add it
+                            setAcceptedProducts(() => [
+                              ...acceptedProducts,
+                              {
+                                ...product,
+                                count: e.target.value,
+                              },
+                            ]);
+                          }}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </li>
+              ))}
+          </ul>
+        )}
         {manageStockMode === 'purchase' && (
-          <InputField
-            loading={loading}
-            label="Purchase price"
-            labelFor="purchase-price"
-            value={newPurchase.purchase_price}
-            onChange={(e) => {
-              if (!/^[0-9]+$/.test(e.target.value) && e.target.value !== '')
-                return;
-              setNewPurchase(() => ({
-                ...newPurchase,
-                purchase_price: e.target.value,
-              }));
-            }}
-          />
+          <div>
+            <div className="flex justify-between">
+              <div className="w-1/3 flex items-center">
+                <label htmlFor={'product-id'} className="text-md">
+                  Choose product
+                </label>
+              </div>
+              <div className="w-2/3">
+                <button
+                  className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
+                  type="button"
+                  onClick={() => setModalOpen(() => !modalOpen)}
+                >
+                  {newPurchase.product ? (
+                    <p className="flex justify-start">
+                      {newPurchase.product.brand +
+                        ' ' +
+                        newPurchase.product.motor_type +
+                        ' ' +
+                        newPurchase.product.part +
+                        ' ' +
+                        newPurchase.product.available_color}
+                    </p>
+                  ) : (
+                    'Choose product(s)'
+                  )}
+                </button>
+              </div>
+            </div>
+            <InputField
+              loading={loading}
+              label="Quantity"
+              labelFor="quantity"
+              value={newPurchase.count}
+              onChange={(e) => {
+                if (!/^[0-9]+$/.test(e.target.value) && e.target.value !== '')
+                  setNewPurchase(() => ({
+                    ...newPurchase,
+                    count: e.target.value,
+                  }));
+              }}
+            />
+            <InputField
+              loading={loading}
+              label="Purchase price"
+              labelFor="purchase-price"
+              value={newPurchase.purchase_price}
+              onChange={(e) =>
+                setNewPurchase(() => ({
+                  ...newPurchase,
+                  purchase_price: e.target.value,
+                }))
+              }
+            />
+          </div>
         )}
         <div className="flex justify-between">
           <div className="w-1/3 flex items-center">
@@ -516,11 +695,13 @@ export const ManageStockPage = () => {
           </div>
           <div className="w-2/3">
             <input
+              ref={dateInputRef}
               disabled={loading}
               type="date"
               name="date"
               className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
               onChange={(e) => {
+                console.log(e.target.value);
                 setNewPurchase(() => ({
                   ...newPurchase,
                   created_at: e.target.value,
