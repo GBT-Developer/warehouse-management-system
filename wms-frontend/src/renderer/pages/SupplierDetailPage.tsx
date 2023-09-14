@@ -92,14 +92,7 @@ export default function SupplierDetailPage() {
   }
   return (
     <PageLayout>
-      <div className="flex justify-between">
-        <button
-          type="button"
-          className="px-4 py-2 font-medium text-white bg-gray-600  focus:ring-4 focus:ring-gray-300 rounded-lg text-sm h-[max-content] w-[max-content] flex justify-center gap-2 text-center items-center"
-          onClick={() => navigate(-1)}
-        >
-          Back
-        </button>
+      <div className="flex justify-between w-2/3">
         <h1 className="mb-[4rem] text-4xl font-extrabold tracking-tight text-gray-900 md:text-5xl">
           Supplier Detail
         </h1>
@@ -125,7 +118,7 @@ export default function SupplierDetailPage() {
         <div className="relative shadow-md sm:rounded-lg overflow-auto h-full flex flex-col justify-between">
           <form
             onSubmit={handleSubmit}
-            className={`w-full flex flex-col gap-3 relative ${
+            className={`w-2/3 flex flex-col gap-3 relative ${
               loading ? 'p-2' : ''
             } transform transition-all duration-300`}
           >
@@ -241,15 +234,24 @@ export default function SupplierDetailPage() {
                 editToggle ? '' : 'border-none outline-none bg-inherit'
               }`}
             />
-            <div className="flex flex-row-reverse gap-2 w-full justify-start">
+            <div className="flex gap-2 w-full justify-between">
+              <button
+                type="button"
+                className="px-4 py-2 font-medium text-white bg-gray-600  focus:ring-4 focus:ring-gray-300 rounded-lg text-sm h-[max-content] w-[max-content] flex justify-center gap-2 text-center items-center"
+                onClick={() => navigate(-1)}
+              >
+                Back
+              </button>
               {editToggle && (
-                <button
-                  disabled={loading}
-                  type="submit"
-                  className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5"
-                >
-                  Submit
-                </button>
+                <>
+                  <button
+                    disabled={loading}
+                    type="submit"
+                    className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2 focus:outline-none"
+                  >
+                    Submit
+                  </button>
+                </>
               )}
             </div>
           </form>
