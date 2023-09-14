@@ -1,5 +1,6 @@
 import { db } from 'firebase';
 import {
+  Transaction,
   collection,
   deleteDoc,
   doc,
@@ -8,7 +9,7 @@ import {
   runTransaction,
   where,
 } from 'firebase/firestore';
-import { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { AiOutlineLoading3Quarters, AiOutlineReload } from 'react-icons/ai';
 import { useNavigate } from 'react-router-dom';
 import { InputField } from 'renderer/components/InputField';
@@ -51,6 +52,7 @@ export const ManageStockPage = () => {
   const [modalOpen, setModalOpen] = useState(false);
   const selectedSupplierRef = useRef<HTMLSelectElement>(null);
   const selectedWarehouseRef = useRef<HTMLSelectElement>(null);
+  const dateInputRef = React.useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     setLoading(true);
@@ -110,6 +112,7 @@ export const ManageStockPage = () => {
   }, [manageStockMode, selectedSupplier, selectedWarehouse]);
 
   const handleSubmit = async () => {
+    console.log(newPurchase);
     if (
       manageStockMode === '' ||
       selectedWarehouse === '' ||
@@ -225,14 +228,15 @@ export const ManageStockPage = () => {
               difference: acceptedProduct.count,
               warehouse_position: selectedWarehouse,
               type: 'from_other_warehouse',
-              created_at: new Date().toISOString().split('T')[0],
+              created_at: newPurchase.created_at,
             });
 
             checkBrokenProduct(
               acceptedProduct,
               products.find(
                 (product) => product.id === acceptedProduct.id
-              ) as Product
+              ) as Product,
+              transaction
             );
             deleteDispatchNote();
 
@@ -264,7 +268,7 @@ export const ManageStockPage = () => {
             difference: acceptedProduct.count,
             warehouse_position: selectedWarehouse,
             type: 'from_other_warehouse',
-            created_at: new Date().toISOString().split('T')[0],
+            created_at: newPurchase.created_at,
             dispatch_note: dispatchNote,
           });
 
@@ -272,7 +276,8 @@ export const ManageStockPage = () => {
             acceptedProduct,
             products.find(
               (product) => product.id === acceptedProduct.id
-            ) as Product
+            ) as Product,
+            transaction
           );
           deleteDispatchNote();
 
@@ -309,7 +314,8 @@ export const ManageStockPage = () => {
 
   const checkBrokenProduct = async (
     acceptedProduct: Product,
-    product: Product
+    product: Product,
+    transaction: Transaction
   ) => {
     // if (arrivedProduct.count < product.data().count)
     // add the difference to broken product database
@@ -331,28 +337,20 @@ export const ManageStockPage = () => {
         // Create new broken product
         const newBrokenProductDocRef = doc(collection(db, 'broken_product'));
 
-        runTransaction(db, (transaction) => {
-          transaction.set(newBrokenProductDocRef, {
-            ...acceptedProduct,
-            count: parseInt(product.count) - parseInt(acceptedProduct.count),
-            warehouse_position: 'Gudang Jadi',
-          });
-
-          return Promise.resolve();
+        transaction.set(newBrokenProductDocRef, {
+          ...acceptedProduct,
+          count: parseInt(product.count) - parseInt(acceptedProduct.count),
+          warehouse_position: 'Gudang Jadi',
         });
       } else {
         // Update broken product count
         const brokenProduct = brokenProductQuerySnapshot.docs[0];
 
-        runTransaction(db, (transaction) => {
-          transaction.update(brokenProduct.ref, {
-            count:
-              parseInt(product.count) -
-              parseInt(acceptedProduct.count) +
-              parseInt(brokenProduct.data().count),
-          });
-
-          return Promise.resolve();
+        transaction.update(brokenProduct.ref, {
+          count:
+            parseInt(product.count) -
+            parseInt(acceptedProduct.count) +
+            parseInt(brokenProduct.data().count),
         });
       }
     }
@@ -703,11 +701,13 @@ export const ManageStockPage = () => {
           </div>
           <div className="w-2/3">
             <input
+              ref={dateInputRef}
               disabled={loading}
               type="date"
               name="date"
               className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
               onChange={(e) => {
+                console.log(e.target.value);
                 setNewPurchase(() => ({
                   ...newPurchase,
                   created_at: e.target.value,
