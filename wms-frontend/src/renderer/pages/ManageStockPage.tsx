@@ -45,7 +45,7 @@ export const ManageStockPage = () => {
   const [newPurchase, setNewPurchase] = useState<PurchaseHistory>(
     newPurchaseInitialState
   );
-  const [acceptedProduct, setAcceptedProduct] = useState<Product[]>([]); // For manage stock mode 'from_other_warehouse'
+  const [acceptedProducts, setAcceptedProducts] = useState<Product[]>([]); // For manage stock mode 'from_other_warehouse'
   const [dispatchNote, setDispatchNote] = useState<string>('');
   const [modalOpen, setModalOpen] = useState(false);
   const selectedSupplierRef = useRef<HTMLSelectElement>(null);
@@ -117,9 +117,11 @@ export const ManageStockPage = () => {
       (manageStockMode === 'purchase' && newPurchase.purchase_price === '') ||
       (manageStockMode === 'from_other_warehouse' && dispatchNote === '') ||
       (manageStockMode === 'from_other_warehouse' &&
-        acceptedProduct.length != products.length) ||
+        acceptedProducts.length != products.length) ||
       (manageStockMode === 'from_other_warehouse' &&
-        acceptedProduct.some((arrivedProduct) => arrivedProduct.count === ''))
+        acceptedProducts.some(
+          (acceptedProduct) => acceptedProduct.count === ''
+        ))
     ) {
       setErrorMessage('Please fill all the required fields');
       setTimeout(() => {
@@ -182,18 +184,19 @@ export const ManageStockPage = () => {
     // add or update product count of arrived products on product list
     else {
       console.log('from other warehouse');
-      console.log(acceptedProduct);
+      console.log(acceptedProducts);
       await runTransaction(db, async (transaction) => {
-        const promises = acceptedProduct.map(async (arrivedProduct) => {
-          if (!arrivedProduct.id) return Promise.reject();
+        const promises = acceptedProducts.map(async (acceptedProduct) => {
+          if (!acceptedProduct.id) return Promise.reject();
           console.log('read');
           const productQuery = query(
             collection(db, 'product'),
             where('warehouse_position', '==', 'Gudang Jadi'),
-            where('available_color', '==', arrivedProduct.available_color),
-            where('brand', '==', arrivedProduct.brand),
-            where('motor_type', '==', arrivedProduct.motor_type),
-            where('part', '==', arrivedProduct.part)
+            where('available_color', '==', acceptedProduct.available_color),
+            where('brand', '==', acceptedProduct.brand),
+            where('motor_type', '==', acceptedProduct.motor_type),
+            where('part', '==', acceptedProduct.part),
+            where('supplier', '==', acceptedProduct.supplier)
           );
 
           const productQuerySnapshot = await getDocs(productQuery);
@@ -204,7 +207,7 @@ export const ManageStockPage = () => {
             const newProductDocRef = doc(collection(db, 'product'));
 
             transaction.set(newProductDocRef, {
-              ...arrivedProduct,
+              ...acceptedProduct,
               warehouse_position: 'Gudang Jadi',
             });
 
@@ -213,22 +216,29 @@ export const ManageStockPage = () => {
             transaction.set(newStockHistoryDocRef, {
               product: newProductDocRef.id,
               product_name:
-                arrivedProduct.brand +
+                acceptedProduct.brand +
                 ' ' +
-                arrivedProduct.motor_type +
+                acceptedProduct.motor_type +
                 ' ' +
-                arrivedProduct.part +
+                acceptedProduct.part +
                 ' ' +
-                arrivedProduct.available_color,
-              count: arrivedProduct.count,
+                acceptedProduct.available_color,
+              count: acceptedProduct.count,
               old_count: '0',
-              difference: arrivedProduct.count,
+              difference: acceptedProduct.count,
               warehouse_position: selectedWarehouse,
               type: 'from_other_warehouse',
               created_at: new Date().toISOString().split('T')[0],
-              dispatch_note: dispatchNote,
             });
             console.log('done');
+
+            checkBrokenProduct(
+              acceptedProduct,
+              products.find(
+                (product) => product.id === acceptedProduct.id
+              ) as Product
+            );
+
             return Promise.resolve();
           }
 
@@ -236,29 +246,38 @@ export const ManageStockPage = () => {
 
           console.log('update product count');
           transaction.update(product.ref, {
-            count: arrivedProduct.count + product.data().count,
+            count:
+              parseInt(acceptedProduct.count) + parseInt(product.data().count),
           });
 
           const newStockHistoryDocRef = doc(collection(db, 'stock_history'));
 
           transaction.set(newStockHistoryDocRef, {
-            product: arrivedProduct.id,
+            product: acceptedProduct.id,
             product_name:
-              arrivedProduct.brand +
+              acceptedProduct.brand +
               ' ' +
-              arrivedProduct.motor_type +
+              acceptedProduct.motor_type +
               ' ' +
-              arrivedProduct.part +
+              acceptedProduct.part +
               ' ' +
-              arrivedProduct.available_color,
-            count: arrivedProduct.count,
+              acceptedProduct.available_color,
+            count:
+              parseInt(acceptedProduct.count) + parseInt(product.data().count),
             old_count: product.data().count,
-            difference: arrivedProduct.count,
+            difference: acceptedProduct.count,
             warehouse_position: selectedWarehouse,
             type: 'from_other_warehouse',
             created_at: new Date().toISOString().split('T')[0],
             dispatch_note: dispatchNote,
           });
+
+          checkBrokenProduct(
+            acceptedProduct,
+            products.find(
+              (product) => product.id === acceptedProduct.id
+            ) as Product
+          );
 
           return Promise.resolve();
         });
@@ -273,6 +292,59 @@ export const ManageStockPage = () => {
 
     setLoading(false);
     navigate(-1);
+  };
+
+  const checkBrokenProduct = async (
+    acceptedProduct: Product,
+    product: Product
+  ) => {
+    // if (arrivedProduct.count < product.data().count)
+    // add the difference to broken product database
+    if (acceptedProduct.count < product.count) {
+      //check if the product is already in broken product database
+      const brokenProductQuery = query(
+        collection(db, 'broken_product'),
+        where('warehouse_position', '==', 'Gudang Jadi'),
+        where('available_color', '==', acceptedProduct.available_color),
+        where('brand', '==', acceptedProduct.brand),
+        where('motor_type', '==', acceptedProduct.motor_type),
+        where('part', '==', acceptedProduct.part),
+        where('supplier', '==', acceptedProduct.supplier)
+      );
+
+      const brokenProductQuerySnapshot = await getDocs(brokenProductQuery);
+
+      if (brokenProductQuerySnapshot.empty) {
+        // Create new broken product
+        console.log('new broken product');
+        const newBrokenProductDocRef = doc(collection(db, 'broken_product'));
+
+        runTransaction(db, (transaction) => {
+          transaction.set(newBrokenProductDocRef, {
+            ...acceptedProduct,
+            count: parseInt(product.count) - parseInt(acceptedProduct.count),
+            warehouse_position: 'Gudang Jadi',
+          });
+
+          return Promise.resolve();
+        });
+      } else {
+        // Update broken product count
+        console.log('update broken product count');
+        const brokenProduct = brokenProductQuerySnapshot.docs[0];
+
+        runTransaction(db, (transaction) => {
+          transaction.update(brokenProduct.ref, {
+            count:
+              parseInt(product.count) -
+              parseInt(acceptedProduct.count) +
+              parseInt(brokenProduct.data().count),
+          });
+
+          return Promise.resolve();
+        });
+      }
+    }
   };
 
   const handleFetchDispatchNote = async () => {
@@ -344,7 +416,7 @@ export const ManageStockPage = () => {
                   setManageStockMode(e.target.value);
 
                 setProducts([]);
-                setAcceptedProduct([]);
+                setAcceptedProducts([]);
                 setNewPurchase(newPurchaseInitialState);
                 setSelectedSupplier(null);
                 setSelectedWarehouse('');
@@ -384,7 +456,7 @@ export const ManageStockPage = () => {
                   setSelectedWarehouse(e.target.value);
 
                 setProducts([]);
-                setAcceptedProduct([]);
+                setAcceptedProducts([]);
                 setNewPurchase(newPurchaseInitialState);
                 setSelectedSupplier(null);
                 if (selectedSupplierRef.current)
@@ -522,33 +594,33 @@ export const ManageStockPage = () => {
                             }
                             //if the product is already in acceptedProduct, update the count
                             if (
-                              acceptedProduct.find(
-                                (arrivedProduct) =>
-                                  arrivedProduct.id === product.id
+                              acceptedProducts.find(
+                                (acceptedProduct) =>
+                                  acceptedProduct.id === product.id
                               )
                             ) {
-                              setAcceptedProduct(() =>
-                                acceptedProduct.map((arrivedProduct) => {
-                                  if (arrivedProduct.id === product.id)
+                              setAcceptedProducts(() =>
+                                acceptedProducts.map((acceptedProduct) => {
+                                  if (acceptedProduct.id === product.id)
                                     return {
-                                      ...arrivedProduct,
+                                      ...acceptedProduct,
                                       count: e.target.value,
                                     };
-                                  return arrivedProduct;
+                                  return acceptedProduct;
                                 })
                               );
                               return;
                             }
                             //if the product is not in acceptedProduct, add it
-                            setAcceptedProduct(() => [
-                              ...acceptedProduct,
+                            setAcceptedProducts(() => [
+                              ...acceptedProducts,
                               {
                                 ...product,
                                 count: e.target.value,
                               },
                             ]);
 
-                            console.log(acceptedProduct);
+                            console.log(acceptedProducts);
                           }}
                         />
                       </div>
