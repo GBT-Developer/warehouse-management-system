@@ -1,12 +1,13 @@
 import { db } from 'firebase';
 import {
-  Transaction,
+  addDoc,
   collection,
   deleteDoc,
   doc,
   getDocs,
   query,
   runTransaction,
+  updateDoc,
   where,
 } from 'firebase/firestore';
 import React, { useEffect, useRef, useState } from 'react';
@@ -207,12 +208,18 @@ export const ManageStockPage = () => {
             // Create new product
             const newProductDocRef = doc(collection(db, 'product'));
 
-            delete acceptedProduct.id;
             delete acceptedProduct.status;
             delete acceptedProduct.dispatch_note_id;
 
             transaction.set(newProductDocRef, {
-              ...acceptedProduct,
+              brand: acceptedProduct.brand,
+              motor_type: acceptedProduct.motor_type,
+              part: acceptedProduct.part,
+              available_color: acceptedProduct.available_color,
+              sell_price: acceptedProduct.sell_price,
+              count: acceptedProduct.count,
+              created_at: acceptedProduct.created_at,
+              supplier: acceptedProduct.supplier,
               warehouse_position: 'Gudang Jadi',
             });
 
@@ -238,8 +245,7 @@ export const ManageStockPage = () => {
 
             checkBrokenProduct(
               acceptedProduct,
-              products.find((product) => product.id === acceptedProduct.id),
-              transaction
+              products.find((product) => product.id === acceptedProduct.id)
             ).catch(() => console.log('error'));
             deleteDispatchNote();
 
@@ -277,8 +283,7 @@ export const ManageStockPage = () => {
 
           checkBrokenProduct(
             acceptedProduct,
-            products.find((product) => product.id === acceptedProduct.id),
-            transaction
+            products.find((product) => product.id === acceptedProduct.id)
           ).catch(() => console.log('error'));
           deleteDispatchNote();
 
@@ -308,14 +313,17 @@ export const ManageStockPage = () => {
   };
 
   const checkBrokenProduct = async (
-    acceptedProduct: Product,
-    product: Product | undefined,
-    transaction: Transaction
+    acceptedProduct: Product & {
+      dispatch_note_id?: string;
+      id?: string;
+      status?: string;
+    },
+    product: Product | undefined
   ) => {
     if (!product) return;
     // If (arrivedProduct.count < product.data().count)
     // Add the difference to broken product database
-    if (acceptedProduct.count < product.count) {
+    if (parseInt(acceptedProduct.count) < parseInt(product.count)) {
       // Check if the product is already in broken product database
       const brokenProductQuery = query(
         collection(db, 'broken_product'),
@@ -330,10 +338,11 @@ export const ManageStockPage = () => {
       const brokenProductQuerySnapshot = await getDocs(brokenProductQuery);
 
       if (brokenProductQuerySnapshot.empty) {
-        // Create new broken product
-        const newBrokenProductDocRef = doc(collection(db, 'broken_product'));
+        delete acceptedProduct.status;
+        delete acceptedProduct.dispatch_note_id;
+        delete acceptedProduct.id;
 
-        transaction.set(newBrokenProductDocRef, {
+        await addDoc(collection(db, 'broken_product'), {
           ...acceptedProduct,
           count: parseInt(product.count) - parseInt(acceptedProduct.count),
           warehouse_position: 'Gudang Jadi',
@@ -342,7 +351,7 @@ export const ManageStockPage = () => {
         // Update broken product count
         const brokenProduct = brokenProductQuerySnapshot.docs[0];
 
-        transaction.update(brokenProduct.ref, {
+        await updateDoc(brokenProduct.ref, {
           count:
             parseInt(product.count) -
             parseInt(acceptedProduct.count) +
