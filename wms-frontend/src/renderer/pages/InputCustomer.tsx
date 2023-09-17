@@ -197,6 +197,11 @@ function InputCustomerPage() {
                         )?.price ?? product.sell_price
                       }
                       onChange={(e) => {
+                        if (
+                          !/^[0-9]*(\.[0-9]*)?$/.test(e.target.value) &&
+                          e.target.value !== ''
+                        )
+                          return;
                         const newSpecialPriceProducts = [
                           ...newCustomer.SpecialPrice,
                         ];

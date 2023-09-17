@@ -222,15 +222,20 @@ function EditCustomerPage() {
                       `}
                       value={
                         newCustomer.SpecialPrice.find(
-                          (sp) => sp.product_id === product.id
+                          (sp) => sp.product_id === product.product_id
                         )?.price ?? product.sell_price
                       }
                       onChange={(e) => {
+                        if (
+                          !/^[0-9]*(\.[0-9]*)?$/.test(e.target.value) &&
+                          e.target.value !== ''
+                        )
+                          return;
                         const newSpecialPriceProducts = [
                           ...newCustomer.SpecialPrice,
                         ];
                         const index = newSpecialPriceProducts.findIndex(
-                          (sp) => sp.product_id === product.id
+                          (sp) => sp.product_id === product.product_id
                         );
                         newSpecialPriceProducts[index].price = e.target.value;
                         setNewCustomer(() => {
