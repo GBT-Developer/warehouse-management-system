@@ -352,16 +352,55 @@ export const TransactionPage = () => {
 
         <hr />
 
-        <InputField
-          loading={loading}
-          label="Payment Method"
-          labelFor="payment-method"
-          placeholder="e.g. Cash"
-          value={invoice.payment_method}
-          onChange={(e) => {
-            setInvoice({ ...invoice, payment_method: e.target.value });
-          }}
-        />
+        <div className="w-full flex justify-between items-center">
+          <div className="w-1/3">
+            <label htmlFor={'payment-method'} className="text-md">
+              Payment Method
+            </label>
+          </div>
+          <div className="w-2/3 flex justify-start">
+            <div className="w-full">
+              <label
+                htmlFor="cash"
+                className="flex items-center text-center gap-[0.5rem] cursor-pointer w-[max-content]"
+              >
+                Cash
+                <input
+                  type="radio"
+                  disabled={loading}
+                  name="payment-method"
+                  id="cash"
+                  value="Cash"
+                  checked={invoice.payment_method === 'Cash'}
+                  onChange={(e) => {
+                    setInvoice({ ...invoice, payment_method: e.target.value });
+                  }}
+                  className="cursor-pointer"
+                />
+              </label>
+            </div>
+            <div className="w-full">
+              <label
+                htmlFor="cashless"
+                className="flex items-center text-center gap-[0.5rem] cursor-pointer w-[max-content]"
+              >
+                Cashless
+                <input
+                  type="radio"
+                  disabled={loading}
+                  name="payment-method"
+                  id="cashless"
+                  value="Cashless"
+                  checked={invoice.payment_method === 'Cashless'}
+                  onChange={(e) => {
+                    setInvoice({ ...invoice, payment_method: e.target.value });
+                  }}
+                  className="cursor-pointer"
+                />
+              </label>
+            </div>
+          </div>
+        </div>
 
         <div className="flex flex-row-reverse gap-2 justify-start">
           <button
@@ -395,7 +434,6 @@ export const TransactionPage = () => {
               className="hover:bg-gray-100 cursor-pointer"
               onClick={() => {
                 if (selectedProducts.find((p) => p === product)) {
-                  console.log('found');
                   setSelectedProducts(
                     selectedProducts.filter((p) => p !== product)
                   );
@@ -406,9 +444,7 @@ export const TransactionPage = () => {
                     ),
                   });
                 } else {
-                  console.log('not found');
                   if (!product.id) return;
-                  console.log(product);
                   setSelectedProducts([...selectedProducts, product]);
                   setInvoice({
                     ...invoice,
