@@ -1,7 +1,16 @@
-import { collection, getDocs, query } from '@firebase/firestore';
 import { db } from 'firebase';
+import {
+  collection,
+  doc,
+  documentId,
+  getDocs,
+  query,
+  runTransaction,
+  where,
+} from 'firebase/firestore';
 import { useEffect, useState } from 'react';
 import { AiOutlineLoading3Quarters } from 'react-icons/ai';
+import { ReturnModal } from 'renderer/components/ReturnModal';
 import { SingleTableItem } from 'renderer/components/TableComponents/SingleTableItem';
 import { TableHeader } from 'renderer/components/TableComponents/TableHeader';
 import { TableTitle } from 'renderer/components/TableComponents/TableTitle';
@@ -12,6 +21,10 @@ export const BrokenProductListPage = () => {
   const [search, setSearch] = useState('');
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(false);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [activeProduct, setActiveProduct] = useState<Product | null>(null);
+  const [reason, setReason] = useState('');
+  const [errorMessage, setErrorMessage] = useState('');
 
   useEffect(() => {
     const fetchData = async () => {
@@ -38,6 +51,82 @@ export const BrokenProductListPage = () => {
       console.log(error);
     });
   }, []);
+
+  const returnHandler = async () => {
+    await runTransaction(db, async (transaction) => {
+      if (!reason) {
+        setErrorMessage('Please select a reason');
+        setTimeout(() => {
+          setErrorMessage('');
+        }, 3000);
+        return;
+      }
+      if (!activeProduct?.id) return Promise.reject('No product id');
+
+      // First check whether the product exists in 'returned_product' collection
+      const productQuery = query(
+        collection(db, 'product'),
+        where(documentId(), '==', activeProduct.id),
+        where('available_color', '==', activeProduct.available_color),
+        where('brand', '==', activeProduct.brand),
+        where('motor_type', '==', activeProduct.motor_type),
+        where('part', '==', activeProduct.part),
+        where('supplier', '==', activeProduct.supplier)
+      );
+
+      const productQuerySnapshot = await getDocs(productQuery);
+      const productId = activeProduct.id;
+      if (productQuerySnapshot.empty) {
+        // If the product does not exist in 'returned_product' collection, create it
+        const newReturnedProductDocRef = doc(
+          collection(db, 'returned_product')
+        );
+        transaction.set(newReturnedProductDocRef, {
+          available_color: activeProduct.available_color,
+          brand: activeProduct.brand,
+          count: activeProduct.count,
+          motor_type: activeProduct.motor_type,
+          part: activeProduct.part,
+          supplier: activeProduct.supplier,
+        });
+      } else {
+        // If the product exists in 'returned_product' collection, update it
+        const product = productQuerySnapshot.docs[0];
+        const productData = product.data() as Product;
+        transaction.update(product.ref, {
+          count: parseInt(activeProduct.count) + parseInt(productData.count),
+        });
+      }
+
+      // If the return was for a painter, create a new dispatch_note
+      if (reason === 'painter') {
+        const newDispatchNoteDocRef = doc(collection(db, 'dispatch_note'));
+
+        transaction.set(newDispatchNoteDocRef, {
+          // Date example: 2023-09-17
+          date: new Date().toISOString().slice(0, 10),
+          dispatch_items: [
+            {
+              amount: activeProduct.count,
+              color: activeProduct.available_color,
+              product_id: productId,
+            },
+          ],
+          painter: 'Asep', // Make this dynamic
+        });
+      }
+
+      // Delete the product from 'broken_product' collection
+      transaction.delete(doc(db, 'broken_product', productId));
+      setProducts((prev) => {
+        const newProducts = prev.filter((product) => product.id !== productId);
+        return newProducts;
+      });
+      setReason('');
+      setModalOpen(false);
+      return Promise.resolve();
+    });
+  };
 
   return (
     <PageLayout>
@@ -84,6 +173,12 @@ export const BrokenProductListPage = () => {
                     <tr
                       key={product.id}
                       className="border-b hover:shadow-md cursor-pointer hover:underline"
+                      onClick={() => {
+                        if (!product.id) return;
+                        setReason('');
+                        setModalOpen(true);
+                        setActiveProduct(product);
+                      }}
                     >
                       <SingleTableItem>
                         {product.brand +
@@ -99,6 +194,44 @@ export const BrokenProductListPage = () => {
                   ))}
               </tbody>
             </table>
+            <ReturnModal
+              confirmHandler={returnHandler}
+              confirmationMsg="Are you sure you want to return this product?"
+              modalOpen={modalOpen}
+              setModalOpen={setModalOpen}
+              product_id={activeProduct?.id}
+            >
+              <div className="flex gap-2">
+                <span className="font-bold">Reason:</span>
+                <div className="flex gap-4">
+                  <label htmlFor="supplier" className="flex gap-[0.25rem]">
+                    Supplier
+                    <input
+                      checked={reason === 'supplier'}
+                      type="radio"
+                      name="reason"
+                      id="supplier"
+                      value="supplier"
+                      onChange={() => setReason('supplier')}
+                    />
+                  </label>
+                  <label htmlFor="painter" className="flex gap-[0.25rem]">
+                    Painter
+                    <input
+                      checked={reason === 'painter'}
+                      type="radio"
+                      name="reason"
+                      id="painter"
+                      value="painter"
+                      onChange={() => setReason('painter')}
+                    />
+                  </label>
+                </div>
+              </div>
+              {errorMessage && (
+                <p className="text-red-500 text-sm ">{errorMessage}</p>
+              )}
+            </ReturnModal>
           </div>
         </div>
       </div>
