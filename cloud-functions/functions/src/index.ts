@@ -20,6 +20,7 @@ if (process.env.NODE_ENV === "development") {
   const NUM_USERS = 10;
   const NUM_SUPPLIERS = 15;
   const NUM_PRODUCTS = 100;
+  const NUM_CUSTOMER = 15;
 
   import("./seeding").then(async (module) => {
     await module.seedUser(NUM_USERS); // Create 10 users and one 'owner' user
@@ -27,5 +28,6 @@ if (process.env.NODE_ENV === "development") {
     if (supplier_ids.length !== 0) {
       await module.seedProduct(NUM_PRODUCTS, supplier_ids); // Create 100 products
     }
+    await module.seedCustomer(NUM_CUSTOMER); // Create 15 customers
   });
 }
