@@ -218,7 +218,7 @@ export const ManageStockPage = () => {
               available_color: acceptedProduct.available_color,
               sell_price: acceptedProduct.sell_price,
               count: acceptedProduct.count,
-              created_at: acceptedProduct.created_at,
+              created_at: newPurchase.created_at,
               supplier: acceptedProduct.supplier,
               warehouse_position: 'Gudang Jadi',
             });
