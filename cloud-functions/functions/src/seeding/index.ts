@@ -96,6 +96,7 @@ export const seedProduct = async (
         id: string;
         name: string;
         quantity: number;
+        sell_price: string;
       }[]
     >();
 
@@ -109,6 +110,10 @@ export const seedProduct = async (
       const productBrand = faker.commerce.productName();
       const productMotorType = faker.vehicle.type();
       const productPart = faker.vehicle.model();
+      const sell_price = faker.commerce.price({
+        min: 50000,
+        max: 1000000,
+      });
 
       await db
         .collection("product")
@@ -118,7 +123,7 @@ export const seedProduct = async (
           motor_type: productMotorType,
           part: productPart,
           count: the_count.toString(),
-          sell_price: faker.commerce.price(),
+          sell_price: sell_price,
           warehouse_position:
             warehouse_positions[
               faker.number.int({ min: 0, max: warehouse_positions.length - 1 })
@@ -141,6 +146,7 @@ export const seedProduct = async (
             id,
             name,
             quantity,
+            sell_price,
           });
 
           productSupplierList.set(supplier_id, product_supplier_list);
@@ -149,9 +155,11 @@ export const seedProduct = async (
 
     productSupplierList.forEach(async (product_supplier_list, supplier_id) => {
       await db.collection("purchase_history").add({
-        created_at: faker.date.past().toISOString(),
+        created_at: faker.date.past().toDateString(),
         supplier: supplier_id,
-        purchase_price: faker.commerce.price(),
+        purchase_price: product_supplier_list
+          .reduce((acc, curr) => acc + parseInt(curr.sell_price), 0)
+          .toString(),
         payment_status: "Paid",
         products: product_supplier_list,
       });
