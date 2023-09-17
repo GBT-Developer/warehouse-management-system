@@ -23,11 +23,10 @@ import { PageLayout } from 'renderer/layout/PageLayout';
 
 const newPurchaseInitialState = {
   created_at: '',
-  count: '0',
   purchase_price: '0',
   supplier: null,
-  product: null,
   payment_status: 'unpaid',
+  products: [],
 } as PurchaseHistory;
 
 export const ManageStockPage = () => {
@@ -118,7 +117,7 @@ export const ManageStockPage = () => {
     if (
       manageStockMode === '' ||
       selectedWarehouse === '' ||
-      (manageStockMode === 'purchase' && newPurchase.product === null) ||
+      (manageStockMode === 'purchase' && newPurchase.products.length === 0) ||
       (manageStockMode === 'purchase' && selectedSupplier === null) ||
       (manageStockMode === 'purchase' && newPurchase.purchase_price === '') ||
       (manageStockMode === 'from_other_warehouse' && dispatchNote === '') ||
@@ -141,50 +140,71 @@ export const ManageStockPage = () => {
 
     if (manageStockMode === 'purchase')
       await runTransaction(db, (transaction) => {
-        if (!newPurchase.product?.id) return Promise.reject();
+        if (newPurchase.products.length === 0 || selectedSupplier === null)
+          return Promise.reject();
 
-        const productRef = doc(db, 'product', newPurchase.product.id);
-        if (!selectedSupplier?.id) return Promise.reject();
+        const productsPromises = newPurchase.products.map(async (product) => {
+          if (!product.id) return Promise.reject();
+          const productRef = doc(db, 'product', product.id);
 
-        transaction.update(productRef, {
-          count: newPurchase.count,
+          transaction.update(productRef, {
+            count: product.quantity,
+          });
         });
+
+        // Wait for all promises in the map to resolve
+        Promise.all(productsPromises).catch(() => console.log('error'));
 
         const newPurchaseHistoryDocRef = doc(
           collection(db, 'purchase_history')
         );
 
         transaction.set(newPurchaseHistoryDocRef, {
-          ...newPurchase,
-          count: (
-            Number(newPurchase.count) - Number(newPurchase.product.count)
-          ).toString(),
-          product: newPurchase.product.id,
           supplier: selectedSupplier.id,
+          created_at: newPurchase.created_at,
+          purchase_price: newPurchase.purchase_price,
+          payment_status: newPurchase.payment_status,
+          products: newPurchase.products.map((product, index) => ({
+            id: product.id,
+            name:
+              products[index].brand +
+              ' ' +
+              products[index].motor_type +
+              ' ' +
+              products[index].part +
+              ' ' +
+              products[index].available_color,
+            quantity: product.quantity,
+          })),
         });
 
         const newStockHistoryDocRef = doc(collection(db, 'stock_history'));
+        const newStockHistoryPromises = newPurchase.products.map(
+          (product, index) => {
+            transaction.set(newStockHistoryDocRef, {
+              product: product.id,
+              product_name:
+                products[index].brand +
+                ' ' +
+                products[index].motor_type +
+                ' ' +
+                products[index].part +
+                ' ' +
+                products[index].available_color,
+              count: product.quantity,
+              old_count: products[index].count,
+              difference: (
+                Number(product.quantity) - Number(products[index].count)
+              ).toString(),
+              warehouse_position: selectedWarehouse,
+              type: 'purchase',
+              created_at: newPurchase.created_at,
+            });
+          }
+        );
 
-        transaction.set(newStockHistoryDocRef, {
-          product: newPurchase.product.id,
-          product_name:
-            newPurchase.product.brand +
-            ' ' +
-            newPurchase.product.motor_type +
-            ' ' +
-            newPurchase.product.part +
-            ' ' +
-            newPurchase.product.available_color,
-          count: newPurchase.count,
-          old_count: newPurchase.product.count,
-          difference: (
-            Number(newPurchase.count) - Number(newPurchase.product.count)
-          ).toString(),
-          warehouse_position: selectedWarehouse,
-          type: 'purchase',
-          created_at: newPurchase.created_at,
-          purchase_history: newPurchaseHistoryDocRef.id,
-        });
+        // Wait for all promises in the map to resolve
+        Promise.all(newStockHistoryPromises).catch(() => console.log('error'));
 
         return Promise.resolve();
       });
@@ -645,7 +665,7 @@ export const ManageStockPage = () => {
             <div className="flex justify-between">
               <div className="w-1/3 flex items-center">
                 <label htmlFor={'product-id'} className="text-md">
-                  Choose product
+                  Products
                 </label>
               </div>
               <div className="w-2/3">
@@ -654,46 +674,94 @@ export const ManageStockPage = () => {
                   type="button"
                   onClick={() => setModalOpen(() => !modalOpen)}
                 >
-                  {newPurchase.product ? (
-                    <p className="flex justify-start">
-                      {newPurchase.product.brand +
-                        ' ' +
-                        newPurchase.product.motor_type +
-                        ' ' +
-                        newPurchase.product.part +
-                        ' ' +
-                        newPurchase.product.available_color}
-                    </p>
-                  ) : (
-                    'Choose product(s)'
-                  )}
+                  Choose product(s)
                 </button>
               </div>
             </div>
-            <InputField
-              loading={loading}
-              label="Quantity"
-              labelFor="quantity"
-              value={newPurchase.count}
-              onChange={(e) => {
-                if (!/^[0-9]+$/.test(e.target.value) && e.target.value !== '')
-                  setNewPurchase(() => ({
-                    ...newPurchase,
-                    count: e.target.value,
-                  }));
-              }}
-            />
+            {
+              <ul className="my-[2rem] space-y-[1rem] font-regular">
+                {newPurchase.products.length > 0 &&
+                  newPurchase.products.map((product, index) => (
+                    <li key={index} className="flex flex-row gap-2">
+                      <p className="flex justify-start w-4/5">{product.name}</p>
+                      <div className="w-1/5 flex justify-between items-center">
+                        <input
+                          disabled={loading}
+                          placeholder="Quantity"
+                          type="number"
+                          name="quantity"
+                          className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
+                          onChange={(e) => {
+                            if (
+                              Number(e.target.value) < 0 ||
+                              e.target.value === ''
+                            ) {
+                              setErrorMessage('Quantity must be positive');
+                              // Set e target value with the value without the last character
+                              e.target.value = e.target.value.slice(0, -1);
+                              setTimeout(() => {
+                                setErrorMessage(null);
+                              }, 3000);
+                              return;
+                            }
+
+                            // If the product is already in acceptedProduct, update the count
+                            if (
+                              acceptedProducts.find(
+                                (acceptedProduct) =>
+                                  acceptedProduct.id === product.id
+                              )
+                            ) {
+                              setAcceptedProducts(() =>
+                                acceptedProducts.map((acceptedProduct) => {
+                                  if (acceptedProduct.id === product.id)
+                                    return {
+                                      ...acceptedProduct,
+                                      count: e.target.value,
+                                    };
+                                  return acceptedProduct;
+                                })
+                              );
+                              return;
+                            }
+
+                            // If the product is not in acceptedProduct, add it
+                            setNewPurchase(() => ({
+                              ...newPurchase,
+                              products: newPurchase.products.map(
+                                (product, i) => {
+                                  if (i === index)
+                                    return {
+                                      ...product,
+                                      quantity: e.target.value,
+                                    };
+                                  return product;
+                                }
+                              ),
+                            }));
+                          }}
+                        />
+                      </div>
+                    </li>
+                  ))}
+              </ul>
+            }
             <InputField
               loading={loading}
               label="Purchase price"
               labelFor="purchase-price"
               value={newPurchase.purchase_price}
-              onChange={(e) =>
+              onChange={(e) => {
+                if (
+                  !/^[0-9]*(\.[0-9]*)?$/.test(e.target.value) &&
+                  e.target.value !== ''
+                )
+                  return;
                 setNewPurchase(() => ({
                   ...newPurchase,
                   purchase_price: e.target.value,
-                }))
-              }
+                }));
+              }}
             />
           </div>
         )}
@@ -744,21 +812,61 @@ export const ManageStockPage = () => {
         modalOpen={modalOpen}
         setModalOpen={setModalOpen}
         title={'Choose Product'}
-        headerList={products.length > 0 ? ['Product name', 'Count'] : []}
+        headerList={
+          products.length > 0
+            ? ['', 'Product name', 'Warehouse', 'Available amount']
+            : []
+        }
       >
-        {products.length > 0 &&
+        {products.length > 0 ? (
           products.map((product, index) => (
             <tr
               key={index}
-              className="border-b hover:shadow-md cursor-pointer"
+              className="hover:bg-gray-100 cursor-pointer"
               onClick={() => {
-                setNewPurchase(() => ({
-                  ...newPurchase,
-                  product: product,
+                // If product is already in newPurchase, remove it
+                if (newPurchase.products.some((p) => p.id === product.id)) {
+                  setNewPurchase(() => ({
+                    ...newPurchase,
+                    products: newPurchase.products.filter(
+                      (p) => p.id !== product.id
+                    ),
+                  }));
+                  return;
+                }
+
+                // If product is not in newPurchase, add it
+                if (product.id === undefined) return;
+                const productId = product.id;
+                setNewPurchase((prev) => ({
+                  ...prev,
+                  products: [
+                    ...prev.products,
+                    {
+                      id: productId,
+                      name:
+                        product.brand +
+                        ' ' +
+                        product.motor_type +
+                        ' ' +
+                        product.part +
+                        ' ' +
+                        product.available_color,
+                      quantity: '0',
+                    },
+                  ],
                 }));
-                setModalOpen(() => false);
               }}
             >
+              <SingleTableItem>
+                <input
+                  type="checkbox"
+                  checked={newPurchase.products.some(
+                    (p) => p.id === product.id
+                  )}
+                  readOnly
+                />
+              </SingleTableItem>
               <SingleTableItem key={index}>
                 {product.brand +
                   ' ' +
@@ -768,10 +876,11 @@ export const ManageStockPage = () => {
                   ' ' +
                   product.available_color}
               </SingleTableItem>
+              <SingleTableItem>{product.warehouse_position}</SingleTableItem>
               <SingleTableItem>{product.count}</SingleTableItem>
             </tr>
-          ))}
-        {products.length <= 0 && (
+          ))
+        ) : (
           <tr className="border-b">
             <SingleTableItem>
               <p className="flex justify-center">No products found</p>

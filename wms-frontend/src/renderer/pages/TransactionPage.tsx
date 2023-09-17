@@ -395,7 +395,6 @@ export const TransactionPage = () => {
               className="hover:bg-gray-100 cursor-pointer"
               onClick={() => {
                 if (selectedProducts.find((p) => p === product)) {
-                  console.log('found');
                   setSelectedProducts(
                     selectedProducts.filter((p) => p !== product)
                   );
@@ -406,7 +405,6 @@ export const TransactionPage = () => {
                     ),
                   });
                 } else {
-                  console.log('not found');
                   if (!product.id) return;
                   console.log(product);
                   setSelectedProducts([...selectedProducts, product]);
