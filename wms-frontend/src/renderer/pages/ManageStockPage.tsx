@@ -127,7 +127,8 @@ export const ManageStockPage = () => {
       (manageStockMode === 'from_other_warehouse' &&
         acceptedProducts.some(
           (acceptedProduct) => acceptedProduct.count === ''
-        ))
+        )) ||
+      newPurchase.created_at === ''
     ) {
       setErrorMessage('Please fill all the required fields');
       setTimeout(() => {
