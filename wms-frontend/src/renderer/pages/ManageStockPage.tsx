@@ -327,7 +327,6 @@ export const ManageStockPage = () => {
       // Check if the product is already in broken product database
       const brokenProductQuery = query(
         collection(db, 'broken_product'),
-        where('warehouse_position', '==', 'Gudang Jadi'),
         where('available_color', '==', acceptedProduct.available_color),
         where('brand', '==', acceptedProduct.brand),
         where('motor_type', '==', acceptedProduct.motor_type),
@@ -343,9 +342,12 @@ export const ManageStockPage = () => {
         delete acceptedProduct.id;
 
         await addDoc(collection(db, 'broken_product'), {
-          ...acceptedProduct,
+          available_color: acceptedProduct.available_color,
+          brand: acceptedProduct.brand,
+          motor_type: acceptedProduct.motor_type,
+          part: acceptedProduct.part,
+          supplier: acceptedProduct.supplier,
           count: parseInt(product.count) - parseInt(acceptedProduct.count),
-          warehouse_position: 'Gudang Jadi',
         });
       } else {
         // Update broken product count
