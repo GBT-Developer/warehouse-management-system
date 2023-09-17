@@ -52,38 +52,39 @@ const createRootUser = async () => {
 
 export const seedSupplier = async (
   num_of_supplier: number
-): Promise<string[]> => {
+): Promise<Map<string, string>> => {
   const db = firebaseAdmin.firestore();
   const suppliers = await db.collection("supplier").get();
 
-  const supplier_ids: string[] = [];
+  const suppliersMap: Map<string, string> = new Map();
   if (suppliers.size < num_of_supplier) {
     for (let i = 0; i < num_of_supplier; i++) {
+      const company_name = faker.company.name();
       const supplier = await db.collection("supplier").add({
         address: faker.location.streetAddress(),
         bank_number: faker.finance.accountNumber(),
         bank_owner: faker.finance.accountName(),
         city: faker.location.city(),
-        company_name: faker.company.name(),
+        company_name: company_name,
         contact_person: faker.person.fullName(),
         phone_number: faker.phone.number(),
       });
-      supplier_ids.push(supplier.id);
+      suppliersMap.set(supplier.id, company_name);
     }
   } else {
     functions.logger.info("Enough supplier already");
 
     suppliers.forEach((supplier) => {
-      supplier_ids.push(supplier.id);
+      suppliersMap.set(supplier.id, supplier.data().company_name);
     });
   }
 
-  return supplier_ids;
+  return suppliersMap;
 };
 
 export const seedProduct = async (
   num_of_product: number,
-  supplier_ids: string[]
+  suppliers: Map<string, string>
 ) => {
   const db = firebaseAdmin.firestore();
   const products = await db.collection("product").get();
@@ -91,10 +92,10 @@ export const seedProduct = async (
   if (products.size < num_of_product) {
     const warehouse_positions = ["Gudang Jadi", "Gudang Bahan"];
     for (let i = 0; i < num_of_product; i++) {
-      const the_count = faker.number.int({ min: 0, max: 100 });
+      const the_count = faker.number.int({ min: 1, max: 100 });
       const the_supplier_id = faker.number.int({
         min: 0,
-        max: supplier_ids.length - 1,
+        max: suppliers.size - 1,
       });
       await db
         .collection("product")
@@ -109,7 +110,7 @@ export const seedProduct = async (
             warehouse_positions[
               faker.number.int({ min: 0, max: warehouse_positions.length - 1 })
             ],
-          supplier: supplier_ids[the_supplier_id],
+          supplier: Array.from(suppliers.keys())[the_supplier_id],
         })
         .then(async (product) => {
           await db.collection("purchase_history").add({
@@ -118,9 +119,40 @@ export const seedProduct = async (
             purchase_price: faker.commerce.price(),
             created_at: faker.date.past().toISOString(),
             product: product.id,
-            supplier: supplier_ids[the_supplier_id],
+            supplier: Array.from(suppliers.keys())[the_supplier_id],
           });
         });
+    }
+  } else {
+    functions.logger.info("Enough product already");
+  }
+};
+
+export const seedBrokenProduct = async (
+  num_of_product: number,
+  suppliers: Map<string, string>
+) => {
+  const db = firebaseAdmin.firestore();
+  const broken_products = await db.collection("broken_product").get();
+
+  if (broken_products.size < num_of_product) {
+    for (let i = 0; i < num_of_product; i++) {
+      const the_count = faker.number.int({ min: 1, max: 10 });
+      const the_supplier_id = faker.number.int({
+        min: 0,
+        max: suppliers.size - 1,
+      });
+      await db
+        .collection("broken_product")
+        .add({
+          available_color: faker.color.human(),
+          brand: faker.commerce.productName(),
+          motor_type: faker.vehicle.type(),
+          part: faker.vehicle.model(),
+          count: the_count.toString(),
+          supplier: Array.from(suppliers.keys())[the_supplier_id],
+        })
+        .catch((error) => console.log(error));
     }
   } else {
     functions.logger.info("Enough product already");
