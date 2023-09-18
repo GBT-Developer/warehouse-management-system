@@ -56,43 +56,42 @@ export default function ReturnPage() {
   >([]);
 
   const handleSubmit = async () => {
-    //if mode is exchange,
-    if (mode === 'exchange') {
-      console.log('exchange');
+    // If mode is exchange, check if there is enough stock
+    if (mode === 'exchange')
       await runTransaction(db, async (transaction) => {
-        const promises = selectedItems.map(async (item) => {
-          // Get product data
-          const productRef = doc(db, 'product', item.product_id);
-          const productSnap = await getDoc(productRef);
-          const product = productSnap.data() as Product;
+        try {
+          const promises = selectedItems.map(async (item) => {
+            // Get product data
+            const productRef = doc(db, 'product', item.product_id);
+            const productSnap = await getDoc(productRef);
+            const product = productSnap.data() as Product;
 
-          // Check if there is enough stock
-          if (parseInt(product.count) < parseInt(item.amount)) {
-            return Promise.reject();
-          }
+            // Check if there is enough stock
+            if (parseInt(product.count) < parseInt(item.amount))
+              return Promise.reject('Not enough stock in the warehouse');
 
-          // Update product count
-          const difference = parseInt(product.count) - parseInt(item.amount);
-          console.log('diff' + difference);
-          transaction.update(
-            doc(db, 'product', item.product_id),
-            'count',
-            difference.toString()
-          );
+            // Update product count
+            const difference = parseInt(product.count) - parseInt(item.amount);
+            transaction.update(
+              doc(db, 'product', item.product_id),
+              'count',
+              difference.toString()
+            );
 
-          // Put the returned product to broken product database
-          checkBrokenProduct(product, item.amount);
-          return Promise.resolve();
-        });
-        await Promise.all(promises);
-
-        return Promise.resolve();
+            // Put the returned product to broken product database
+            await checkBrokenProduct(product, item.amount);
+            return Promise.resolve('Success');
+          });
+          await Promise.all(promises);
+          return Promise.resolve('Success'); // If all promises are resolved, return 'Success
+        } catch (err) {
+          return Promise.reject(err);
+        }
       });
-    } else if (mode === 'return') {
-      console.log('return');
+    else if (mode === 'return') {
       const newInvoice = { ...invoice };
-      //decrease the amount of the item in the invoice
-      //if amount is 0, delete the item from the invoice
+      // Decrease the amount of the item in the invoice
+      // If amount is 0, delete the item from the invoice
       selectedItems.forEach((selectedItem) => {
         const itemIndex = newInvoice.items.findIndex(
           (item) => item.product_id === selectedItem.product_id
@@ -100,35 +99,33 @@ export default function ReturnPage() {
         if (
           parseInt(newInvoice.items[itemIndex].amount) ===
           parseInt(selectedItem.amount)
-        ) {
-          //delete the item
+        )
+          // Delete the item
           newInvoice.items.splice(itemIndex, 1);
-        } else {
+        else
           newInvoice.items[itemIndex].amount = (
             parseInt(newInvoice.items[itemIndex].amount) -
             parseInt(selectedItem.amount)
           ).toString();
-        }
       });
 
-      // merge the invoice items with the selected items
-      // but if the item is already in the invoice, just increase the amount
+      // Merge the invoice items with the selected items
+      // But if the item is already in the invoice, just increase the amount
       selectedItems.forEach((selectedItem) => {
+        selectedItem.is_returned = true;
         const itemIndex = newInvoice.items.findIndex(
           (item) => item.product_id === selectedItem.product_id
         );
-        if (itemIndex === -1) {
-          newInvoice.items.push(selectedItem);
-        } else {
+        if (itemIndex === -1) newInvoice.items.push(selectedItem);
+        else
           newInvoice.items[itemIndex].amount = (
-            parseInt(newInvoice.items[itemIndex].amount) +
+            parseInt(newInvoice.items[itemIndex].amount) -
             parseInt(selectedItem.amount)
           ).toString();
-        }
       });
 
-      //update the invoice
-      await runTransaction(db, async (transaction) => {
+      // Update the invoice
+      await runTransaction(db, (transaction) => {
         transaction.update(doc(db, 'invoice', invoiceNumber), {
           items: newInvoice.items,
         });
@@ -141,9 +138,11 @@ export default function ReturnPage() {
           const product = productSnap.data() as Product;
 
           // Check if there is enough stock
-          checkBrokenProduct(product, item.amount);
+          await checkBrokenProduct(product, item.amount);
           return Promise.resolve();
         });
+
+        return Promise.all(promises);
       });
     }
     // Clear the form
@@ -179,13 +178,13 @@ export default function ReturnPage() {
 
     const brokenProductQuerySnapshot = await getDocs(brokenProductQuery);
 
-    if (brokenProductQuerySnapshot.empty) {
+    if (brokenProductQuerySnapshot.empty)
       await addDoc(collection(db, 'broken_product'), {
         ...product,
         count: amount,
         warehouse_position: 'Gudang Jadi',
       });
-    } else {
+    else {
       // Update broken product count
       const brokenProduct = brokenProductQuerySnapshot.docs[0];
 
@@ -216,11 +215,13 @@ export default function ReturnPage() {
           warehouse_position: string;
           is_returned: boolean;
         }[];
-      };
+      } | null;
 
       if (!invoiceData) {
         setErrorMessage('Invoice not found');
-        console.log('Invoice not found');
+        setTimeout(() => {
+          setErrorMessage(null);
+        }, 3000);
         setLoading(false);
         return;
       }
@@ -295,7 +296,9 @@ export default function ReturnPage() {
             type="submit"
             disabled={loading}
             className="absolute top-0 right-0 h-full flex items-center justify-center px-3"
-            onClick={() => handleFetchInvoice()}
+            onClick={() => {
+              handleFetchInvoice().catch(() => console.log('error'));
+            }}
           >
             <AiOutlineReload />
           </button>
@@ -303,12 +306,15 @@ export default function ReturnPage() {
       </form>
 
       {invoice.items.length > 0 && (
-        //invoice data
+        // Invoice data
         <form
           onSubmit={(e) => {
             e.preventDefault();
-            handleSubmit().catch(() => {
-              setErrorMessage('An error occured while submitting data');
+            handleSubmit().catch((e: string) => {
+              setErrorMessage(e);
+              setTimeout(() => {
+                setErrorMessage(null);
+              }, 3000);
             });
           }}
           className={`w-2/3 flex flex-col gap-3 relative ${
@@ -345,14 +351,13 @@ export default function ReturnPage() {
                             type="checkbox"
                             checked={checkedItems[index]}
                             disabled={item.is_returned}
-                            onChange={(e) => {
+                            onChange={() => {
                               const newCheckedItems = checkedItems;
                               newCheckedItems[index] = !newCheckedItems[index];
                               setCheckedItems([...newCheckedItems]);
-                              if (newCheckedItems[index]) {
+                              if (newCheckedItems[index])
                                 setSelectedItems([...selectedItems, item]);
-                                console.log(selectedItems);
-                              } else {
+                              else {
                                 const newSelectedItems = selectedItems.filter(
                                   (selectedItem) =>
                                     selectedItem.product_id !== item.product_id
@@ -372,14 +377,32 @@ export default function ReturnPage() {
                       {checkedItems[index] && (
                         <div className="w-1/5">
                           <input
-                            disabled={loading}
+                            disabled={loading || mode === 'return'}
                             id={'amount'}
                             name={'amount'}
                             type="number"
                             className="placeholder:text-xs placeholder:font-light bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 p-2 w-full
                             "
+                            value={
+                              // If mode is return, set the amount to the original amount
+                              mode === 'return'
+                                ? item.amount
+                                : selectedItems.find(
+                                    (selectedItem) =>
+                                      selectedItem.product_id ===
+                                      item.product_id
+                                  )?.amount
+                            }
                             onChange={(e) => {
                               const newAmount = e.target.value;
+                              // If amount is not a number > 0, set it to 1
+                              if (
+                                isNaN(parseInt(newAmount)) ||
+                                parseInt(newAmount) <= 0
+                              ) {
+                                e.target.value = '1';
+                                return;
+                              }
                               if (
                                 parseInt(newAmount) <= parseInt(item.amount)
                               ) {
@@ -395,10 +418,8 @@ export default function ReturnPage() {
                                   newSelectedItems[selectedItemIndex] = {
                                     ...newSelectedItems[selectedItemIndex],
                                     amount: newAmount,
-                                    is_returned: true,
                                   };
                                   setSelectedItems(newSelectedItems);
-                                  console.log(newSelectedItems);
                                   setErrorMessage(null); // Clear any previous error message
                                 }
                               } else {
