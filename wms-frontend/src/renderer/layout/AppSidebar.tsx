@@ -7,7 +7,7 @@ import {
   LiaMoneyBillWaveSolid,
 } from 'react-icons/lia';
 import { LuFolderEdit, LuHistory, LuPackageOpen } from 'react-icons/lu';
-import { MdInventory2, MdOutlinePeopleAlt } from 'react-icons/md';
+import { MdHistoryEdu, MdInventory2, MdOutlinePeopleAlt } from 'react-icons/md';
 import { PiPasswordLight, PiUserListLight } from 'react-icons/pi';
 import { TbPackageExport, TbTruckReturn } from 'react-icons/tb';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
@@ -89,6 +89,16 @@ export const AppSidebar = ({
             selected={location.pathname === '/profile'}
           >
             Home
+          </SidebarItem>
+
+          <SidebarItem
+            onClick={() => {
+              navigate('/stockhistory');
+            }}
+            icon={<MdHistoryEdu />}
+            selected={location.pathname === '/stockhistory'}
+          >
+            Stock History
           </SidebarItem>
 
           <SidebarItem
@@ -184,7 +194,7 @@ export const AppSidebar = ({
 
           <SidebarItem
             onClick={() => {
-              navigate('/');
+              navigate('/retourepage');
             }}
             icon={<TbTruckReturn />}
             selected={location.pathname === '/'}
