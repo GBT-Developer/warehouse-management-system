@@ -185,8 +185,8 @@ export const ManageStockPage = () => {
 
         return Promise.resolve();
       });
-    // add or update product count of arrived products on product list
-    else {
+    // Add or update product count of arrived products on product list
+    else
       await runTransaction(db, async (transaction) => {
         const promises = acceptedProducts.map(async (acceptedProduct) => {
           if (!acceptedProduct.id) return Promise.reject();
@@ -233,9 +233,7 @@ export const ManageStockPage = () => {
 
             checkBrokenProduct(
               acceptedProduct,
-              products.find(
-                (product) => product.id === acceptedProduct.id
-              ) as Product,
+              products.find((product) => product.id === acceptedProduct.id)!,
               transaction
             );
             deleteDispatchNote();
@@ -274,9 +272,7 @@ export const ManageStockPage = () => {
 
           checkBrokenProduct(
             acceptedProduct,
-            products.find(
-              (product) => product.id === acceptedProduct.id
-            ) as Product,
+            products.find((product) => product.id === acceptedProduct.id)!,
             transaction
           );
           deleteDispatchNote();
@@ -289,7 +285,7 @@ export const ManageStockPage = () => {
 
         return Promise.resolve();
       });
-    }
+
     setNewPurchase(newPurchaseInitialState);
 
     setLoading(false);
@@ -297,9 +293,7 @@ export const ManageStockPage = () => {
   };
 
   const deleteDispatchNote = async () => {
-    if (!dispatchNote) {
-      return;
-    }
+    if (!dispatchNote) return;
 
     const docRef = doc(db, 'dispatch_note', dispatchNote);
 
@@ -317,10 +311,10 @@ export const ManageStockPage = () => {
     product: Product,
     transaction: Transaction
   ) => {
-    // if (arrivedProduct.count < product.data().count)
-    // add the difference to broken product database
+    // If (arrivedProduct.count < product.data().count)
+    // Add the difference to broken product database
     if (acceptedProduct.count < product.count) {
-      //check if the product is already in broken product database
+      // Check if the product is already in broken product database
       const brokenProductQuery = query(
         collection(db, 'broken_product'),
         where('warehouse_position', '==', 'Gudang Jadi'),
@@ -592,14 +586,14 @@ export const ManageStockPage = () => {
                                 'Not enough stock in warehouse. Stock in warehouse: ' +
                                   product.count
                               );
-                              //set e target value with the value without the last character
+                              // Set e target value with the value without the last character
                               e.target.value = e.target.value.slice(0, -1);
                               setTimeout(() => {
                                 setErrorMessage(null);
                               }, 3000);
                               return;
                             }
-                            //if the product is already in acceptedProduct, update the count
+                            // If the product is already in acceptedProduct, update the count
                             if (
                               acceptedProducts.find(
                                 (acceptedProduct) =>
@@ -618,7 +612,7 @@ export const ManageStockPage = () => {
                               );
                               return;
                             }
-                            //if the product is not in acceptedProduct, add it
+                            // If the product is not in acceptedProduct, add it
                             setAcceptedProducts(() => [
                               ...acceptedProducts,
                               {
@@ -684,12 +678,14 @@ export const ManageStockPage = () => {
               label="Purchase price"
               labelFor="purchase-price"
               value={newPurchase.purchase_price}
-              onChange={(e) =>
+              onChange={(e) => {
+                if (!/^[0-9]+$/.test(e.target.value) && e.target.value !== '')
+                  return;
                 setNewPurchase(() => ({
                   ...newPurchase,
                   purchase_price: e.target.value,
-                }))
-              }
+                }));
+              }}
             />
           </div>
         )}
