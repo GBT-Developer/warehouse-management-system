@@ -9,6 +9,7 @@ import {
   useLocation,
 } from 'react-router-dom';
 import { AdminListPage } from './pages/AdminListPage';
+import { BrokenProductListPage } from './pages/BrokenProductListPage';
 import { ChangePasswordPage } from './pages/ChangePasswordPage';
 import { CreateAdminPage } from './pages/CreateAdminPage';
 import CustomerListPage from './pages/CustomerListPage';
@@ -54,6 +55,10 @@ export const routes: RouteConfig[] = [
   {
     path: '/manage-product',
     element: <ManageProductPage />,
+  },
+  {
+    path: '/broken-product-list-page',
+    element: <BrokenProductListPage />,
   },
   {
     path: '/manage-stock',

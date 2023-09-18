@@ -2,6 +2,7 @@ import React, { ReactNode } from 'react';
 import { AiOutlineDatabase, AiOutlineHome } from 'react-icons/ai';
 import { BsChevronDown, BsChevronUp } from 'react-icons/bs';
 import { CiLogout } from 'react-icons/ci';
+import { GiBrokenPottery } from 'react-icons/gi';
 import {
   LiaFileInvoiceDollarSolid,
   LiaMoneyBillWaveSolid,
@@ -46,21 +47,11 @@ const Profile = () => {
   return <p className="text-sm text-gray-400">{user?.email}</p>;
 };
 
-interface SidebarProps {
-  isSidebarOpen: boolean;
-  setIsSidebarOpen: React.Dispatch<React.SetStateAction<boolean>>;
-}
-
-export const AppSidebar = ({
-  isSidebarOpen,
-  setIsSidebarOpen,
-}: SidebarProps) => {
+export const AppSidebar = () => {
   const { logout } = useAuth().actions;
   const navigate = useNavigate();
   const location = useLocation();
-  const [isDropdownOpen, setIsDropdownOpen] = React.useState(false);
   const [isInventDropdownOpen, setIsInventDropdownOpen] = React.useState(false);
-  const [isUserDropdownOpen, setIsUserDropdownOpen] = React.useState(false);
 
   return (
     <aside
@@ -158,6 +149,16 @@ export const AppSidebar = ({
                 selected={location.pathname === '/transfer-item'}
               >
                 Transfer Item
+              </SidebarItem>
+
+              <SidebarItem
+                icon={<GiBrokenPottery />}
+                onClick={() => {
+                  navigate('/broken-product-list-page');
+                }}
+                selected={location.pathname === '/broken-product-list-page'}
+              >
+                Broken Products
               </SidebarItem>
             </ul>
           </li>

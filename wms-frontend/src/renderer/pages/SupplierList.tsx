@@ -136,10 +136,6 @@ export default function SupplierList() {
             <button
               type="submit"
               className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 focus:outline-none hover:-translate-y-1 "
-              style={{
-                width: '100px', // Adjust the width as needed
-                height: '40px', // Adjust the height as needed
-              }}
               onClick={() => navigate('/inputsupplier')}
             >
               + New

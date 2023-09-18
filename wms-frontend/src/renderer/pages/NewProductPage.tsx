@@ -37,11 +37,10 @@ const newSupplierInitialState = {
 
 const newPurchaseInitialState = {
   created_at: '',
-  count: '',
-  purchase_price: '',
+  purchase_price: '0',
   supplier: null,
-  product: null,
   payment_status: 'unpaid',
+  products: [],
 } as PurchaseHistory;
 
 export const NewProductPage = () => {
@@ -137,8 +136,14 @@ export const NewProductPage = () => {
       transaction.set(newPurchaseRef, {
         ...newPurchase,
         payment_status: newPurchase.payment_status,
-        product: newProductRef.id,
         supplier: newSupplierRef ? newSupplierRef.id : newProduct.supplier?.id,
+        products: [
+          {
+            id: newProductRef.id,
+            name: `${newProduct.brand} ${newProduct.motor_type} ${newProduct.part} ${newProduct.available_color}`,
+            quantity: newProduct.count,
+          },
+        ],
       });
 
       return Promise.resolve(newProductRef);
@@ -212,7 +217,6 @@ export const NewProductPage = () => {
           value={newProduct.count}
           onChange={(e) => {
             setNewProduct({ ...newProduct, count: e.target.value });
-            setNewPurchase({ ...newPurchase, count: e.target.value });
           }}
         />
         <InputField
