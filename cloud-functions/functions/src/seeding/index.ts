@@ -192,7 +192,10 @@ export const seedBrokenProduct = async (
           motor_type: faker.vehicle.type(),
           part: faker.vehicle.model(),
           count: the_count.toString(),
-          supplier: Array.from(suppliers.keys())[the_supplier_id],
+          supplier: {
+            id: Array.from(suppliers.keys())[the_supplier_id],
+            company_name: Array.from(suppliers.values())[the_supplier_id],
+          },
         })
         .catch((error) => console.log(error));
     }
