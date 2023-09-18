@@ -1,6 +1,6 @@
-import { Product } from './Product';
+import { Invoice } from './Invoice';
 export interface Retoure {
-  product?: Product;
+  invoice?: Invoice;
   created_at?: string;
   product_name?: string;
   count?: string;

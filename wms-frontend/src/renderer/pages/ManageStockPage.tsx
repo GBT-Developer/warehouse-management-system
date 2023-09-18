@@ -689,12 +689,14 @@ export const ManageStockPage = () => {
               label="Purchase price"
               labelFor="purchase-price"
               value={newPurchase.purchase_price}
-              onChange={(e) =>
+              onChange={(e) => {
+                if (!/^[0-9]+$/.test(e.target.value) && e.target.value !== '')
+                  return;
                 setNewPurchase(() => ({
                   ...newPurchase,
                   purchase_price: e.target.value,
-                }))
-              }
+                }));
+              }}
             />
           </div>
         )}
