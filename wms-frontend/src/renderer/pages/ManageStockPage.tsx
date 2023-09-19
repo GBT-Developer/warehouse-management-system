@@ -326,9 +326,25 @@ export const ManageStockPage = () => {
   const deleteDispatchNote = () => {
     if (!dispatchNote) return;
 
-    const docRef = doc(db, 'dispatch_note', dispatchNote);
+    const onDispatchProductRef = collection(db, 'on_dispatch');
+    const onDispatchProductQuery = query(
+      onDispatchProductRef,
+      where('dispatch_note_id', '==', dispatchNote)
+    );
 
-    deleteDoc(docRef).catch((error) => {
+    getDocs(onDispatchProductQuery)
+      .then((res) => {
+        res.forEach((doc) => {
+          deleteDoc(doc.ref).catch((error) => {
+            console.error('Error removing document: ', error);
+          });
+        });
+      })
+      .catch(() => console.log('error'));
+
+    const dispatchNoteRef = doc(db, 'dispatch_note', dispatchNote);
+
+    deleteDoc(dispatchNoteRef).catch((error) => {
       console.error('Error removing document: ', error);
     });
   };
