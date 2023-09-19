@@ -178,6 +178,7 @@ export const seedBrokenProduct = async (
   const broken_products = await db.collection("broken_product").get();
 
   if (broken_products.size < num_of_product) {
+    const warehouse_positions = ["Gudang Jadi", "Gudang Bahan"];
     for (let i = 0; i < num_of_product; i++) {
       const the_count = faker.number.int({ min: 1, max: 10 });
       const the_supplier_id = faker.number.int({
@@ -193,6 +194,10 @@ export const seedBrokenProduct = async (
           part: faker.vehicle.model(),
           count: the_count.toString(),
           supplier: Array.from(suppliers.keys())[the_supplier_id],
+          warehouse_position:
+            warehouse_positions[
+              faker.number.int({ min: 0, max: warehouse_positions.length - 1 })
+            ],
         })
         .catch((error) => console.log(error));
     }
