@@ -168,7 +168,7 @@ export default function ReturnPage() {
     // Check if the product is already in broken product database
     const brokenProductQuery = query(
       collection(db, 'broken_product'),
-      where('warehouse_position', '==', 'Gudang Jadi'),
+      where('warehouse_position', '==', product.warehouse_position),
       where('available_color', '==', product.available_color),
       where('brand', '==', product.brand),
       where('motor_type', '==', product.motor_type),
@@ -182,7 +182,6 @@ export default function ReturnPage() {
       await addDoc(collection(db, 'broken_product'), {
         ...product,
         count: amount,
-        warehouse_position: 'Gudang Jadi',
       });
     else {
       // Update broken product count

@@ -369,6 +369,8 @@ export const ManageStockPage = () => {
           part: acceptedProduct.part,
           supplier: acceptedProduct.supplier,
           count: parseInt(product.count) - parseInt(acceptedProduct.count),
+          sell_price: acceptedProduct.sell_price,
+          warehouse_position: 'Gudang Jadi',
         });
       } else {
         // Update broken product count
