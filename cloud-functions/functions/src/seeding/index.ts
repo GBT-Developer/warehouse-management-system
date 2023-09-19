@@ -41,7 +41,7 @@ const createRootUser = async () => {
           // Set custom claims
           firebaseAdmin
             .auth()
-            .setCustomUserClaims(userRecord.uid, { owner: true });
+            .setCustomUserClaims(userRecord.uid, { role: "owner" });
           functions.logger.info("Root user created");
         })
         .catch((error) => {
@@ -192,10 +192,7 @@ export const seedBrokenProduct = async (
           motor_type: faker.vehicle.type(),
           part: faker.vehicle.model(),
           count: the_count.toString(),
-          supplier: {
-            id: Array.from(suppliers.keys())[the_supplier_id],
-            company_name: Array.from(suppliers.values())[the_supplier_id],
-          },
+          supplier: Array.from(suppliers.keys())[the_supplier_id],
         })
         .catch((error) => console.log(error));
     }
