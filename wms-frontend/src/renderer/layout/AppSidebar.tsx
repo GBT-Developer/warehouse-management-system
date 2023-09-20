@@ -56,7 +56,7 @@ export const AppSidebar = () => {
   return (
     <aside
       id="sidebar-multi-level-sidebar"
-      className="flex flex-col h-screen sidebar-bg min-w-[16rem] px-2 pt-[2rem] w-1/5"
+      className="flex flex-col h-screen sidebar-bg min-w-[16rem] px-2 pt-[2rem] w-1/5 "
     >
       <div className="py-6">
         <div className="flex px-3 justify-between items-center text-black">
@@ -68,7 +68,7 @@ export const AppSidebar = () => {
           <Profile />
         </div>
       </div>
-      <div className="h-full px-3 overflow-y-auto">
+      <div className="h-full px-3 hover:overflow-y-auto overflow-clip">
         <div className={'w-full my-2 border-b border-gray-300'} />
         <p className="text-sm font-bold text-gray-500 ">Main Functions</p>
         <ul className="my-3 space-y-2 font-regular">
