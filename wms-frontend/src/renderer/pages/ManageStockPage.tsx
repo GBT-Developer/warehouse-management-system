@@ -11,7 +11,11 @@ import {
   where,
 } from 'firebase/firestore';
 import React, { useEffect, useRef, useState } from 'react';
-import { AiOutlineLoading3Quarters, AiOutlineReload } from 'react-icons/ai';
+import {
+  AiFillRightCircle,
+  AiOutlineLoading3Quarters,
+  AiOutlineReload,
+} from 'react-icons/ai';
 import { useNavigate } from 'react-router-dom';
 import { InputField } from 'renderer/components/InputField';
 import { SingleTableItem } from 'renderer/components/TableComponents/SingleTableItem';
@@ -181,9 +185,9 @@ export const ManageStockPage = () => {
           });
         }
 
-        const newStockHistoryDocRef = doc(collection(db, 'stock_history'));
         const newStockHistoryPromises = newPurchase.products.map(
           (product, index) => {
+            const newStockHistoryDocRef = doc(collection(db, 'stock_history'));
             transaction.set(newStockHistoryDocRef, {
               product: product.id,
               product_name:
@@ -702,10 +706,12 @@ export const ManageStockPage = () => {
               </div>
             </div>
             {newPurchase.products.length > 0 && (
-              <ul className="my-[2rem] space-y-[1rem] font-regular">
+              <ul className="space-y-[1rem] font-regular">
                 {newPurchase.products.map((product, index) => (
                   <li key={index} className="flex flex-row gap-2">
-                    <p className="flex justify-start w-4/5">{product.name}</p>
+                    <p className="flex justify-start items-center w-4/5 gap-2">
+                      <AiFillRightCircle /> {product.name}
+                    </p>
                     <div className="w-1/5 flex justify-between items-center">
                       <input
                         disabled={loading}
