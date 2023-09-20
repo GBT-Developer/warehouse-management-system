@@ -242,10 +242,7 @@ export const BrokenProductListPage = () => {
                   >
                     Supplier
                     <input
-                      checked={
-                        reason === 'supplier' ||
-                        activeProduct?.warehouse_position === 'Gudang Bahan'
-                      }
+                      checked={reason === 'supplier'}
                       type="radio"
                       name="reason"
                       id="supplier"
