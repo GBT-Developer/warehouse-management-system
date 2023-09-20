@@ -24,6 +24,7 @@ import { Product } from 'renderer/interfaces/Product';
 import { PurchaseHistory } from 'renderer/interfaces/PurchaseHistory';
 import { Supplier } from 'renderer/interfaces/Supplier';
 import { PageLayout } from 'renderer/layout/PageLayout';
+import { useAuth } from 'renderer/providers/AuthProvider';
 
 const newPurchaseInitialState = {
   created_at: '',
@@ -34,11 +35,12 @@ const newPurchaseInitialState = {
 } as PurchaseHistory;
 
 export const ManageStockPage = () => {
+  const { user } = useAuth();
   const navigate = useNavigate();
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [manageStockMode, setManageStockMode] = useState<
-    'purchase' | 'from_other_warehouse' | ''
+    'purchase' | 'from_other_warehouse' | 'force-change' | ''
   >('');
   const [supplierList, setSupplierList] = useState<Supplier[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
@@ -64,7 +66,10 @@ export const ManageStockPage = () => {
   useEffect(() => {
     setLoading(true);
 
-    if (supplierList.length === 0 && manageStockMode === 'purchase') {
+    if (
+      supplierList.length === 0 &&
+      (manageStockMode === 'purchase' || manageStockMode === 'force-change')
+    ) {
       const fetchSupplierList = async () => {
         const supplierQuery = query(collection(db, 'supplier'));
         const res = await getDocs(supplierQuery);
@@ -122,9 +127,12 @@ export const ManageStockPage = () => {
     if (
       manageStockMode === '' ||
       selectedWarehouse === '' ||
-      (manageStockMode === 'purchase' && newPurchase.products.length === 0) ||
-      (manageStockMode === 'purchase' && selectedSupplier === null) ||
-      (manageStockMode === 'purchase' && newPurchase.purchase_price === '') ||
+      ((manageStockMode === 'purchase' || manageStockMode === 'force-change') &&
+        newPurchase.products.length === 0) ||
+      ((manageStockMode === 'purchase' || manageStockMode === 'force-change') &&
+        selectedSupplier === null) ||
+      ((manageStockMode === 'purchase' || manageStockMode === 'force-change') &&
+        newPurchase.purchase_price === '') ||
       (manageStockMode === 'from_other_warehouse' && dispatchNote === '') ||
       (manageStockMode === 'from_other_warehouse' &&
         acceptedProducts.length != products.length) ||
@@ -143,7 +151,7 @@ export const ManageStockPage = () => {
 
     setLoading(true);
 
-    if (manageStockMode === 'purchase')
+    if (manageStockMode === 'purchase' || manageStockMode === 'force-change')
       await runTransaction(db, (transaction) => {
         if (newPurchase.products.length === 0 || selectedSupplier === null)
           return Promise.reject();
@@ -160,7 +168,7 @@ export const ManageStockPage = () => {
         // Wait for all promises in the map to resolve
         Promise.all(productsPromises).catch(() => console.log('error'));
 
-        if (!returnedProduct) {
+        if (!returnedProduct && manageStockMode === 'purchase') {
           const newPurchaseHistoryDocRef = doc(
             collection(db, 'purchase_history')
           );
@@ -471,7 +479,8 @@ export const ManageStockPage = () => {
               onChange={(e) => {
                 if (
                   e.target.value === 'purchase' ||
-                  e.target.value === 'from_other_warehouse'
+                  e.target.value === 'from_other_warehouse' ||
+                  e.target.value === 'force-change'
                 )
                   setManageStockMode(e.target.value);
 
@@ -494,6 +503,9 @@ export const ManageStockPage = () => {
               <option value="from_other_warehouse">
                 From raw material warehouse
               </option>
+              {user?.role === 'owner' && (
+                <option value="force-change">Force change</option>
+              )}
             </select>
           </div>
         </div>
@@ -527,7 +539,8 @@ export const ManageStockPage = () => {
               <option value={''} disabled>
                 Choose warehouse
               </option>
-              {manageStockMode === 'purchase' ? (
+              {manageStockMode === 'purchase' ||
+              manageStockMode === 'force-change' ? (
                 <>
                   <option key={'gudang_bahan'} value="Gudang Bahan">
                     Gudang Bahan
@@ -538,7 +551,7 @@ export const ManageStockPage = () => {
                 </>
               ) : manageStockMode === 'from_other_warehouse' ? (
                 <>
-                  <option key={'gudang_jadi'} value="Gudang Jadi">
+                  <option key={'gudang_jadi'} value="Gudang Jadi" selected>
                     Gudang Jadi
                   </option>
                 </>
@@ -547,7 +560,8 @@ export const ManageStockPage = () => {
           </div>
         </div>
         {
-          manageStockMode === 'purchase' ? (
+          manageStockMode === 'purchase' ||
+          manageStockMode === 'force-change' ? (
             <div className="flex justify-between">
               <div className="w-1/3 flex items-center">
                 <label htmlFor={'supplier-id'} className="text-md">
@@ -687,7 +701,8 @@ export const ManageStockPage = () => {
               ))}
           </ul>
         )}
-        {manageStockMode === 'purchase' && (
+        {(manageStockMode === 'purchase' ||
+          manageStockMode === 'force-change') && (
           <>
             <div className="flex justify-between">
               <div className="w-1/3 flex items-center">
@@ -772,24 +787,26 @@ export const ManageStockPage = () => {
                 ))}
               </ul>
             )}
-            <div className="flex justify-between py-2">
-              <div className="w-1/3 flex items-center">
-                <label htmlFor={'returned-product'} className="text-md">
-                  Returned products?
-                </label>
+            {manageStockMode !== 'force-change' && (
+              <div className="flex justify-between py-2">
+                <div className="w-1/3 flex items-center">
+                  <label htmlFor={'returned-product'} className="text-md">
+                    Returned products?
+                  </label>
+                </div>
+                <div className="w-2/3 flex items-center">
+                  <input
+                    value={returnedProduct ? 'true' : 'false'}
+                    disabled={loading}
+                    type="checkbox"
+                    name="returned-product"
+                    className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
+                    onChange={() => setReturnedProduct(() => !returnedProduct)}
+                  />
+                </div>
               </div>
-              <div className="w-2/3 flex items-center">
-                <input
-                  value={returnedProduct ? 'true' : 'false'}
-                  disabled={loading}
-                  type="checkbox"
-                  name="returned-product"
-                  className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
-                  onChange={() => setReturnedProduct(() => !returnedProduct)}
-                />
-              </div>
-            </div>
-            {!returnedProduct && (
+            )}
+            {!returnedProduct && manageStockMode !== 'force-change' && (
               <InputField
                 loading={loading}
                 label="Purchase price"
