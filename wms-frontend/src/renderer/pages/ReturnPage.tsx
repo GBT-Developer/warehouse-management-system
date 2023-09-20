@@ -109,6 +109,15 @@ export default function ReturnPage() {
           ).toString();
       });
 
+      // Reduce the total price
+      newInvoice.total_price = (
+        parseInt(newInvoice.total_price) -
+        selectedItems.reduce(
+          (acc, cur) => acc + parseInt(cur.price) * parseInt(cur.amount),
+          0
+        )
+      ).toString();
+
       // Merge the invoice items with the selected items
       // But if the item is already in the invoice, just increase the amount
       selectedItems.forEach((selectedItem) => {
@@ -128,6 +137,7 @@ export default function ReturnPage() {
       await runTransaction(db, (transaction) => {
         transaction.update(doc(db, 'invoice', invoiceNumber), {
           items: newInvoice.items,
+          total_price: newInvoice.total_price,
         });
 
         // Put the returned product to broken product database
