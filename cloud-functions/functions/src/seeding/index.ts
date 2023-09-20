@@ -194,6 +194,10 @@ export const seedBrokenProduct = async (
           part: faker.vehicle.model(),
           count: the_count.toString(),
           supplier: Array.from(suppliers.keys())[the_supplier_id],
+          sell_price: faker.commerce.price({
+            min: 50000,
+            max: 1000000,
+          }),
           warehouse_position:
             warehouse_positions[
               faker.number.int({ min: 0, max: warehouse_positions.length - 1 })
