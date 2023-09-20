@@ -55,6 +55,7 @@ export const ManageStockPage = () => {
   const selectedSupplierRef = useRef<HTMLSelectElement>(null);
   const selectedWarehouseRef = useRef<HTMLSelectElement>(null);
   const dateInputRef = React.useRef<HTMLInputElement>(null);
+  const [returnedProduct, setReturnedProduct] = useState(false);
 
   useEffect(() => {
     setLoading(true);
@@ -155,28 +156,30 @@ export const ManageStockPage = () => {
         // Wait for all promises in the map to resolve
         Promise.all(productsPromises).catch(() => console.log('error'));
 
-        const newPurchaseHistoryDocRef = doc(
-          collection(db, 'purchase_history')
-        );
+        if (!returnedProduct) {
+          const newPurchaseHistoryDocRef = doc(
+            collection(db, 'purchase_history')
+          );
 
-        transaction.set(newPurchaseHistoryDocRef, {
-          supplier: selectedSupplier.id,
-          created_at: newPurchase.created_at,
-          purchase_price: newPurchase.purchase_price,
-          payment_status: newPurchase.payment_status,
-          products: newPurchase.products.map((product, index) => ({
-            id: product.id,
-            name:
-              products[index].brand +
-              ' ' +
-              products[index].motor_type +
-              ' ' +
-              products[index].part +
-              ' ' +
-              products[index].available_color,
-            quantity: product.quantity,
-          })),
-        });
+          transaction.set(newPurchaseHistoryDocRef, {
+            supplier: selectedSupplier.id,
+            created_at: newPurchase.created_at,
+            purchase_price: newPurchase.purchase_price,
+            payment_status: newPurchase.payment_status,
+            products: newPurchase.products.map((product, index) => ({
+              id: product.id,
+              name:
+                products[index].brand +
+                ' ' +
+                products[index].motor_type +
+                ' ' +
+                products[index].part +
+                ' ' +
+                products[index].available_color,
+              quantity: product.quantity,
+            })),
+          });
+        }
 
         const newStockHistoryDocRef = doc(collection(db, 'stock_history'));
         const newStockHistoryPromises = newPurchase.products.map(
@@ -681,7 +684,7 @@ export const ManageStockPage = () => {
           </ul>
         )}
         {manageStockMode === 'purchase' && (
-          <div>
+          <>
             <div className="flex justify-between">
               <div className="w-1/3 flex items-center">
                 <label htmlFor={'product-id'} className="text-md">
@@ -698,92 +701,108 @@ export const ManageStockPage = () => {
                 </button>
               </div>
             </div>
-            {
+            {newPurchase.products.length > 0 && (
               <ul className="my-[2rem] space-y-[1rem] font-regular">
-                {newPurchase.products.length > 0 &&
-                  newPurchase.products.map((product, index) => (
-                    <li key={index} className="flex flex-row gap-2">
-                      <p className="flex justify-start w-4/5">{product.name}</p>
-                      <div className="w-1/5 flex justify-between items-center">
-                        <input
-                          disabled={loading}
-                          placeholder="Quantity"
-                          type="number"
-                          name="quantity"
-                          className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
-                          onChange={(e) => {
-                            if (
-                              Number(e.target.value) < 0 ||
-                              e.target.value === ''
-                            ) {
-                              setErrorMessage('Quantity must be positive');
-                              // Set e target value with the value without the last character
-                              e.target.value = e.target.value.slice(0, -1);
-                              setTimeout(() => {
-                                setErrorMessage(null);
-                              }, 3000);
-                              return;
-                            }
+                {newPurchase.products.map((product, index) => (
+                  <li key={index} className="flex flex-row gap-2">
+                    <p className="flex justify-start w-4/5">{product.name}</p>
+                    <div className="w-1/5 flex justify-between items-center">
+                      <input
+                        disabled={loading}
+                        placeholder="Quantity"
+                        type="number"
+                        name="quantity"
+                        className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
+                        onChange={(e) => {
+                          if (
+                            Number(e.target.value) < 0 ||
+                            e.target.value === ''
+                          ) {
+                            setErrorMessage('Quantity must be positive');
+                            // Set e target value with the value without the last character
+                            e.target.value = e.target.value.slice(0, -1);
+                            setTimeout(() => {
+                              setErrorMessage(null);
+                            }, 3000);
+                            return;
+                          }
 
-                            // If the product is already in acceptedProduct, update the count
-                            if (
-                              acceptedProducts.find(
-                                (acceptedProduct) =>
-                                  acceptedProduct.id === product.id
-                              )
-                            ) {
-                              setAcceptedProducts(() =>
-                                acceptedProducts.map((acceptedProduct) => {
-                                  if (acceptedProduct.id === product.id)
-                                    return {
-                                      ...acceptedProduct,
-                                      count: e.target.value,
-                                    };
-                                  return acceptedProduct;
-                                })
-                              );
-                              return;
-                            }
+                          // If the product is already in acceptedProduct, update the count
+                          if (
+                            acceptedProducts.find(
+                              (acceptedProduct) =>
+                                acceptedProduct.id === product.id
+                            )
+                          ) {
+                            setAcceptedProducts(() =>
+                              acceptedProducts.map((acceptedProduct) => {
+                                if (acceptedProduct.id === product.id)
+                                  return {
+                                    ...acceptedProduct,
+                                    count: e.target.value,
+                                  };
+                                return acceptedProduct;
+                              })
+                            );
+                            return;
+                          }
 
-                            // If the product is not in acceptedProduct, add it
-                            setNewPurchase(() => ({
-                              ...newPurchase,
-                              products: newPurchase.products.map(
-                                (product, i) => {
-                                  if (i === index)
-                                    return {
-                                      ...product,
-                                      quantity: e.target.value,
-                                    };
-                                  return product;
-                                }
-                              ),
-                            }));
-                          }}
-                        />
-                      </div>
-                    </li>
-                  ))}
+                          // If the product is not in acceptedProduct, add it
+                          setNewPurchase(() => ({
+                            ...newPurchase,
+                            products: newPurchase.products.map((product, i) => {
+                              if (i === index)
+                                return {
+                                  ...product,
+                                  quantity: e.target.value,
+                                };
+                              return product;
+                            }),
+                          }));
+                        }}
+                      />
+                    </div>
+                  </li>
+                ))}
               </ul>
-            }
-            <InputField
-              loading={loading}
-              label="Purchase price"
-              labelFor="purchase-price"
-              value={newPurchase.purchase_price}
-              onChange={(e) => {
-                if (
-                  !/^[0-9]*(\.[0-9]*)?$/.test(e.target.value) &&
-                  e.target.value !== ''
-                )
-                  return;
-                setNewPurchase(() => ({
-                  ...newPurchase,
-                  purchase_price: e.target.value,
-                }));
-              }}
-            />
-          </div>
+            )}
+            <div className="flex justify-between py-2">
+              <div className="w-1/3 flex items-center">
+                <label htmlFor={'returned-product'} className="text-md">
+                  Returned products?
+                </label>
+              </div>
+              <div className="w-2/3 flex items-center">
+                <input
+                  value={returnedProduct ? 'true' : 'false'}
+                  disabled={loading}
+                  type="checkbox"
+                  name="returned-product"
+                  className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
+                  onChange={() => setReturnedProduct(() => !returnedProduct)}
+                />
+              </div>
+            </div>
+            {!returnedProduct && (
+              <InputField
+                loading={loading}
+                label="Purchase price"
+                labelFor="purchase-price"
+                value={newPurchase.purchase_price}
+                onChange={(e) => {
+                  if (
+                    !/^[0-9]*(\.[0-9]*)?$/.test(e.target.value) &&
+                    e.target.value !== ''
+                  )
+                    return;
+                  setNewPurchase(() => ({
+                    ...newPurchase,
+                    purchase_price: e.target.value,
+                  }));
+                }}
+              />
+            )}
+          </>
         )}
         <div className="flex justify-between">
           <div className="w-1/3 flex items-center">
