@@ -1,7 +1,7 @@
 export interface DispatchNote {
   id?: string;
   painter: string;
-  created_at?: string;
+  date?: string;
   dispatch_items: {
     product_id: string;
     color: string;

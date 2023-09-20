@@ -23,7 +23,7 @@ import { PageLayout } from 'renderer/layout/PageLayout';
 
 const newDispatchNoteInitialStates: DispatchNote = {
   painter: '',
-  created_at: '',
+  date: '',
   dispatch_items: [],
 };
 
@@ -42,7 +42,8 @@ export const TransferItemPage = () => {
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
 
-    if (!dispatchNote.created_at || !dispatchNote.painter) {
+    if (!dispatchNote.date || !dispatchNote.painter) {
+      console.log(dispatchNote);
       setErrorMessage('Please fill all fields');
       setTimeout(() => {
         setErrorMessage(null);
@@ -230,7 +231,7 @@ export const TransferItemPage = () => {
               onChange={(e) => {
                 setDispatchNote(() => ({
                   ...dispatchNote,
-                  created_at: e.target.value,
+                  date: e.target.value,
                 }));
               }}
             />
