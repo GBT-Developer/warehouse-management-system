@@ -24,6 +24,7 @@ import ProductDetailPage from './pages/ProductDetailPage';
 import ProfilePage from './pages/ProfilePage';
 import PurchaseReportPage from './pages/PurchaseReportPage';
 import ReturnPage from './pages/ReturnPage';
+import { ReturnedProductListPage } from './pages/ReturnedProductListPage';
 import StockHistoryPage from './pages/StockHistoryPage';
 import SupplierDetailPage from './pages/SupplierDetailPage';
 import SupplierList from './pages/SupplierList';
@@ -110,7 +111,7 @@ export const routes: RouteConfig[] = [
     element: <SupplierDetailPage />,
   },
   {
-    path: '/retourepage',
+    path: '/returnpage',
     element: <ReturnPage />,
   },
   {
@@ -132,6 +133,10 @@ export const routes: RouteConfig[] = [
   {
     path: '/transactionpage',
     element: <TransactionPage />,
+  },
+  {
+    path: '/returnedproducts',
+    element: <ReturnedProductListPage />,
   },
 ];
 
