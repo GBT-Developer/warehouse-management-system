@@ -1,6 +1,6 @@
 import React, { ReactNode } from 'react';
 import { AiOutlineDatabase, AiOutlineHome } from 'react-icons/ai';
-import { BsChevronDown, BsChevronUp } from 'react-icons/bs';
+import { BsChevronDown, BsChevronUp, BsTruck } from 'react-icons/bs';
 import { CiLogout } from 'react-icons/ci';
 import { GiBrokenPottery } from 'react-icons/gi';
 import {
@@ -147,6 +147,16 @@ export const AppSidebar = () => {
               </SidebarItem>
 
               <SidebarItem
+                icon={<BsTruck />}
+                onClick={() => {
+                  navigate('/on-dispatch');
+                }}
+                selected={location.pathname === '/on-dispatch'}
+              >
+                On Dispatch
+              </SidebarItem>
+
+              <SidebarItem
                 icon={<TbPackageExport />}
                 onClick={() => {
                   navigate('/transfer-item');
@@ -203,7 +213,7 @@ export const AppSidebar = () => {
               navigate('/returnpage');
             }}
             icon={<TbTruckReturn />}
-            selected={location.pathname === '/'}
+            selected={location.pathname === '/returnpage'}
           >
             Return
           </SidebarItem>
@@ -213,7 +223,7 @@ export const AppSidebar = () => {
               navigate('/returnedproducts');
             }}
             icon={<MdOutlineAssignmentReturn />}
-            selected={location.pathname === '/'}
+            selected={location.pathname === '/returnedproducts'}
           >
             Returned Products
           </SidebarItem>

@@ -20,6 +20,7 @@ import { AuthPage } from './pages/LoginPage';
 import { ManageProductPage } from './pages/ManageProductPage';
 import { ManageStockPage } from './pages/ManageStockPage';
 import { NewProductPage } from './pages/NewProductPage';
+import { OnDispatchListPage } from './pages/OnDispatchListPage';
 import ProductDetailPage from './pages/ProductDetailPage';
 import ProfilePage from './pages/ProfilePage';
 import PurchaseReportPage from './pages/PurchaseReportPage';
@@ -137,6 +138,10 @@ export const routes: RouteConfig[] = [
   {
     path: '/returnedproducts',
     element: <ReturnedProductListPage />,
+  },
+  {
+    path: 'on-dispatch',
+    element: <OnDispatchListPage />,
   },
 ];
 
