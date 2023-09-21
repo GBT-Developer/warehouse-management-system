@@ -372,7 +372,10 @@ export const TransactionPage = () => {
                   />
                   <div className="flex justify-end">
                     <p className="text-md">
-                      Rp. {parseInt(item.price) * parseInt(item.amount)},00
+                      {new Intl.NumberFormat('id-ID', {
+                        style: 'currency',
+                        currency: 'IDR',
+                      }).format(parseInt(item.price) * parseInt(item.amount))}
                     </p>
                   </div>
                 </div>
@@ -382,13 +385,18 @@ export const TransactionPage = () => {
         </ul>
 
         <div className="flex justify-end">
-          <p className="text-lg font-semibold">Total: &nbsp; Rp. &nbsp;</p>
+          <p className="text-lg font-semibold">Total: &nbsp;</p>
           <p className="text-lg font-semibold">
-            {invoice.items.reduce(
-              (acc, item) => acc + parseInt(item.price) * parseInt(item.amount),
-              0
+            {new Intl.NumberFormat('id-ID', {
+              style: 'currency',
+              currency: 'IDR',
+            }).format(
+              invoice.items.reduce(
+                (acc, item) =>
+                  acc + parseInt(item.price) * parseInt(item.amount),
+                0
+              )
             )}
-            ,00
           </p>
         </div>
 
@@ -542,7 +550,12 @@ export const TransactionPage = () => {
               </SingleTableItem>
               <SingleTableItem>{product.warehouse_position}</SingleTableItem>
               <SingleTableItem>{product.count}</SingleTableItem>
-              <SingleTableItem>{product.sell_price}</SingleTableItem>
+              <SingleTableItem>
+                {new Intl.NumberFormat('id-ID', {
+                  style: 'currency',
+                  currency: 'IDR',
+                }).format(parseInt(product.sell_price))}
+              </SingleTableItem>
             </tr>
           ))
         ) : (
