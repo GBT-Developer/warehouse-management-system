@@ -32,6 +32,8 @@ export const TransactionPage = () => {
   const [invoice, setInvoice] = useState<{
     customer_id: string;
     customer_name: string;
+    date: string;
+    warehouse_position: string;
     total_price: string;
     payment_method: string;
     items: {
@@ -45,6 +47,8 @@ export const TransactionPage = () => {
   }>({
     customer_id: '',
     customer_name: '',
+    date: '',
+    warehouse_position: '',
     total_price: '',
     payment_method: '',
     items: [],
@@ -125,6 +129,8 @@ export const TransactionPage = () => {
         await addDoc(invoiceRef, {
           customer_id: selectedCustomer.id,
           customer_name: selectedCustomer.name,
+          //current date
+          date: new Date().toISOString().slice(0, 10),
           total_price: invoice.items
             .reduce(
               (acc, item) => acc + parseInt(item.price) * parseInt(item.amount),
@@ -138,6 +144,8 @@ export const TransactionPage = () => {
         await addDoc(invoiceRef, {
           customer_id: '',
           customer_name: invoice.customer_name,
+          //current date
+          date: new Date().toISOString().slice(0, 10),
           total_price: invoice.items
             .reduce(
               (acc, item) => acc + parseInt(item.price) * parseInt(item.amount),
@@ -153,6 +161,8 @@ export const TransactionPage = () => {
       setInvoice({
         customer_id: '',
         customer_name: '',
+        date: '',
+        warehouse_position: '',
         total_price: '',
         payment_method: '',
         items: [],
