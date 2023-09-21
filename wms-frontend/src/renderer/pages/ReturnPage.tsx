@@ -1,10 +1,12 @@
 import { db } from 'firebase';
 import {
   addDoc,
+  and,
   collection,
   doc,
   getDoc,
   getDocs,
+  or,
   query,
   runTransaction,
   updateDoc,
@@ -12,8 +14,12 @@ import {
 } from 'firebase/firestore';
 import { useState } from 'react';
 import { AiOutlineLoading3Quarters, AiOutlineReload } from 'react-icons/ai';
+import { BiSolidTrash } from 'react-icons/bi';
 import { useNavigate } from 'react-router-dom';
 import { InputField } from 'renderer/components/InputField';
+import { SingleTableItem } from 'renderer/components/TableComponents/SingleTableItem';
+import { TableModal } from 'renderer/components/TableComponents/TableModal';
+import { Customer } from 'renderer/interfaces/Customer';
 import { Product } from 'renderer/interfaces/Product';
 import { PageLayout } from 'renderer/layout/PageLayout';
 
@@ -21,10 +27,36 @@ export default function ReturnPage() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [mode, setMode] = useState<'return' | 'exchange' | ''>('');
+  const [mode, setMode] = useState<'return' | 'exchange' | 'void' | ''>('');
   const [invoiceNumber, setInvoiceNumber] = useState('');
   const [checkedItems, setCheckedItems] = useState<boolean[]>([]);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [selectedProducts, setSelectedProducts] = useState<Product[]>([]);
+  const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(
+    null
+  );
   const [invoice, setInvoice] = useState<{
+    customer_id: string;
+    customer_name: string;
+    total_price: string;
+    payment_method: string;
+    items: {
+      product_id: string;
+      amount: string;
+      price: string;
+      product_name: string;
+      warehouse_position: string;
+      is_returned: boolean;
+    }[];
+  }>({
+    customer_id: '',
+    customer_name: '',
+    total_price: '',
+    payment_method: '',
+    items: [],
+  });
+  const [newInvoice, setNewInvoice] = useState<{
     customer_id: string;
     customer_name: string;
     total_price: string;
@@ -246,6 +278,45 @@ export default function ReturnPage() {
     }
   };
 
+  const handleSearch = async (search: string) => {
+    const productsQuery = query(
+      collection(db, 'product'),
+      or(
+        // Query as-is:
+        and(
+          where('brand', '>=', search),
+          where('brand', '<=', search + '\uf8ff')
+        ),
+        // Capitalize first letter:
+        and(
+          where(
+            'brand',
+            '>=',
+            search.charAt(0).toUpperCase() + search.slice(1)
+          ),
+          where(
+            'brand',
+            '<=',
+            search.charAt(0).toUpperCase() + search.slice(1) + '\uf8ff'
+          )
+        ),
+        // Lowercase:
+        and(
+          where('brand', '>=', search.toLowerCase()),
+          where('brand', '<=', search.toLowerCase() + '\uf8ff')
+        )
+      )
+    );
+    const querySnapshot = await getDocs(productsQuery);
+    const products: Product[] = [];
+    querySnapshot.forEach((doc) => {
+      const data = doc.data() as Product;
+      data.id = doc.id;
+      products.push(data);
+    });
+    setProducts(products);
+  };
+
   return (
     <PageLayout>
       <h1 className="text-4xl font-extrabold tracking-tight text-gray-900 md:text-5xl pt-4">
@@ -279,7 +350,8 @@ export default function ReturnPage() {
               onChange={(e) => {
                 if (
                   e.target.value === 'return' ||
-                  e.target.value === 'exchange'
+                  e.target.value === 'exchange' ||
+                  e.target.value === 'void'
                 )
                   setMode(e.target.value);
               }}
@@ -290,6 +362,7 @@ export default function ReturnPage() {
               </option>
               <option value={'return'}>Return</option>
               <option value={'exchange'}>Exchange</option>
+              <option value={'void'}>Void</option>
             </select>
           </div>
         </div>
@@ -360,7 +433,7 @@ export default function ReturnPage() {
                           <input
                             type="checkbox"
                             checked={checkedItems[index]}
-                            disabled={item.is_returned}
+                            disabled={item.is_returned || mode === 'void'}
                             onChange={() => {
                               const newCheckedItems = checkedItems;
                               newCheckedItems[index] = !newCheckedItems[index];
@@ -451,6 +524,174 @@ export default function ReturnPage() {
               </ul>
             </div>
           </div>
+
+          {mode === 'void' && (
+            <div
+              className={`w-full py-10 flex flex-col gap-3 relative ${
+                loading ? 'p-2' : ''
+              }`}
+            >
+              <hr className="my-3" />
+              <h1 className="text-2xl font-bold">New Transaction</h1>
+              <ul className="my-3 space-y-3 font-regular">
+                {newInvoice.items.map((item, index) => (
+                  <li key={index}>
+                    <div className="flex flex-row">
+                      <div className="flex flex-col gap-2 w-full">
+                        <div className="flex w-full justify-between">
+                          <p className="text-lg font-semibold">
+                            {selectedProducts[index].brand +
+                              ' ' +
+                              selectedProducts[index].motor_type +
+                              ' ' +
+                              selectedProducts[index].part +
+                              ' ' +
+                              selectedProducts[index].available_color}
+                          </p>
+                          <button
+                            type="button"
+                            className="text-red-500 text-lg p-2 hover:text-red-700 cursor-pointer bg-transparent rounded-md"
+                            onClick={() => {
+                              setNewInvoice({
+                                ...newInvoice,
+                                items: newInvoice.items.filter(
+                                  (p) => p.product_id !== item.product_id
+                                ),
+                              });
+                              setSelectedProducts(
+                                selectedProducts.filter(
+                                  (p) => p.id !== item.product_id
+                                )
+                              );
+                            }}
+                          >
+                            <BiSolidTrash />
+                          </button>
+                        </div>
+                        <InputField
+                          label="Amount"
+                          labelFor="amount"
+                          loading={loading}
+                          value={item.amount}
+                          onChange={(e) => {
+                            if (isNaN(Number(e.target.value))) return;
+                            if (
+                              parseInt(e.target.value) >
+                              parseInt(selectedProducts[index].count)
+                            ) {
+                              setErrorMessage(
+                                'Not enough stock in warehouse. Stock in warehouse: ' +
+                                  selectedProducts[index].count
+                              );
+                              setTimeout(() => {
+                                setErrorMessage(null);
+                              }, 3000);
+                              return;
+                            }
+                            setNewInvoice({
+                              ...invoice,
+                              items: invoice.items.map((i, idx) => {
+                                if (idx === index) i.amount = e.target.value;
+
+                                return i;
+                              }),
+                            });
+                          }}
+                        />
+                        <div className="flex justify-end">
+                          <p className="text-md">
+                            Rp. {parseInt(item.price) * parseInt(item.amount)}
+                            ,00
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+
+              <div className="flex justify-end">
+                <p className="text-lg font-semibold">
+                  Total: &nbsp; Rp. &nbsp;
+                </p>
+                <p className="text-lg font-semibold">
+                  {newInvoice.items.reduce(
+                    (acc, item) =>
+                      acc + parseInt(item.price) * parseInt(item.amount),
+                    0
+                  )}
+                  ,00
+                </p>
+              </div>
+
+              <button
+                type="button"
+                className="w-full py-2 px-5 text-sm font-medium text-red-500 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-red-700 focus:z-10 focus:ring-4 focus:ring-gray-200 disabled:opacity-50 disabled:hover:bg-white disabled:hover:text-red-500"
+                disabled={loading}
+                onClick={() => setModalOpen(true)}
+              >
+                Choose Products
+              </button>
+
+              <hr />
+
+              <div className="w-full flex justify-between items-center">
+                <div className="w-1/3">
+                  <label htmlFor={'payment-method'} className="text-md">
+                    Payment Method
+                  </label>
+                </div>
+                <div className="w-2/3 flex justify-start">
+                  <div className="w-full">
+                    <label
+                      htmlFor="cash"
+                      className="flex items-center text-center gap-[0.5rem] cursor-pointer w-[max-content]"
+                    >
+                      Cash
+                      <input
+                        type="radio"
+                        disabled={loading}
+                        name="payment-method"
+                        id="cash"
+                        value="Cash"
+                        checked={invoice.payment_method === 'Cash'}
+                        onChange={(e) => {
+                          setNewInvoice({
+                            ...newInvoice,
+                            payment_method: e.target.value,
+                          });
+                        }}
+                        className="cursor-pointer"
+                      />
+                    </label>
+                  </div>
+                  <div className="w-full">
+                    <label
+                      htmlFor="cashless"
+                      className="flex items-center text-center gap-[0.5rem] cursor-pointer w-[max-content]"
+                    >
+                      Cashless
+                      <input
+                        type="radio"
+                        disabled={loading}
+                        name="payment-method"
+                        id="cashless"
+                        value="Cashless"
+                        checked={newInvoice.payment_method === 'Cashless'}
+                        onChange={(e) => {
+                          setNewInvoice({
+                            ...newInvoice,
+                            payment_method: e.target.value,
+                          });
+                        }}
+                        className="cursor-pointer"
+                      />
+                    </label>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
           <div className="flex flex-row-reverse gap-2 justify-start">
             <button
               disabled={loading}
@@ -473,6 +714,94 @@ export default function ReturnPage() {
           )}
         </form>
       )}
+
+      <TableModal
+        placeholder="Search by product brand"
+        modalOpen={modalOpen}
+        setModalOpen={setModalOpen}
+        handleSearch={handleSearch}
+        title={'Choose Product'}
+        headerList={
+          products.length > 0
+            ? ['', 'Product name', 'Warehouse', 'Available amount', 'Price']
+            : []
+        }
+      >
+        {products.length > 0 ? (
+          products.map((product, index) => (
+            <tr
+              key={index}
+              className="hover:bg-gray-100 cursor-pointer"
+              onClick={() => {
+                if (selectedProducts.find((p) => p === product)) {
+                  setSelectedProducts(
+                    selectedProducts.filter((p) => p !== product)
+                  );
+                  setNewInvoice({
+                    ...newInvoice,
+                    items: newInvoice.items.filter(
+                      (p) => p.product_id !== product.id
+                    ),
+                  });
+                } else {
+                  if (!product.id) return;
+                  setSelectedProducts([...selectedProducts, product]);
+                  setNewInvoice({
+                    ...newInvoice,
+                    items: [
+                      ...newInvoice.items,
+                      {
+                        product_id: product.id,
+                        amount: '1',
+                        price:
+                          selectedCustomer?.SpecialPrice.find(
+                            (p) => p.product_id === product.id
+                          )?.price ?? product.sell_price,
+                        product_name:
+                          product.brand +
+                          ' ' +
+                          product.motor_type +
+                          ' ' +
+                          product.part +
+                          ' ' +
+                          product.available_color,
+                        warehouse_position: product.warehouse_position,
+                        is_returned: false,
+                      },
+                    ],
+                  });
+                }
+              }}
+            >
+              <SingleTableItem>
+                <input
+                  type="checkbox"
+                  checked={selectedProducts.includes(product)}
+                  readOnly
+                />
+              </SingleTableItem>
+              <SingleTableItem key={index}>
+                {product.brand +
+                  ' ' +
+                  product.motor_type +
+                  ' ' +
+                  product.part +
+                  ' ' +
+                  product.available_color}
+              </SingleTableItem>
+              <SingleTableItem>{product.warehouse_position}</SingleTableItem>
+              <SingleTableItem>{product.count}</SingleTableItem>
+              <SingleTableItem>{product.sell_price}</SingleTableItem>
+            </tr>
+          ))
+        ) : (
+          <tr className="border-b">
+            <SingleTableItem>
+              <p className="flex justify-center">No products found</p>
+            </SingleTableItem>
+          </tr>
+        )}
+      </TableModal>
     </PageLayout>
   );
 }
