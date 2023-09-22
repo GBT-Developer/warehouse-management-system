@@ -67,55 +67,64 @@ export const ManageProductPage = () => {
                 <th className=" py-3"></th>
               </TableHeader>
               <tbody>
-                {products
-                  .filter((product) => {
-                    if (search === '') return product;
-                    else if (
-                      product.brand
-                        .toLowerCase()
-                        .includes(search.toLowerCase()) ||
-                      product.motor_type
-                        .toLowerCase()
-                        .includes(search.toLowerCase()) ||
-                      product.part
-                        .toLowerCase()
-                        .includes(search.toLowerCase()) ||
-                      product.available_color
-                        .toLowerCase()
-                        .includes(search.toLowerCase())
-                    )
-                      return product;
-                  })
-                  .map((product) => (
-                    <tr
-                      key={product.id}
-                      className="border-b hover:shadow-md cursor-pointer hover:underline"
-                      onClick={() =>
-                        product.id && navigate('/manage-product/' + product.id)
-                      }
-                    >
-                      <SingleTableItem>
-                        {product.brand +
-                          ' ' +
-                          product.motor_type +
-                          ' ' +
-                          product.part +
-                          ' ' +
-                          product.available_color}
-                      </SingleTableItem>
-                      <SingleTableItem>{product.count}</SingleTableItem>
-                      <SingleTableItem>{product.sell_price}</SingleTableItem>
-                      <SingleTableItem>
-                        {product.warehouse_position}
-                      </SingleTableItem>
-                      <SingleTableItem>
-                        <IoInformationCircleSharp
-                          size={20}
-                          className="cursor-pointer"
-                        />
-                      </SingleTableItem>
-                    </tr>
-                  ))}
+                {products.length === 0 ? (
+                  <tr className="border-b">
+                    <td className="py-3" colSpan={4}>
+                      <p className="flex justify-center">No data</p>
+                    </td>
+                  </tr>
+                ) : (
+                  products
+                    .filter((product) => {
+                      if (search === '') return product;
+                      else if (
+                        product.brand
+                          .toLowerCase()
+                          .includes(search.toLowerCase()) ||
+                        product.motor_type
+                          .toLowerCase()
+                          .includes(search.toLowerCase()) ||
+                        product.part
+                          .toLowerCase()
+                          .includes(search.toLowerCase()) ||
+                        product.available_color
+                          .toLowerCase()
+                          .includes(search.toLowerCase())
+                      )
+                        return product;
+                    })
+                    .map((product) => (
+                      <tr
+                        key={product.id}
+                        className="border-b hover:shadow-md cursor-pointer hover:underline"
+                        onClick={() =>
+                          product.id &&
+                          navigate('/manage-product/' + product.id)
+                        }
+                      >
+                        <SingleTableItem>
+                          {product.brand +
+                            ' ' +
+                            product.motor_type +
+                            ' ' +
+                            product.part +
+                            ' ' +
+                            product.available_color}
+                        </SingleTableItem>
+                        <SingleTableItem>{product.count}</SingleTableItem>
+                        <SingleTableItem>{product.sell_price}</SingleTableItem>
+                        <SingleTableItem>
+                          {product.warehouse_position}
+                        </SingleTableItem>
+                        <SingleTableItem>
+                          <IoInformationCircleSharp
+                            size={20}
+                            className="cursor-pointer"
+                          />
+                        </SingleTableItem>
+                      </tr>
+                    ))
+                )}
               </tbody>
             </table>
           </div>

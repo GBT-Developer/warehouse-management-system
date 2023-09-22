@@ -43,6 +43,11 @@ export const OnDispatchListPage = () => {
           dispatchnoteList.push(data);
         });
 
+        if (dispatchnoteList.length === 0) {
+          setLoading(false);
+          return;
+        }
+
         // Then fetch the products
         const productQuery = query(
           collection(db, 'on_dispatch'),
@@ -97,62 +102,72 @@ export const OnDispatchListPage = () => {
                 <th className=" py-3">Number of Products</th>
               </TableHeader>
               <tbody>
-                {dispatchNoteList
-                  .filter((dispatchNote) => {
-                    if (search === '') return dispatchNote;
-                    else if (
-                      dispatchNote.painter
-                        .toLowerCase()
-                        .includes(search.toLowerCase())
-                    )
-                      return dispatchNote;
-                  })
-                  .map((dispatchNote, index) => (
-                    <React.Fragment key={index}>
-                      <tr
-                        className="border-b hover:shadow-md cursor-pointer"
-                        onClick={() => {
-                          if (!dispatchNote.id) return;
-                          toggleShowProducts(dispatchNote.id);
-                        }}
-                      >
-                        <SingleTableItem>{dispatchNote.id}</SingleTableItem>
-                        <SingleTableItem>
-                          {dispatchNote.painter}
-                        </SingleTableItem>
-                        <SingleTableItem>{dispatchNote.date}</SingleTableItem>
-                        <SingleTableItem>
-                          {dispatchNote.dispatch_items.length}
-                        </SingleTableItem>
-                      </tr>
-                      {dispatchNote.id && showProductsMap[dispatchNote.id] && (
-                        <tr className="border-b">
-                          <td colSpan={5}>
-                            {' '}
-                            {products
-                              .filter(
-                                (product) =>
-                                  product.dispatch_note_id === dispatchNote.id
-                              )
-                              .map((product, index) => (
-                                <div key={index} className="py-[0.75rem]">
-                                  <div>
-                                    {product.brand +
-                                      ' ' +
-                                      product.motor_type +
-                                      ' ' +
-                                      product.part +
-                                      ' ' +
-                                      product.available_color}
-                                    : {product.count}x
-                                  </div>
-                                </div>
-                              ))}
-                          </td>
+                {dispatchNoteList.length === 0 ? (
+                  <tr className="border-b">
+                    <td className="py-3" colSpan={4}>
+                      <p className="flex justify-center">No data</p>
+                    </td>
+                  </tr>
+                ) : (
+                  dispatchNoteList
+                    .filter((dispatchNote) => {
+                      if (search === '') return dispatchNote;
+                      else if (
+                        dispatchNote.painter
+                          .toLowerCase()
+                          .includes(search.toLowerCase())
+                      )
+                        return dispatchNote;
+                    })
+                    .map((dispatchNote, index) => (
+                      <React.Fragment key={index}>
+                        <tr
+                          className="border-b hover:shadow-md cursor-pointer"
+                          onClick={() => {
+                            if (!dispatchNote.id) return;
+                            toggleShowProducts(dispatchNote.id);
+                          }}
+                        >
+                          <SingleTableItem>{dispatchNote.id}</SingleTableItem>
+                          <SingleTableItem>
+                            {dispatchNote.painter}
+                          </SingleTableItem>
+                          <SingleTableItem>{dispatchNote.date}</SingleTableItem>
+                          <SingleTableItem>
+                            {dispatchNote.dispatch_items.length}
+                          </SingleTableItem>
                         </tr>
-                      )}
-                    </React.Fragment>
-                  ))}
+                        {dispatchNote.id &&
+                          showProductsMap[dispatchNote.id] && (
+                            <tr className="border-b">
+                              <td colSpan={5}>
+                                {' '}
+                                {products
+                                  .filter(
+                                    (product) =>
+                                      product.dispatch_note_id ===
+                                      dispatchNote.id
+                                  )
+                                  .map((product, index) => (
+                                    <div key={index} className="py-[0.75rem]">
+                                      <div>
+                                        {product.brand +
+                                          ' ' +
+                                          product.motor_type +
+                                          ' ' +
+                                          product.part +
+                                          ' ' +
+                                          product.available_color}
+                                        : {product.count}x
+                                      </div>
+                                    </div>
+                                  ))}
+                              </td>
+                            </tr>
+                          )}
+                      </React.Fragment>
+                    ))
+                )}
               </tbody>
             </table>
           </div>

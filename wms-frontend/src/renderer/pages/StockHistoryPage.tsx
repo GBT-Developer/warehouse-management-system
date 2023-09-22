@@ -28,7 +28,7 @@ function StockHistoryPage() {
         stockHistoryData.push(data);
       });
 
-      //set stock history sorted by date
+      // Set stock history sorted by date
       stockHistoryData.sort((a, b) => {
         if (a.created_at === undefined || b.created_at === undefined) return 0;
         return (
@@ -36,9 +36,9 @@ function StockHistoryPage() {
         );
       });
 
-      //sort based the new count and old count of the same product on the same date
-      for (let i = 0; i < stockHistoryData.length; i++) {
-        for (let j = i + 1; j < stockHistoryData.length; j++) {
+      // Sort based the new count and old count of the same product on the same date
+      for (let i = 0; i < stockHistoryData.length; i++)
+        for (let j = i + 1; j < stockHistoryData.length; j++)
           if (
             stockHistoryData[i].product === stockHistoryData[j].product &&
             stockHistoryData[i].created_at === stockHistoryData[j].created_at &&
@@ -49,8 +49,6 @@ function StockHistoryPage() {
             stockHistoryData[i] = stockHistoryData[j];
             stockHistoryData[j] = temp;
           }
-        }
-      }
 
       setStockHistory(stockHistoryData);
       setLoading(false);
@@ -86,56 +84,64 @@ function StockHistoryPage() {
                 <th className=" py-3">Difference</th>
               </TableHeader>
               <tbody className="overflow-y-auto">
-                {stockHistory
-                  .filter((stockHistory) => {
-                    if (search === '') return stockHistory;
-                    else if (
-                      stockHistory.product_name
-                        .toLowerCase()
-                        .includes(search.toLowerCase()) ||
-                      stockHistory.warehouse_position
-                        .toLowerCase()
-                        .includes(search.toLowerCase()) ||
-                      stockHistory.created_at?.toLowerCase().includes(search)
-                    )
-                      return stockHistory;
-                  })
-                  .map((stock_history: StockHistory, index) => (
-                    <tr key={index} className="border-b">
-                      <SingleTableItem>
-                        {stock_history.created_at}
-                      </SingleTableItem>
-                      <SingleTableItem>
-                        {stock_history.product_name}
-                      </SingleTableItem>
-                      <SingleTableItem>
-                        {stock_history.warehouse_position}
-                      </SingleTableItem>
-                      <SingleTableItem>
-                        {stock_history.old_count}
-                      </SingleTableItem>
-                      <SingleTableItem>
-                        {parseInt(stock_history.old_count) +
-                          parseInt(stock_history.difference)}
-                      </SingleTableItem>
-                      <SingleTableItem>
-                        <div className="flex items-center justify-between">
-                          {stock_history.difference}
-                          {Number(stock_history.difference) > 0 ? (
-                            <GoTriangleUp
-                              size={23}
-                              className="text-green-500"
-                            />
-                          ) : (
-                            <GoTriangleDown
-                              size={23}
-                              className="text-red-500"
-                            />
-                          )}
-                        </div>
-                      </SingleTableItem>
-                    </tr>
-                  ))}
+                {stockHistory.length === 0 ? (
+                  <tr className="border-b">
+                    <td className="py-3" colSpan={6}>
+                      <p className="flex justify-center">No data</p>
+                    </td>
+                  </tr>
+                ) : (
+                  stockHistory
+                    .filter((stockHistory) => {
+                      if (search === '') return stockHistory;
+                      else if (
+                        stockHistory.product_name
+                          .toLowerCase()
+                          .includes(search.toLowerCase()) ||
+                        stockHistory.warehouse_position
+                          .toLowerCase()
+                          .includes(search.toLowerCase()) ||
+                        stockHistory.created_at?.toLowerCase().includes(search)
+                      )
+                        return stockHistory;
+                    })
+                    .map((stock_history: StockHistory, index) => (
+                      <tr key={index} className="border-b">
+                        <SingleTableItem>
+                          {stock_history.created_at}
+                        </SingleTableItem>
+                        <SingleTableItem>
+                          {stock_history.product_name}
+                        </SingleTableItem>
+                        <SingleTableItem>
+                          {stock_history.warehouse_position}
+                        </SingleTableItem>
+                        <SingleTableItem>
+                          {stock_history.old_count}
+                        </SingleTableItem>
+                        <SingleTableItem>
+                          {parseInt(stock_history.old_count) +
+                            parseInt(stock_history.difference)}
+                        </SingleTableItem>
+                        <SingleTableItem>
+                          <div className="flex items-center justify-between">
+                            {stock_history.difference}
+                            {Number(stock_history.difference) > 0 ? (
+                              <GoTriangleUp
+                                size={23}
+                                className="text-green-500"
+                              />
+                            ) : (
+                              <GoTriangleDown
+                                size={23}
+                                className="text-red-500"
+                              />
+                            )}
+                          </div>
+                        </SingleTableItem>
+                      </tr>
+                    ))
+                )}
               </tbody>
             </table>
           </div>
