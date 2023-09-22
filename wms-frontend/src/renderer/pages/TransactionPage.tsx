@@ -195,7 +195,7 @@ export const TransactionPage = () => {
 
   return (
     <PageLayout>
-      <h1 className="text-4xl font-extrabold tracking-tight text-gray-900 md:text-5xl">
+      <h1 className="text-4xl font-extrabold tracking-tight text-gray-900 md:text-5xl pt-4">
         Transaction
       </h1>
       <form
