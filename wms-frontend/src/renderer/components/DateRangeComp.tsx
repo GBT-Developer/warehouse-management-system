@@ -47,7 +47,7 @@ const DateRangeComp = ({
   };
 
   return (
-    <div className="flex flex-col w-1/3">
+    <div className="flex flex-col w-1/3 relative">
       <input
         className="text-[22px] border-[2px] border-[#0000] rounded-[3px] p-[5px] w-full"
         value={
@@ -65,6 +65,7 @@ const DateRangeComp = ({
       <div ref={refOne}>
         {open && (
           <DateRange
+            className="absolute top-[50px] left-0 z-[100]"
             onChange={(items) => {
               const startDate = items.selection.startDate;
               const endDate = items.selection.endDate;
