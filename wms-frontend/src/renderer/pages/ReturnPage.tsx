@@ -56,7 +56,7 @@ export default function ReturnPage() {
     payment_method: '',
     items: [],
   });
-  const [newInvoice, setNewInvoice] = useState<{
+  const [newTransaction, setNewTransaction] = useState<{
     customer_id: string;
     customer_name: string;
     total_price: string;
@@ -86,6 +86,23 @@ export default function ReturnPage() {
       is_returned: boolean;
     }[]
   >([]);
+  const [selectedNewItems, setSelectedNewItems] = useState<
+    {
+      product_id: string;
+      amount: string;
+      price: string;
+      product_name: string;
+      warehouse_position: string;
+      is_returned: boolean;
+    }[]
+  >([]);
+
+  const getSpecialPriceForProduct = (productId: String) => {
+    const specialPrice = selectedCustomer?.SpecialPrice.find(
+      (p) => p.product_id === productId
+    );
+    return specialPrice ? specialPrice.price : null;
+  };
 
   const handleSubmit = async () => {
     // If mode is exchange, check if there is enough stock
@@ -121,29 +138,29 @@ export default function ReturnPage() {
         }
       });
     else if (mode === 'return') {
-      const newInvoice = { ...invoice };
+      const newTransaction = { ...invoice };
       // Decrease the amount of the item in the invoice
       // If amount is 0, delete the item from the invoice
       selectedItems.forEach((selectedItem) => {
-        const itemIndex = newInvoice.items.findIndex(
+        const itemIndex = newTransaction.items.findIndex(
           (item) => item.product_id === selectedItem.product_id
         );
         if (
-          parseInt(newInvoice.items[itemIndex].amount) ===
+          parseInt(newTransaction.items[itemIndex].amount) ===
           parseInt(selectedItem.amount)
         )
           // Delete the item
-          newInvoice.items.splice(itemIndex, 1);
+          newTransaction.items.splice(itemIndex, 1);
         else
-          newInvoice.items[itemIndex].amount = (
-            parseInt(newInvoice.items[itemIndex].amount) -
+          newTransaction.items[itemIndex].amount = (
+            parseInt(newTransaction.items[itemIndex].amount) -
             parseInt(selectedItem.amount)
           ).toString();
       });
 
       // Reduce the total price
-      newInvoice.total_price = (
-        parseInt(newInvoice.total_price) -
+      newTransaction.total_price = (
+        parseInt(newTransaction.total_price) -
         selectedItems.reduce(
           (acc, cur) => acc + parseInt(cur.price) * parseInt(cur.amount),
           0
@@ -154,13 +171,13 @@ export default function ReturnPage() {
       // But if the item is already in the invoice, just increase the amount
       selectedItems.forEach((selectedItem) => {
         selectedItem.is_returned = true;
-        const itemIndex = newInvoice.items.findIndex(
+        const itemIndex = newTransaction.items.findIndex(
           (item) => item.product_id === selectedItem.product_id
         );
-        if (itemIndex === -1) newInvoice.items.push(selectedItem);
+        if (itemIndex === -1) newTransaction.items.push(selectedItem);
         else
-          newInvoice.items[itemIndex].amount = (
-            parseInt(newInvoice.items[itemIndex].amount) -
+          newTransaction.items[itemIndex].amount = (
+            parseInt(newTransaction.items[itemIndex].amount) -
             parseInt(selectedItem.amount)
           ).toString();
       });
@@ -168,8 +185,8 @@ export default function ReturnPage() {
       // Update the invoice
       await runTransaction(db, (transaction) => {
         transaction.update(doc(db, 'invoice', invoiceNumber), {
-          items: newInvoice.items,
-          total_price: newInvoice.total_price,
+          items: newTransaction.items,
+          total_price: newTransaction.total_price,
         });
 
         // Put the returned product to broken product database
@@ -186,6 +203,8 @@ export default function ReturnPage() {
 
         return Promise.all(promises);
       });
+    } else if (mode === 'void') {
+      // TO DO: Handle void transaction
     }
     // Clear the form
     setInvoiceNumber('');
@@ -235,6 +254,15 @@ export default function ReturnPage() {
           parseInt(amount) + parseInt((brokenProduct.data() as Product).count),
       });
     }
+  };
+
+  const handleFetchCustomer = async () => {
+    console.log('fetching customer');
+    const customerRef = doc(db, 'customer', invoice.customer_id);
+    const customerSnap = await getDoc(customerRef);
+    const customerData = customerSnap.data() as Customer;
+    setSelectedCustomer(customerData);
+    console.log(customerData);
   };
 
   const handleFetchInvoice = async () => {
@@ -324,7 +352,6 @@ export default function ReturnPage() {
       </h1>
       <form
         onSubmit={(e) => {
-          e.preventDefault();
           () => handleFetchInvoice();
         }}
         className={`w-2/3 pt-14 mt-10 flex flex-col gap-3 relative${
@@ -380,7 +407,10 @@ export default function ReturnPage() {
             disabled={loading}
             className="absolute top-0 right-0 h-full flex items-center justify-center px-3"
             onClick={() => {
+              console.log('clicked');
               handleFetchInvoice().catch(() => console.log('error'));
+              handleFetchCustomer().catch(() => console.log('error'));
+              console.log(selectedCustomer);
             }}
           >
             <AiOutlineReload />
@@ -414,7 +444,12 @@ export default function ReturnPage() {
               </div>
               <div className="flex justify-between">
                 <p className="text-md">Total price</p>
-                <p className="text-md">{invoice.total_price}</p>
+                <p className="text-md">
+                  {new Intl.NumberFormat('id-ID', {
+                    style: 'currency',
+                    currency: 'IDR',
+                  }).format(parseInt(invoice.total_price))}
+                </p>
               </div>
               <div className="flex justify-between">
                 <p className="text-md">Payment method</p>
@@ -432,7 +467,7 @@ export default function ReturnPage() {
                         <div className="pt-1">
                           <input
                             type="checkbox"
-                            checked={checkedItems[index]}
+                            checked={checkedItems[index] || mode === 'void'}
                             disabled={item.is_returned || mode === 'void'}
                             onChange={() => {
                               const newCheckedItems = checkedItems;
@@ -534,33 +569,27 @@ export default function ReturnPage() {
               <hr className="my-3" />
               <h1 className="text-2xl font-bold">New Transaction</h1>
               <ul className="my-3 space-y-3 font-regular">
-                {newInvoice.items.map((item, index) => (
-                  <li key={index}>
+                {selectedNewItems.map((newItem, newIndex) => (
+                  <li key={newIndex}>
                     <div className="flex flex-row">
                       <div className="flex flex-col gap-2 w-full">
                         <div className="flex w-full justify-between">
                           <p className="text-lg font-semibold">
-                            {selectedProducts[index].brand +
-                              ' ' +
-                              selectedProducts[index].motor_type +
-                              ' ' +
-                              selectedProducts[index].part +
-                              ' ' +
-                              selectedProducts[index].available_color}
+                            {newItem.product_name}
                           </p>
                           <button
                             type="button"
                             className="text-red-500 text-lg p-2 hover:text-red-700 cursor-pointer bg-transparent rounded-md"
                             onClick={() => {
-                              setNewInvoice({
-                                ...newInvoice,
-                                items: newInvoice.items.filter(
-                                  (p) => p.product_id !== item.product_id
-                                ),
-                              });
+                              setSelectedNewItems(
+                                selectedNewItems.filter(
+                                  (item) =>
+                                    item.product_id !== newItem.product_id
+                                )
+                              );
                               setSelectedProducts(
                                 selectedProducts.filter(
-                                  (p) => p.id !== item.product_id
+                                  (p) => p.id !== newItem.product_id
                                 )
                               );
                             }}
@@ -569,39 +598,60 @@ export default function ReturnPage() {
                           </button>
                         </div>
                         <InputField
-                          label="Amount"
-                          labelFor="amount"
+                          label="new amount"
+                          labelFor="new amount"
                           loading={loading}
-                          value={item.amount}
+                          value={selectedNewItems[newIndex]?.amount}
                           onChange={(e) => {
-                            if (isNaN(Number(e.target.value))) return;
+                            const newAmount = e.target.value;
+                            if (isNaN(Number(newAmount))) return;
                             if (
                               parseInt(e.target.value) >
-                              parseInt(selectedProducts[index].count)
+                              parseInt(selectedProducts[newIndex].count) +
+                                parseInt(
+                                  invoice.items.find(
+                                    (item) =>
+                                      item.product_id ===
+                                      selectedProducts[newIndex].id
+                                  )?.amount ?? '0'
+                                )
                             ) {
                               setErrorMessage(
-                                'Not enough stock in warehouse. Stock in warehouse: ' +
-                                  selectedProducts[index].count
+                                'Amount cannot be more than the original amount'
                               );
+                              e.target.value = e.target.value.slice(0, -1);
                               setTimeout(() => {
                                 setErrorMessage(null);
                               }, 3000);
                               return;
                             }
-                            setNewInvoice({
-                              ...invoice,
-                              items: invoice.items.map((i, idx) => {
-                                if (idx === index) i.amount = e.target.value;
 
-                                return i;
-                              }),
-                            });
+                            // Use map to create a new array with updated amount
+                            const updatedSelectedNewItems =
+                              selectedNewItems.map((item, i) => {
+                                if (i === newIndex) {
+                                  return {
+                                    ...item,
+                                    amount: newAmount,
+                                  };
+                                }
+                                return item;
+                              });
+
+                            setSelectedNewItems(updatedSelectedNewItems);
                           }}
                         />
+
                         <div className="flex justify-end">
                           <p className="text-md">
-                            Rp. {parseInt(item.price) * parseInt(item.amount)}
-                            ,00
+                            {new Intl.NumberFormat('id-ID', {
+                              style: 'currency',
+                              currency: 'IDR',
+                            }).format(
+                              parseInt(
+                                selectedNewItems[newIndex]?.amount ?? '0'
+                              ) * parseInt(selectedNewItems[newIndex].price)
+                            )}
                           </p>
                         </div>
                       </div>
@@ -611,16 +661,18 @@ export default function ReturnPage() {
               </ul>
 
               <div className="flex justify-end">
+                <p className="text-lg font-semibold">Total: &nbsp;</p>
                 <p className="text-lg font-semibold">
-                  Total: &nbsp; Rp. &nbsp;
-                </p>
-                <p className="text-lg font-semibold">
-                  {newInvoice.items.reduce(
-                    (acc, item) =>
-                      acc + parseInt(item.price) * parseInt(item.amount),
-                    0
+                  {new Intl.NumberFormat('id-ID', {
+                    style: 'currency',
+                    currency: 'IDR',
+                  }).format(
+                    selectedNewItems.reduce(
+                      (acc, item) =>
+                        acc + parseInt(item.price) * parseInt(item.amount),
+                      0
+                    )
                   )}
-                  ,00
                 </p>
               </div>
 
@@ -656,8 +708,8 @@ export default function ReturnPage() {
                         value="Cash"
                         checked={invoice.payment_method === 'Cash'}
                         onChange={(e) => {
-                          setNewInvoice({
-                            ...newInvoice,
+                          setNewTransaction({
+                            ...newTransaction,
                             payment_method: e.target.value,
                           });
                         }}
@@ -677,10 +729,10 @@ export default function ReturnPage() {
                         name="payment-method"
                         id="cashless"
                         value="Cashless"
-                        checked={newInvoice.payment_method === 'Cashless'}
+                        checked={newTransaction.payment_method === 'Cashless'}
                         onChange={(e) => {
-                          setNewInvoice({
-                            ...newInvoice,
+                          setNewTransaction({
+                            ...newTransaction,
                             payment_method: e.target.value,
                           });
                         }}
@@ -733,43 +785,42 @@ export default function ReturnPage() {
               key={index}
               className="hover:bg-gray-100 cursor-pointer"
               onClick={() => {
-                if (selectedProducts.find((p) => p === product)) {
+                if (selectedProducts.some((p) => p.id === product.id)) {
                   setSelectedProducts(
-                    selectedProducts.filter((p) => p !== product)
+                    selectedProducts.filter((p) => p.id !== product.id)
                   );
-                  setNewInvoice({
-                    ...newInvoice,
-                    items: newInvoice.items.filter(
+                  setNewTransaction({
+                    ...newTransaction,
+                    items: newTransaction.items.filter(
                       (p) => p.product_id !== product.id
                     ),
                   });
                 } else {
                   if (!product.id) return;
+                  const specialPrice = getSpecialPriceForProduct(product.id);
                   setSelectedProducts([...selectedProducts, product]);
-                  setNewInvoice({
-                    ...newInvoice,
-                    items: [
-                      ...newInvoice.items,
-                      {
-                        product_id: product.id,
-                        amount: '1',
-                        price:
-                          selectedCustomer?.SpecialPrice.find(
-                            (p) => p.product_id === product.id
-                          )?.price ?? product.sell_price,
-                        product_name:
-                          product.brand +
-                          ' ' +
-                          product.motor_type +
-                          ' ' +
-                          product.part +
-                          ' ' +
-                          product.available_color,
-                        warehouse_position: product.warehouse_position,
-                        is_returned: false,
-                      },
-                    ],
-                  });
+                  setSelectedNewItems([
+                    ...selectedNewItems,
+                    {
+                      product_id: product.id,
+                      amount: '1',
+                      price:
+                        specialPrice !== null
+                          ? specialPrice
+                          : product.sell_price,
+                      product_name:
+                        product.brand +
+                        ' ' +
+                        product.motor_type +
+                        ' ' +
+                        product.part +
+                        ' ' +
+                        product.available_color,
+                      warehouse_position: product.warehouse_position,
+                      is_returned: false,
+                    },
+                  ]);
+                  console.log(selectedNewItems);
                 }
               }}
             >
