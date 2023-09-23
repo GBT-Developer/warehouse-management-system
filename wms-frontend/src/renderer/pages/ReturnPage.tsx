@@ -326,7 +326,7 @@ export default function ReturnPage() {
           e.preventDefault();
           () => handleFetchInvoice();
         }}
-        className={`w-2/3 pt-14 mt-10 flex flex-col gap-3 relative${
+        className={`w-2/3 pt-14 mt-10 flex flex-col gap-3 relative ${
           loading ? 'p-2' : ''
         }`}
       >

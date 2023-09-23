@@ -456,7 +456,7 @@ export const ManageStockPage = () => {
             setErrorMessage('An error occured while submitting data');
           });
         }}
-        className={`w-2/3 py-14 my-10 flex flex-col gap-3 relative${
+        className={`w-2/3 py-14 my-10 flex flex-col gap-3 relative ${
           loading ? 'p-2' : ''
         }`}
       >
