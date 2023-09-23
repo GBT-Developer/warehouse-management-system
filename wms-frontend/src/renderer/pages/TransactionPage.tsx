@@ -1,10 +1,10 @@
 import { db } from 'firebase';
 import {
-  addDoc,
   and,
   collection,
   doc,
   getDocs,
+  increment,
   or,
   query,
   runTransaction,
@@ -92,7 +92,7 @@ export const TransactionPage = () => {
     });
   }, []);
 
-  const handleSubmit = async (e: FormEvent) => {
+  const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
 
     if (invoice.items.length === 0 || invoice.payment_method === '') {
@@ -112,51 +112,66 @@ export const TransactionPage = () => {
             (p) => p.id === item.product_id
           );
           if (!currentProduct) return Promise.reject();
+          const decrementStock = increment(-1 * parseInt(item.amount));
+          const productRef = doc(db, 'product', item.product_id);
+          transaction.update(productRef, 'count', decrementStock);
+        }
 
-          const difference =
-            parseInt(currentProduct.count) - parseInt(item.amount);
+        const incrementTransaction = increment(1);
+        const incrementTotalSales = increment(
+          invoice.items.reduce(
+            (acc, item) => acc + parseInt(item.price) * parseInt(item.amount),
+            0
+          )
+        );
+        const statsRef = doc(db, 'invoice', '--stats--');
+        transaction.set(
+          statsRef,
+          {
+            transactionCount: incrementTransaction,
+            totalSales: incrementTotalSales,
+          },
+          { merge: true }
+        );
 
-          transaction.update(
-            doc(db, 'product', item.product_id),
-            'count',
-            difference.toString()
-          );
+        if (selectedCustomer?.id) {
+          const newInvoiceRef = doc(db, 'invoice', selectedCustomer.id);
+          transaction.set(newInvoiceRef, {
+            customer_id: selectedCustomer.id,
+            customer_name: selectedCustomer.name,
+            // Current date
+            date: invoice.date,
+            total_price: invoice.items
+              .reduce(
+                (acc, item) =>
+                  acc + parseInt(item.price) * parseInt(item.amount),
+                0
+              )
+              .toString(),
+            payment_method: invoice.payment_method,
+            items: invoice.items,
+          });
+        } else {
+          const newInvoiceRef = doc(db, 'invoice');
+
+          transaction.set(newInvoiceRef, {
+            customer_id: '',
+            customer_name: invoice.customer_name,
+            // Current date
+            date: invoice.date,
+            total_price: invoice.items
+              .reduce(
+                (acc, item) =>
+                  acc + parseInt(item.price) * parseInt(item.amount),
+                0
+              )
+              .toString(),
+            payment_method: invoice.payment_method,
+            items: invoice.items,
+          });
         }
         return Promise.resolve();
       }).catch((error) => console.error('Transaction failed: ', error));
-
-      const invoiceRef = collection(db, 'invoice');
-      if (selectedCustomer) {
-        await addDoc(invoiceRef, {
-          customer_id: selectedCustomer.id,
-          customer_name: selectedCustomer.name,
-          //current date
-          date: invoice.date,
-          total_price: invoice.items
-            .reduce(
-              (acc, item) => acc + parseInt(item.price) * parseInt(item.amount),
-              0
-            )
-            .toString(),
-          payment_method: invoice.payment_method,
-          items: invoice.items,
-        });
-      } else {
-        await addDoc(invoiceRef, {
-          customer_id: '',
-          customer_name: invoice.customer_name,
-          //current date
-          date: invoice.date,
-          total_price: invoice.items
-            .reduce(
-              (acc, item) => acc + parseInt(item.price) * parseInt(item.amount),
-              0
-            )
-            .toString(),
-          payment_method: invoice.payment_method,
-          items: invoice.items,
-        });
-      }
 
       // Clear invoice
       setInvoice({
@@ -225,9 +240,7 @@ export const TransactionPage = () => {
       <form
         onSubmit={(e) => {
           e.preventDefault();
-          handleSubmit(e).catch(() => {
-            setErrorMessage('An error occured while submitting data');
-          });
+          handleSubmit(e);
         }}
         className={`w-2/3 py-14 my-10 flex flex-col gap-3 relative ${
           loading ? 'p-2' : ''
@@ -257,7 +270,6 @@ export const TransactionPage = () => {
                   setGuestFormOpen(true);
                 } else {
                   setGuestFormOpen(false);
-                  console.log(e.target.value);
                   setSelectedCustomer(
                     () =>
                       customerList.find(
