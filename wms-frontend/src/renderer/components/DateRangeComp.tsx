@@ -47,7 +47,7 @@ const DateRangeComp = ({
   };
 
   return (
-    <div className="flex flex-col w-1/3 relative">
+    <div className="flex flex-col w-2/3 relative">
       <input
         className="text-[22px] border-[2px] border-[#0000] rounded-[3px] p-[5px] w-full"
         value={

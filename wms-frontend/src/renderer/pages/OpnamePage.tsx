@@ -1,17 +1,16 @@
 import { addDays, format } from 'date-fns';
 import { db } from 'firebase';
 import { collection, getDocs, orderBy, query, where } from 'firebase/firestore';
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
+import { AiOutlineLoading3Quarters } from 'react-icons/ai';
 import { BarChart } from 'renderer/components/BarChart';
 import DateRangeComp from 'renderer/components/DateRangeComp';
 import { Invoice } from 'renderer/interfaces/Invoice';
 import { PageLayout } from 'renderer/layout/PageLayout';
 
 export default function OpnamePage() {
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [sales, setSales] = useState<Map<string, number>>();
   const [loading, setLoading] = useState(false);
-  const myRef = React.useRef<HTMLDivElement>(null);
   // State for date range
   const [startDate, setStartDate] = useState(
     format(addDays(new Date(), -7), 'yyyy-MM-dd')
@@ -75,26 +74,33 @@ export default function OpnamePage() {
 
   return (
     <PageLayout>
-      <h1 className="text-4xl font-extrabold tracking-tight text-gray-900 md:text-5xl">
-        Opname
-      </h1>
-      <DateRangeComp {...{ startDate, endDate, setStartDate, setEndDate }} />
-      <div className="w-2/3 h-2/5">
-        <BarChart
-          data={sales}
-          chartTitle="Sales Chart"
-          chartSubTitle={`Items sold: ${
-            sales?.size ? sales.size : 0
-          } |salesTotal sales: ${new Intl.NumberFormat('id-ID', {
-            style: 'currency',
-            currency: 'IDR',
-          }).format(
-            Array.from(sales?.values() ? sales.values() : []).reduce(
-              (a, b) => a + b,
-              0
-            )
-          )}`}
-        />
+      <div className="relative flex flex-col w-2/3 h-full">
+        {loading && (
+          <div className="absolute flex justify-center items-center py-2 px-3 top-0 left-0 w-full h-full bg-gray-50 rounded-lg z-0 bg-opacity-50">
+            <AiOutlineLoading3Quarters className="animate-spin flex justify-center text-4xl" />
+          </div>
+        )}
+        <h1 className="text-4xl font-extrabold tracking-tight text-gray-900 md:text-5xl">
+          Opname
+        </h1>
+        <DateRangeComp {...{ startDate, endDate, setStartDate, setEndDate }} />
+        <div className="w-full h-2/5">
+          <BarChart
+            data={sales}
+            chartTitle="Sales Chart"
+            chartSubTitle={`Items sold: ${
+              sales?.size ? sales.size : 0
+            } | Total sales: ${new Intl.NumberFormat('id-ID', {
+              style: 'currency',
+              currency: 'IDR',
+            }).format(
+              Array.from(sales?.values() ? sales.values() : []).reduce(
+                (a, b) => a + b,
+                0
+              )
+            )}`}
+          />
+        </div>
       </div>
     </PageLayout>
   );
