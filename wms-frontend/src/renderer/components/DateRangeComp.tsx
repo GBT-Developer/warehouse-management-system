@@ -2,77 +2,90 @@ import { format } from 'date-fns';
 import React, { useEffect, useRef, useState } from 'react';
 import { DateRange } from 'react-date-range';
 
-import 'react-date-range/dist/styles.css'; // main style file
-import 'react-date-range/dist/theme/default.css'; // theme css file
+import 'react-date-range/dist/styles.css'; // Main style file
+import 'react-date-range/dist/theme/default.css'; // Theme css file
 
 interface DateRangeCompProps {
-  initRange: {
-    startDate: Date;
-    endDate: Date;
-    key: string;
-  }[];
-  setRange: React.Dispatch<
-    React.SetStateAction<
-      {
-        startDate: Date;
-        endDate: Date;
-        key: string;
-      }[]
-    >
-  >;
+  startDate: string;
+  endDate: string;
+  setStartDate: React.Dispatch<React.SetStateAction<string>>;
+  setEndDate: React.Dispatch<React.SetStateAction<string>>;
 }
 
-const DateRangeComp = ({ initRange, setRange }: DateRangeCompProps) => {
-  //open or close
+const DateRangeComp = ({
+  startDate,
+  endDate,
+  setStartDate,
+  setEndDate,
+}: DateRangeCompProps) => {
+  // Open or close
   const [open, setOpen] = useState(false);
 
-  //get the target element to toggle
-  const refOne = useRef(null);
+  // Get the target element to toggle
+  const refOne = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
-    //set current date on component load
-    document.addEventListener('keydown', hideOnEscape, true);
-    document.addEventListener('click', hideOnClickOutside, true);
+    // Set current date on component load
+    const escButtonListener = (e: KeyboardEvent) => hideOnEscape(e);
+
+    // Close dropdown on click outside
+    const clickListener = (e: MouseEvent) => {
+      if (!refOne.current?.contains(e.target as Node)) setOpen(false);
+    };
+
+    document.addEventListener('keydown', escButtonListener);
+    document.addEventListener('click', clickListener, true);
+
+    return () => {
+      document.removeEventListener('keydown', escButtonListener);
+      document.removeEventListener('click', clickListener);
+    };
   }, []);
-  //hide dropdown on escape
-  const hideOnEscape = (e: any) => {
-    if (e.key === 'Escape') {
-      setOpen(false);
-    }
-  };
-  //hide dropdown on outside click
-  const hideOnClickOutside = (e: any) => {
-    if (
-      refOne.current &&
-      !(refOne.current as HTMLElement).contains(e.target as Node)
-    ) {
-      setOpen(false);
-    }
+  // Hide dropdown on escape
+  const hideOnEscape = (e: KeyboardEvent) => {
+    if (e.key === 'Escape') setOpen(false);
   };
 
   return (
-    <div className="block relative w-1/3 p-3">
+    <div className="flex flex-col w-1/3">
       <input
-        className="text-[22px] border-[2px] border-[#0000] rounded-[3px] p-[5px] min-w-[25rem]"
+        className="text-[22px] border-[2px] border-[#0000] rounded-[3px] p-[5px] w-full"
         value={
           'From:' +
           ' ' +
-          format(initRange[0].startDate, 'yyyy-MM-dd') +
+          format(new Date(startDate), 'dd/MM/yyyy') +
           ' To: ' +
-          format(initRange[0].endDate, 'yyyy-MM-dd')
+          format(new Date(endDate), 'dd/MM/yyyy')
         }
         readOnly
         onClick={() => {
           setOpen((open) => !open);
         }}
       />
-      <div ref={refOne} className="flex justify-center ">
+      <div ref={refOne}>
         {open && (
           <DateRange
-            onChange={(items) => setRange([items.selection])}
+            onChange={(items) => {
+              const startDate = items.selection.startDate;
+              const endDate = items.selection.endDate;
+
+              if (startDate && endDate) {
+                setStartDate(format(startDate, 'yyyy-MM-dd'));
+                setEndDate(format(endDate, 'yyyy-MM-dd'));
+              }
+            }}
+            onRangeFocusChange={(focusedRange) => {
+              if (focusedRange[1] === 0) setOpen(false);
+            }}
             editableDateInputs={true}
             moveRangeOnFirstSelection={false}
-            ranges={initRange}
+            ranges={[
+              {
+                startDate: new Date(startDate),
+                endDate: new Date(endDate),
+                key: 'selection',
+              },
+            ]}
             months={1}
             direction="horizontal"
           />
