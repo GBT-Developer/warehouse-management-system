@@ -84,6 +84,18 @@ export const BarChart = ({
             display: false,
           },
         },
+        scales: {
+          x: {
+            grid: {
+              display: false,
+            },
+          },
+          y: {
+            grid: {
+              display: false,
+            },
+          },
+        },
         maintainAspectRatio: false,
         responsive: true,
       }}
