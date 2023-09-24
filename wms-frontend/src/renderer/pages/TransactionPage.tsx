@@ -102,8 +102,6 @@ export const TransactionPage = () => {
         if (!invoice.items) return Promise.reject();
         for (const item of invoice.items) {
           if (!item.id) return Promise.reject('Product id not found');
-          const currentProduct = selectedProducts.find((p) => p.id === item.id);
-          if (!currentProduct) return Promise.reject();
           const decrementStock = increment(-1 * item.count);
           const productRef = doc(db, 'product', item.id);
           transaction.update(productRef, {
