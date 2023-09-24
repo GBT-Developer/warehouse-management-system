@@ -40,7 +40,7 @@ export default function OpnamePage() {
           invoiceData.push(data);
           if (data.date && data.total_price) {
             const date = format(new Date(data.date), 'dd');
-            const total_price = parseInt(data.total_price);
+            const total_price = data.total_price;
             const currentTotal = theSales.get(date);
             if (currentTotal) theSales.set(date, currentTotal + total_price);
             else theSales.set(date, total_price);
@@ -74,7 +74,7 @@ export default function OpnamePage() {
 
   return (
     <PageLayout>
-      <div className="relative flex flex-col w-2/3 h-full">
+      <div className="relative flex flex-col w-2/3 h-full pt-4">
         {loading && (
           <div className="absolute flex justify-center items-center py-2 px-3 top-0 left-0 w-full h-full bg-gray-50 rounded-lg z-0 bg-opacity-50">
             <AiOutlineLoading3Quarters className="animate-spin flex justify-center text-4xl" />

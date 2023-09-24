@@ -27,7 +27,7 @@ export default function TransactionHistory() {
         stockHistoryData.push(data);
       });
 
-      //set stock history sorted by date
+      // Set stock history sorted by date
       stockHistoryData.sort((a, b) => {
         if (a.date === undefined || b.date === undefined) return 0;
         return new Date(b.date).getTime() - new Date(a.date).getTime();
@@ -91,9 +91,7 @@ export default function TransactionHistory() {
                           ? new Intl.NumberFormat('id-ID', {
                               style: 'currency',
                               currency: 'IDR',
-                            }).format(
-                              parseInt(invoiceHistory.total_price ?? '0')
-                            )
+                            }).format(invoiceHistory.total_price ?? 0)
                           : ''}
                       </SingleTableItem>
                       <SingleTableItem>
