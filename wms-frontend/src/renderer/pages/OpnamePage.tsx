@@ -56,7 +56,9 @@ export default function OpnamePage() {
 
         const invoices: Invoice[] = [];
         invoiceListDoc.forEach((invoice) => {
-          invoices.push(invoice.data() as Invoice);
+          const data = invoice.data() as Invoice;
+          data.id = invoice.id;
+          invoices.push(data);
         });
 
         setInvoiceList(invoices);
