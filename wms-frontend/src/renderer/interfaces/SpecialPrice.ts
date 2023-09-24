@@ -6,6 +6,6 @@ export interface SpecialPrice {
   part: string;
   available_color: string;
   warehouse_position: string;
-  price: string;
-  sell_price: string;
+  price: number;
+  sell_price: number;
 }

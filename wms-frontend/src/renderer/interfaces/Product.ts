@@ -8,7 +8,7 @@ export interface Product {
   available_color: string;
   sell_price: string;
   warehouse_position: string;
-  count: string;
+  count: number;
   created_at?: string;
   supplier?: Supplier;
 }

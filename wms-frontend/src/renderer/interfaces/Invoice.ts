@@ -5,6 +5,6 @@ export interface Invoice {
   date?: string;
   items?: Product[];
   payment_method?: string;
-  total_price?: string;
+  total_price?: number;
   created_at?: string;
 }

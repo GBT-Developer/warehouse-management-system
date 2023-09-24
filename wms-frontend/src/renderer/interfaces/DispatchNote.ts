@@ -5,6 +5,6 @@ export interface DispatchNote {
   dispatch_items: {
     product_id: string;
     color: string;
-    amount: string;
+    amount: number;
   }[];
 }
