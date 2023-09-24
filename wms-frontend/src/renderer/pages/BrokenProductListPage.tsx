@@ -2,11 +2,10 @@ import { db } from 'firebase';
 import {
   collection,
   doc,
-  documentId,
   getDocs,
+  increment,
   query,
   runTransaction,
-  where,
 } from 'firebase/firestore';
 import { useEffect, useState } from 'react';
 import { AiOutlineLoading3Quarters } from 'react-icons/ai';
@@ -74,43 +73,27 @@ export const BrokenProductListPage = () => {
       const productId = activeProduct.id;
       if (reason === 'supplier') {
         // First check whether the product exists in 'returned_product' collection
-        const productQuery = query(
-          collection(db, 'product'),
-          where(documentId(), '==', activeProduct.id),
-          where('available_color', '==', activeProduct.available_color),
-          where('brand', '==', activeProduct.brand),
-          where('motor_type', '==', activeProduct.motor_type),
-          where('part', '==', activeProduct.part),
-          where('supplier', '==', activeProduct.supplier),
-          where('warehouse_position', '==', activeProduct.warehouse_position)
+        const newReturnedProductDocRef = doc(
+          collection(db, 'returned_product'),
+          productId
         );
-
-        const productQuerySnapshot = await getDocs(productQuery);
-        if (productQuerySnapshot.empty) {
-          // If the product does not exist in 'returned_product' collection, create it
-          const newReturnedProductDocRef = doc(
-            collection(db, 'returned_product')
-          );
-          transaction.set(newReturnedProductDocRef, {
+        const updateStock = increment(activeProduct.count);
+        transaction.set(
+          newReturnedProductDocRef,
+          {
             available_color: activeProduct.available_color,
             brand: activeProduct.brand,
-            count: activeProduct.count,
+            count: updateStock,
             motor_type: activeProduct.motor_type,
             part: activeProduct.part,
             supplier: activeProduct.supplier,
-          });
-        } else {
-          // If the product exists in 'returned_product' collection, update it
-          const product = productQuerySnapshot.docs[0];
-          const productData = product.data() as Product;
-          transaction.update(product.ref, {
-            count: parseInt(activeProduct.count) + parseInt(productData.count),
-          });
-        }
-      }
-
-      // If the return was for a painter, create a new dispatch_note
-      if (reason === 'painter') {
+          },
+          {
+            merge: true,
+          }
+        );
+      } else if (reason === 'painter') {
+        // If the return was for a painter, create a new dispatch_note
         // Creating new dispatch_note
         const newDispatchNoteDocRef = doc(collection(db, 'dispatch_note'));
         transaction.set(newDispatchNoteDocRef, {
