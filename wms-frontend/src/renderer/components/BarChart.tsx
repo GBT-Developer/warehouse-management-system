@@ -22,7 +22,7 @@ ChartJS.register(
 );
 
 interface BarChartProps {
-  data: Map<string, number> | undefined;
+  data: Record<string, number> | undefined;
   chartTitle?: string;
   chartSubTitle?: string;
 }
@@ -35,10 +35,17 @@ export const BarChart = ({
   return (
     <Bar
       data={{
-        labels: data?.keys() ? Array.from(data.keys()) : [],
+        labels: data
+          ? Object.keys(data).sort((a, b) => parseInt(a) - parseInt(b))
+          : [],
         datasets: [
           {
-            data: data?.values() ? Array.from(data.values()) : [],
+            data: data
+              ? // Sort the values by the key
+                Object.keys(data)
+                  .sort((a, b) => parseInt(a) - parseInt(b))
+                  .map((key) => data[key])
+              : [],
             backgroundColor: 'rgba(255, 99, 132, 0.2)',
             borderColor: 'rgba(255, 99, 132, 1)',
           },

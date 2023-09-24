@@ -1,15 +1,18 @@
-import { addDays, format } from 'date-fns';
+import { format } from 'date-fns';
 import { db } from 'firebase';
-import { collection, getDocs, orderBy, query, where } from 'firebase/firestore';
+import { doc, getDoc } from 'firebase/firestore';
 import { useEffect, useState } from 'react';
 import { AiOutlineLoading3Quarters } from 'react-icons/ai';
 import { BarChart } from 'renderer/components/BarChart';
 import DateRangeComp from 'renderer/components/DateRangeComp';
-import { Invoice } from 'renderer/interfaces/Invoice';
 import { PageLayout } from 'renderer/layout/PageLayout';
 
 export default function OpnamePage() {
-  const [sales, setSales] = useState<Map<string, number>>();
+  const [salesStats, setSalesStats] = useState<{
+    total_sales: number;
+    transaction_count: number;
+    daily_sales: Record<string, number>;
+  }>();
   const [loading, setLoading] = useState(false);
   // Take the first date of the month as the start date
   const [startDate, setStartDate] = useState(
@@ -33,45 +36,27 @@ export default function OpnamePage() {
     const fetchInvoiceList = async () => {
       setLoading(true);
       try {
-        const invoiceQuery = query(
-          collection(db, 'invoice'),
-          where('date', '>=', startDate),
-          where('date', '<=', endDate),
-          orderBy('date', 'asc')
-        );
-        const querySnapshot = await getDocs(invoiceQuery);
+        const statsDocRef = doc(db, 'invoice', '--stats--');
+        const statsDoc = await getDoc(statsDocRef);
+        const statsDocData = statsDoc.data() as {
+          total_sales: number;
+          transaction_count: number;
+          daily_sales: Record<string, number>;
+        };
 
-        const invoiceData: Invoice[] = [];
-        const theSales = new Map<string, number>();
-        querySnapshot.forEach((theInvoice) => {
-          const data = theInvoice.data() as Invoice;
-          data.id = theInvoice.id;
-          invoiceData.push(data);
-          if (data.date && data.total_price) {
-            const date = format(new Date(data.date), 'dd');
-            const total_price = data.total_price;
-            const currentTotal = theSales.get(date);
-            if (currentTotal) theSales.set(date, currentTotal + total_price);
-            else theSales.set(date, total_price);
-          }
-        });
-
-        // Fill in the empty sales between the dates from startDate to endDate
-        const currentDate = new Date(startDate);
-        while (currentDate <= addDays(new Date(endDate), 1)) {
-          const date = format(currentDate, 'dd');
-          if (!theSales.has(date)) theSales.set(date, 0);
-          currentDate.setDate(currentDate.getDate() + 1);
+        for (
+          let date = new Date(startDate);
+          date <= new Date(endDate);
+          date.setDate(date.getDate() + 1)
+        ) {
+          // Take the date of the current iteration
+          const currentDate = format(date, 'dd');
+          if (!statsDocData.daily_sales[currentDate])
+            statsDocData.daily_sales[currentDate] = 0;
         }
 
-        // Sort the sales by date
-        const sortedSales = new Map(
-          Array.from(theSales.entries()).sort(
-            ([dateA], [dateB]) => parseInt(dateA) - parseInt(dateB)
-          )
-        );
+        setSalesStats(statsDocData);
 
-        setSales(sortedSales);
         setLoading(false);
       } catch (error) {
         console.error('Error fetching data:', error);
@@ -95,17 +80,12 @@ export default function OpnamePage() {
         <DateRangeComp {...{ startDate, endDate, setStartDate, setEndDate }} />
         <div className="w-full h-2/5">
           <BarChart
-            data={sales}
+            data={salesStats?.daily_sales}
             chartTitle="Sales Chart"
             chartSubTitle={`Total sales: ${new Intl.NumberFormat('id-ID', {
               style: 'currency',
               currency: 'IDR',
-            }).format(
-              Array.from(sales?.values() ? sales.values() : []).reduce(
-                (a, b) => a + b,
-                0
-              )
-            )}`}
+            }).format(salesStats?.total_sales ? salesStats.total_sales : 0)}`}
           />
         </div>
       </div>
