@@ -1,5 +1,7 @@
+import { format } from 'date-fns';
 import { db } from 'firebase';
 import {
+  FieldValue,
   and,
   collection,
   doc,
@@ -115,11 +117,29 @@ export const TransactionPage = () => {
           )
         );
         const statsRef = doc(db, 'invoice', '--stats--');
+        const dailySales = new Map<string, FieldValue>();
+        const datePriceMap = new Map<string, number>();
+        invoice.items.forEach((item) => {
+          if (!invoice.date) return;
+          const date = format(new Date(invoice.date), 'dd');
+          const total_price = item.sell_price * item.count;
+          const currentTotal = datePriceMap.get(date);
+          if (currentTotal) {
+            const currentIncrement = increment(total_price + currentTotal);
+            datePriceMap.set(date, currentTotal + total_price);
+            dailySales.set(date, currentIncrement);
+          } else {
+            const currentIncrement = increment(total_price);
+            datePriceMap.set(date, total_price);
+            dailySales.set(date, currentIncrement);
+          }
+        });
         transaction.set(
           statsRef,
           {
-            transactionCount: incrementTransaction,
-            totalSales: incrementTotalSales,
+            transaction_count: incrementTransaction,
+            total_sales: incrementTotalSales,
+            daily_sales: Object.fromEntries(dailySales),
           },
           { merge: true }
         );
