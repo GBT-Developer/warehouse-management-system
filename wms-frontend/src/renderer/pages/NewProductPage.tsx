@@ -93,7 +93,6 @@ export const NewProductPage = () => {
       ) ||
       newProduct.warehouse_position === ''
     ) {
-      console.log(newProduct);
       setErrorMessage('Please fill all the fields');
       setTimeout(() => {
         setErrorMessage(null);

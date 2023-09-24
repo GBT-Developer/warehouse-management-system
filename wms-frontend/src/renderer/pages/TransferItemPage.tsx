@@ -43,7 +43,6 @@ export const TransferItemPage = () => {
     e.preventDefault();
 
     if (!dispatchNote.date || !dispatchNote.painter) {
-      console.log(dispatchNote);
       setErrorMessage('Please fill all fields');
       setTimeout(() => {
         setErrorMessage(null);

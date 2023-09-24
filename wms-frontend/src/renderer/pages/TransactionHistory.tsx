@@ -34,7 +34,6 @@ export default function TransactionHistory() {
       });
 
       setInvoiceHistory(stockHistoryData);
-      console.log(stockHistoryData);
       setLoading(false);
     };
 
