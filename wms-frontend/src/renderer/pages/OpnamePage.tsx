@@ -13,6 +13,7 @@ export default function OpnamePage() {
     transaction_count: number;
     daily_sales: Record<string, number>;
   }>();
+  const [tax, setTax] = useState(0);
   const [loading, setLoading] = useState(false);
   // Take the first date of the month as the start date
   const [startDate, setStartDate] = useState(
@@ -87,6 +88,44 @@ export default function OpnamePage() {
               currency: 'IDR',
             }).format(salesStats?.total_sales ? salesStats.total_sales : 0)}`}
           />
+        </div>
+        <div>
+          <div className="w-full flex justify-between items-center">
+            <div className="w-1/3">
+              <p className="text-md">Tax to be payed: </p>
+            </div>
+            <div className="w-2/3 flex gap-2 items-center">
+              <p>
+                {new Intl.NumberFormat('id-ID', {
+                  style: 'currency',
+                  currency: 'IDR',
+                }).format(salesStats?.total_sales ?? 0)}
+              </p>
+              <p>x</p>
+              <input
+                className={
+                  'placeholder:text-xs text-center placeholder:font-light bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 p-2 w-[3rem]'
+                }
+                type="text"
+                value={tax}
+                onChange={(e) => {
+                  if (
+                    !/^[0-9]*(\.[0-9]*)?$/.test(e.target.value) &&
+                    e.target.value !== ''
+                  )
+                    return;
+                  setTax(Number(e.target.value));
+                }}
+              />
+              <p>% &nbsp; =</p>
+              <p>
+                {new Intl.NumberFormat('id-ID', {
+                  style: 'currency',
+                  currency: 'IDR',
+                }).format(((salesStats?.total_sales ?? 0) * tax) / 100)}
+              </p>
+            </div>
+          </div>
         </div>
       </div>
     </PageLayout>
