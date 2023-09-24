@@ -12,6 +12,8 @@ import { useEffect, useState } from 'react';
 import { AiOutlineLoading3Quarters } from 'react-icons/ai';
 import { BarChart } from 'renderer/components/BarChart';
 import DateRangeComp from 'renderer/components/DateRangeComp';
+import { SingleTableItem } from 'renderer/components/TableComponents/SingleTableItem';
+import { TableHeader } from 'renderer/components/TableComponents/TableHeader';
 import { Invoice } from 'renderer/interfaces/Invoice';
 import { PageLayout } from 'renderer/layout/PageLayout';
 
@@ -182,6 +184,66 @@ export default function OpnamePage() {
                 }).format(((salesStats?.total_sales ?? 0) * tax) / 100)}
               </p>
             </div>
+          </div>
+        </div>
+        <hr className="my-4" />
+        <div className="relative flex flex-col justify-between h-[fit-content]">
+          <div className="flex flex-col md:flex-row items-center justify-between space-y-3 md:space-y-0 md:space-x-4 py-1 mb-[1rem]">
+            <p className="text-2xl font-bold">Transaction List</p>
+          </div>
+          <div className="overflow-y-auto h-full relative">
+            {loading && (
+              <div className="absolute flex justify-center items-center py-2 px-3 top-0 left-0 w-full h-full bg-gray-50 rounded-lg z-0 bg-opacity-50">
+                <AiOutlineLoading3Quarters className="animate-spin flex justify-center text-4xl" />
+              </div>
+            )}
+
+            <table className="w-full text-sm text-left text-gray-500">
+              <TableHeader>
+                <th className=" py-3">Date</th>
+                <th className=" py-3">Customer Name</th>
+                <th className=" py-3">Total Purchase</th>
+                <th className=" py-3">Payment Method</th>
+                <th className=" py-3"></th>
+              </TableHeader>
+              <tbody>
+                {invoiceList.length === 0 ? (
+                  <tr className="border-b">
+                    <td className="py-3" colSpan={4}>
+                      <p className="flex justify-center">No data</p>
+                    </td>
+                  </tr>
+                ) : (
+                  invoiceList
+                    .filter((invoice) => {
+                      if (search === '') return invoice;
+                      else if (
+                        invoice.customer_name
+                          ?.toLowerCase()
+                          .includes(search.toLowerCase())
+                      )
+                        return invoice;
+                    })
+                    .map((invoice) => (
+                      <tr key={invoice.id} className="border-b">
+                        <SingleTableItem>{invoice.date}</SingleTableItem>
+                        <SingleTableItem>
+                          {invoice.customer_name}
+                        </SingleTableItem>
+                        <SingleTableItem>
+                          {new Intl.NumberFormat('id-ID', {
+                            style: 'currency',
+                            currency: 'IDR',
+                          }).format(invoice.total_price ?? 0)}
+                        </SingleTableItem>
+                        <SingleTableItem>
+                          {invoice.payment_method}
+                        </SingleTableItem>
+                      </tr>
+                    ))
+                )}
+              </tbody>
+            </table>
           </div>
         </div>
       </div>
