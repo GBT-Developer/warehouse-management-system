@@ -125,6 +125,7 @@ export const seedProduct = async (
           part: productPart,
           count: the_count.toString(),
           sell_price: sell_price,
+          purchase_price: (parseFloat(sell_price) * 0.8).toFixed(2),
           warehouse_position:
             warehouse_positions[
               faker.number.int({ min: 0, max: warehouse_positions.length - 1 })
