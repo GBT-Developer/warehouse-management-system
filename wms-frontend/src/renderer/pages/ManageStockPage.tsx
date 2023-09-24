@@ -1,13 +1,12 @@
 import { db } from 'firebase';
 import {
-  addDoc,
   collection,
   deleteDoc,
   doc,
   getDocs,
+  increment,
   query,
   runTransaction,
-  updateDoc,
   where,
 } from 'firebase/firestore';
 import React, { useEffect, useRef, useState } from 'react';
@@ -28,7 +27,7 @@ import { useAuth } from 'renderer/providers/AuthProvider';
 
 const newPurchaseInitialState = {
   created_at: '',
-  purchase_price: '0',
+  purchase_price: 0,
   supplier: null,
   payment_status: 'unpaid',
   products: [],
@@ -132,13 +131,13 @@ export const ManageStockPage = () => {
       ((manageStockMode === 'purchase' || manageStockMode === 'force-change') &&
         selectedSupplier === null) ||
       ((manageStockMode === 'purchase' || manageStockMode === 'force-change') &&
-        newPurchase.purchase_price === '') ||
+        newPurchase.purchase_price === 0) ||
       (manageStockMode === 'from_other_warehouse' && dispatchNote === '') ||
       (manageStockMode === 'from_other_warehouse' &&
         acceptedProducts.length != products.length) ||
       (manageStockMode === 'from_other_warehouse' &&
         acceptedProducts.some(
-          (acceptedProduct) => acceptedProduct.count === ''
+          (acceptedProduct) => acceptedProduct.count === 0
         )) ||
       newPurchase.created_at === ''
     ) {
@@ -159,67 +158,66 @@ export const ManageStockPage = () => {
         const productsPromises = newPurchase.products.map(async (product) => {
           if (!product.id) return Promise.reject();
           const productRef = doc(db, 'product', product.id);
+          const updateStock = increment(product.quantity);
 
           transaction.update(productRef, {
-            count: product.quantity,
+            count: updateStock,
+          });
+
+          // If not returned product, create new purchase history
+          if (!returnedProduct && manageStockMode === 'purchase') {
+            const newPurchaseHistoryDocRef = doc(
+              collection(db, 'purchase_history')
+            );
+
+            transaction.set(newPurchaseHistoryDocRef, {
+              supplier: selectedSupplier.id,
+              created_at: newPurchase.created_at,
+              purchase_price: newPurchase.purchase_price,
+              payment_status: newPurchase.payment_status,
+              products: newPurchase.products.map((product, index) => ({
+                id: product.id,
+                name:
+                  products[index].brand +
+                  ' ' +
+                  products[index].motor_type +
+                  ' ' +
+                  products[index].part +
+                  ' ' +
+                  products[index].available_color,
+                quantity: product.quantity,
+              })),
+            });
+          }
+
+          const productDetail = products.find(
+            (product) => product.id === product.id
+          );
+
+          if (!productDetail) return Promise.reject('Product detail not found');
+
+          const newStockHistoryDocRef = doc(collection(db, 'stock_history'));
+          transaction.set(newStockHistoryDocRef, {
+            product: product.id,
+            product_name:
+              productDetail.brand +
+              ' ' +
+              productDetail.motor_type +
+              ' ' +
+              productDetail.part +
+              ' ' +
+              productDetail.available_color,
+            count: product.quantity + productDetail.count,
+            old_count: productDetail.count,
+            difference: product.quantity,
+            warehouse_position: selectedWarehouse,
+            type: 'purchase',
+            created_at: newPurchase.created_at,
           });
         });
 
         // Wait for all promises in the map to resolve
         Promise.all(productsPromises).catch(() => console.log('error'));
-
-        if (!returnedProduct && manageStockMode === 'purchase') {
-          const newPurchaseHistoryDocRef = doc(
-            collection(db, 'purchase_history')
-          );
-
-          transaction.set(newPurchaseHistoryDocRef, {
-            supplier: selectedSupplier.id,
-            created_at: newPurchase.created_at,
-            purchase_price: newPurchase.purchase_price,
-            payment_status: newPurchase.payment_status,
-            products: newPurchase.products.map((product, index) => ({
-              id: product.id,
-              name:
-                products[index].brand +
-                ' ' +
-                products[index].motor_type +
-                ' ' +
-                products[index].part +
-                ' ' +
-                products[index].available_color,
-              quantity: product.quantity,
-            })),
-          });
-        }
-
-        const newStockHistoryPromises = newPurchase.products.map(
-          (product, index) => {
-            const newStockHistoryDocRef = doc(collection(db, 'stock_history'));
-            transaction.set(newStockHistoryDocRef, {
-              product: product.id,
-              product_name:
-                products[index].brand +
-                ' ' +
-                products[index].motor_type +
-                ' ' +
-                products[index].part +
-                ' ' +
-                products[index].available_color,
-              count: product.quantity,
-              old_count: products[index].count,
-              difference: (
-                Number(product.quantity) - Number(products[index].count)
-              ).toString(),
-              warehouse_position: selectedWarehouse,
-              type: 'purchase',
-              created_at: newPurchase.created_at,
-            });
-          }
-        );
-
-        // Wait for all promises in the map to resolve
-        Promise.all(newStockHistoryPromises).catch(() => console.log('error'));
 
         return Promise.resolve();
       });
@@ -228,41 +226,39 @@ export const ManageStockPage = () => {
       await runTransaction(db, async (transaction) => {
         const promises = acceptedProducts.map(async (acceptedProduct) => {
           if (!acceptedProduct.id) return Promise.reject();
-          const productQuery = query(
-            collection(db, 'product'),
-            where('warehouse_position', '==', 'Gudang Jadi'),
-            where('available_color', '==', acceptedProduct.available_color),
-            where('brand', '==', acceptedProduct.brand),
-            where('motor_type', '==', acceptedProduct.motor_type),
-            where('part', '==', acceptedProduct.part),
-            where('supplier', '==', acceptedProduct.supplier)
-          );
 
-          const productQuerySnapshot = await getDocs(productQuery);
+          delete acceptedProduct.status;
+          delete acceptedProduct.dispatch_note_id;
+          const theOldCount =
+            products.find((product) => product.id === acceptedProduct.id)
+              ?.count ?? 0;
 
-          if (productQuerySnapshot.empty) {
-            // Create new product
-            const newProductDocRef = doc(collection(db, 'product'));
-
-            delete acceptedProduct.status;
-            delete acceptedProduct.dispatch_note_id;
-
-            transaction.set(newProductDocRef, {
+          // Update product count
+          const updateStock = increment(acceptedProduct.count);
+          const productRef = doc(db, 'product', acceptedProduct.id);
+          transaction.set(
+            productRef,
+            {
               brand: acceptedProduct.brand,
               motor_type: acceptedProduct.motor_type,
               part: acceptedProduct.part,
               available_color: acceptedProduct.available_color,
               sell_price: acceptedProduct.sell_price,
-              count: acceptedProduct.count,
-              created_at: newPurchase.created_at,
+              count: updateStock,
               supplier: acceptedProduct.supplier,
               warehouse_position: 'Gudang Jadi',
-            });
+            },
+            {
+              merge: true,
+            }
+          );
 
-            const newStockHistoryDocRef = doc(collection(db, 'stock_history'));
-
-            transaction.set(newStockHistoryDocRef, {
-              product: newProductDocRef.id,
+          // Create new stock history
+          const newStockHistoryDocRef = doc(collection(db, 'stock_history'));
+          transaction.set(
+            newStockHistoryDocRef,
+            {
+              product: acceptedProduct.id,
               product_name:
                 acceptedProduct.brand +
                 ' ' +
@@ -271,56 +267,44 @@ export const ManageStockPage = () => {
                 acceptedProduct.part +
                 ' ' +
                 acceptedProduct.available_color,
-              count: acceptedProduct.count,
-              old_count: '0',
+              old_count: theOldCount,
               difference: acceptedProduct.count,
+              count: acceptedProduct.count + theOldCount,
               warehouse_position: selectedWarehouse,
               type: 'from_other_warehouse',
               created_at: newPurchase.created_at,
-            });
+            },
+            {
+              merge: true,
+            }
+          );
 
-            checkBrokenProduct(
-              acceptedProduct,
-              products.find((product) => product.id === acceptedProduct.id)
-            ).catch(() => console.log('error'));
-            deleteDispatchNote();
+          const actualProduct = products.find(
+            (product) => product.id === acceptedProduct.id
+          );
+          if (!actualProduct) return Promise.reject('Product not found');
+          if (acceptedProduct.count < actualProduct.count) {
+            const brokenProductRef = doc(
+              collection(db, 'broken_product'),
+              acceptedProduct.id
+            );
 
-            return Promise.resolve();
+            const updateCount = increment(
+              actualProduct.count - acceptedProduct.count
+            );
+
+            transaction.set(
+              brokenProductRef,
+              {
+                ...acceptedProduct,
+                count: updateCount,
+              },
+              {
+                merge: true,
+              }
+            );
           }
 
-          const product = productQuerySnapshot.docs[0];
-          const productData = product.data() as Product;
-
-          transaction.update(product.ref, {
-            count:
-              parseInt(acceptedProduct.count) + parseInt(productData.count),
-          });
-
-          const newStockHistoryDocRef = doc(collection(db, 'stock_history'));
-
-          transaction.set(newStockHistoryDocRef, {
-            product: acceptedProduct.id,
-            product_name:
-              acceptedProduct.brand +
-              ' ' +
-              acceptedProduct.motor_type +
-              ' ' +
-              acceptedProduct.part +
-              ' ' +
-              acceptedProduct.available_color,
-            count:
-              parseInt(acceptedProduct.count) + parseInt(productData.count),
-            old_count: productData.count,
-            difference: acceptedProduct.count,
-            warehouse_position: selectedWarehouse,
-            type: 'from_other_warehouse',
-            created_at: newPurchase.created_at,
-          });
-
-          checkBrokenProduct(
-            acceptedProduct,
-            products.find((product) => product.id === acceptedProduct.id)
-          ).catch(() => console.log('error'));
           deleteDispatchNote();
 
           return Promise.resolve();
@@ -362,59 +346,6 @@ export const ManageStockPage = () => {
     deleteDoc(dispatchNoteRef).catch((error) => {
       console.error('Error removing document: ', error);
     });
-  };
-
-  const checkBrokenProduct = async (
-    acceptedProduct: Product & {
-      dispatch_note_id?: string;
-      id?: string;
-      status?: string;
-    },
-    product: Product | undefined
-  ) => {
-    if (!product) return;
-    // If (arrivedProduct.count < product.data().count)
-    // Add the difference to broken product database
-    if (parseInt(acceptedProduct.count) < parseInt(product.count)) {
-      // Check if the product is already in broken product database
-      const brokenProductQuery = query(
-        collection(db, 'broken_product'),
-        where('available_color', '==', acceptedProduct.available_color),
-        where('brand', '==', acceptedProduct.brand),
-        where('motor_type', '==', acceptedProduct.motor_type),
-        where('part', '==', acceptedProduct.part),
-        where('supplier', '==', acceptedProduct.supplier)
-      );
-
-      const brokenProductQuerySnapshot = await getDocs(brokenProductQuery);
-
-      if (brokenProductQuerySnapshot.empty) {
-        delete acceptedProduct.status;
-        delete acceptedProduct.dispatch_note_id;
-        delete acceptedProduct.id;
-
-        await addDoc(collection(db, 'broken_product'), {
-          available_color: acceptedProduct.available_color,
-          brand: acceptedProduct.brand,
-          motor_type: acceptedProduct.motor_type,
-          part: acceptedProduct.part,
-          supplier: acceptedProduct.supplier,
-          count: parseInt(product.count) - parseInt(acceptedProduct.count),
-          sell_price: acceptedProduct.sell_price,
-          warehouse_position: 'Gudang Jadi',
-        });
-      } else {
-        // Update broken product count
-        const brokenProduct = brokenProductQuerySnapshot.docs[0];
-
-        await updateDoc(brokenProduct.ref, {
-          count:
-            parseInt(product.count) -
-            parseInt(acceptedProduct.count) +
-            parseInt((brokenProduct.data() as Product).count),
-        });
-      }
-    }
   };
 
   const handleFetchDispatchNote = async () => {
@@ -627,7 +558,7 @@ export const ManageStockPage = () => {
               products.map((product, index) => (
                 <li key={index}>
                   <p className="flex justify-start">
-                    {product.count +
+                    {product.count.toString() +
                       'x ' +
                       product.brand +
                       ' ' +
@@ -656,7 +587,7 @@ export const ManageStockPage = () => {
                             ) {
                               setErrorMessage(
                                 'Not enough stock in warehouse. Stock in warehouse: ' +
-                                  product.count
+                                  product.count.toString()
                               );
                               // Set e target value with the value without the last character
                               e.target.value = e.target.value.slice(0, -1);
@@ -677,7 +608,7 @@ export const ManageStockPage = () => {
                                   if (acceptedProduct.id === product.id)
                                     return {
                                       ...acceptedProduct,
-                                      count: e.target.value,
+                                      count: Number(e.target.value),
                                     };
                                   return acceptedProduct;
                                 })
@@ -689,7 +620,7 @@ export const ManageStockPage = () => {
                               ...acceptedProducts,
                               {
                                 ...product,
-                                count: e.target.value,
+                                count: Number(e.target.value),
                               },
                             ]);
                           }}
@@ -760,7 +691,7 @@ export const ManageStockPage = () => {
                                 if (acceptedProduct.id === product.id)
                                   return {
                                     ...acceptedProduct,
-                                    count: e.target.value,
+                                    count: Number(e.target.value),
                                   };
                                 return acceptedProduct;
                               })
@@ -775,7 +706,7 @@ export const ManageStockPage = () => {
                               if (i === index)
                                 return {
                                   ...product,
-                                  quantity: e.target.value,
+                                  quantity: Number(e.target.value),
                                 };
                               return product;
                             }),
@@ -820,7 +751,7 @@ export const ManageStockPage = () => {
                     return;
                   setNewPurchase(() => ({
                     ...newPurchase,
-                    purchase_price: e.target.value,
+                    purchase_price: Number(e.target.value),
                   }));
                 }}
               />
@@ -914,7 +845,7 @@ export const ManageStockPage = () => {
                         product.part +
                         ' ' +
                         product.available_color,
-                      quantity: '0',
+                      quantity: 0,
                     },
                   ],
                 }));
