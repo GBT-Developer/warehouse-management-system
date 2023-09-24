@@ -67,8 +67,8 @@ export const BarChart = ({
             },
             fullSize: true,
             padding: {
-              top: 15,
-              bottom: 15,
+              top: chartTitle ? 15 : 0,
+              bottom: chartTitle ? 15 : 0,
             },
             text: chartTitle,
           },
@@ -82,8 +82,8 @@ export const BarChart = ({
             },
             fullSize: true,
             padding: {
-              top: 15,
-              bottom: 15,
+              top: chartSubTitle ? 15 : 0,
+              bottom: chartSubTitle ? 15 : 0,
             },
             text: chartSubTitle,
           },
