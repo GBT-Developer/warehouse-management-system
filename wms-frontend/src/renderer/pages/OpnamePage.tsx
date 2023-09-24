@@ -219,7 +219,7 @@ export default function OpnamePage() {
                 <th className=" py-3">Customer Name</th>
                 <th className=" py-3">Total Purchase</th>
                 <th className=" py-3">Payment Method</th>
-                <th className=" py-3"></th>
+                <th className=" py-3">Invoice Number</th>
               </TableHeader>
               <tbody>
                 {invoiceList.length === 0 ? (
@@ -242,6 +242,7 @@ export default function OpnamePage() {
                       <SingleTableItem>
                         {invoice.payment_method}
                       </SingleTableItem>
+                      <SingleTableItem>{invoice.id}</SingleTableItem>
                     </tr>
                   ))
                 )}
