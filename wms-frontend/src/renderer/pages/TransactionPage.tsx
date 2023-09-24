@@ -106,7 +106,9 @@ export const TransactionPage = () => {
           if (!currentProduct) return Promise.reject();
           const decrementStock = increment(-1 * item.count);
           const productRef = doc(db, 'product', item.id);
-          transaction.update(productRef, 'count', decrementStock);
+          transaction.update(productRef, {
+            count: decrementStock,
+          });
         }
 
         const incrementTransaction = increment(1);
@@ -545,6 +547,7 @@ export const TransactionPage = () => {
                         part: product.part,
                         available_color: product.available_color,
                         warehouse_position: product.warehouse_position,
+                        purchase_price: product.purchase_price,
                         is_returned: false,
                       },
                     ],
