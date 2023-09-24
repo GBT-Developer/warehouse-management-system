@@ -55,7 +55,7 @@ export const AdminListPage = () => {
       <div className="w-full h-full bg-transparent overflow-hidden">
         <div className="relative shadow-md sm:rounded-lg overflow-auto h-full flex flex-col justify-between">
           <TableTitle setSearch={setSearch}>
-            {user?.owner && (
+            {user?.role === 'owner' && (
               <button
                 type="button"
                 className="px-4 py-2 font-medium text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 rounded-lg text-sm flex justify-center"
