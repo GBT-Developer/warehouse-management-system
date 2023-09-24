@@ -18,6 +18,7 @@ import { InputField } from 'renderer/components/InputField';
 import { SingleTableItem } from 'renderer/components/TableComponents/SingleTableItem';
 import { TableModal } from 'renderer/components/TableComponents/TableModal';
 import { Customer } from 'renderer/interfaces/Customer';
+import { Invoice } from 'renderer/interfaces/Invoice';
 import { Product } from 'renderer/interfaces/Product';
 import { PageLayout } from 'renderer/layout/PageLayout';
 
@@ -29,27 +30,12 @@ export const TransactionPage = () => {
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(
     null
   );
-  const [invoice, setInvoice] = useState<{
-    customer_id: string;
-    customer_name: string;
-    date: string;
-    warehouse_position: string;
-    total_price: string;
-    payment_method: string;
-    items: {
-      product_id: string;
-      amount: string;
-      price: string;
-      product_name: string;
-      warehouse_position: string;
-      is_returned: boolean;
-    }[];
-  }>({
+  const [invoice, setInvoice] = useState<Invoice>({
     customer_id: '',
     customer_name: '',
     date: '',
     warehouse_position: '',
-    total_price: '',
+    total_price: 0,
     payment_method: '',
     items: [],
   });
@@ -95,7 +81,7 @@ export const TransactionPage = () => {
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
 
-    if (invoice.items.length === 0 || invoice.payment_method === '') {
+    if (invoice.items?.length === 0 || invoice.payment_method === '') {
       setErrorMessage('Please fill all fields');
       setTimeout(() => {
         setErrorMessage(null);
@@ -107,20 +93,20 @@ export const TransactionPage = () => {
       setLoading(true);
       // Update product count
       runTransaction(db, (transaction) => {
+        if (!invoice.items) return Promise.reject();
         for (const item of invoice.items) {
-          const currentProduct = selectedProducts.find(
-            (p) => p.id === item.product_id
-          );
+          if (!item.id) return Promise.reject('Product id not found');
+          const currentProduct = selectedProducts.find((p) => p.id === item.id);
           if (!currentProduct) return Promise.reject();
-          const decrementStock = increment(-1 * parseInt(item.amount));
-          const productRef = doc(db, 'product', item.product_id);
+          const decrementStock = increment(-1 * item.count);
+          const productRef = doc(db, 'product', item.id);
           transaction.update(productRef, 'count', decrementStock);
         }
 
         const incrementTransaction = increment(1);
         const incrementTotalSales = increment(
           invoice.items.reduce(
-            (acc, item) => acc + parseInt(item.price) * parseInt(item.amount),
+            (acc, item) => acc + item.sell_price * item.count,
             0
           )
         );
@@ -142,11 +128,7 @@ export const TransactionPage = () => {
             // Current date
             date: invoice.date,
             total_price: invoice.items
-              .reduce(
-                (acc, item) =>
-                  acc + parseInt(item.price) * parseInt(item.amount),
-                0
-              )
+              .reduce((acc, item) => acc + item.sell_price * item.count, 0)
               .toString(),
             payment_method: invoice.payment_method,
             items: invoice.items,
@@ -160,11 +142,7 @@ export const TransactionPage = () => {
             // Current date
             date: invoice.date,
             total_price: invoice.items
-              .reduce(
-                (acc, item) =>
-                  acc + parseInt(item.price) * parseInt(item.amount),
-                0
-              )
+              .reduce((acc, item) => acc + item.sell_price * item.count, 0)
               .toString(),
             payment_method: invoice.payment_method,
             items: invoice.items,
@@ -179,7 +157,7 @@ export const TransactionPage = () => {
         customer_name: '',
         date: '',
         warehouse_position: '',
-        total_price: '',
+        total_price: 0,
         payment_method: '',
         items: [],
       });
@@ -308,7 +286,7 @@ export const TransactionPage = () => {
               label="Guest Name"
               labelFor="customer-name"
               loading={loading}
-              value={invoice.customer_name}
+              value={invoice.customer_name ?? ''}
               onChange={(e) => {
                 setInvoice({ ...invoice, customer_name: e.target.value });
               }}
@@ -319,7 +297,7 @@ export const TransactionPage = () => {
         <hr />
 
         <ul className="my-3 space-y-3 font-regular">
-          {invoice.items.map((item, index) => (
+          {invoice.items?.map((item, index) => (
             <li key={index}>
               <div className="flex flex-row">
                 <div className="flex flex-col gap-2 w-full">
@@ -339,14 +317,10 @@ export const TransactionPage = () => {
                       onClick={() => {
                         setInvoice({
                           ...invoice,
-                          items: invoice.items.filter(
-                            (p) => p.product_id !== item.product_id
-                          ),
+                          items: invoice.items?.filter((p) => p.id !== item.id),
                         });
                         setSelectedProducts(
-                          selectedProducts.filter(
-                            (p) => p.id !== item.product_id
-                          )
+                          selectedProducts.filter((p) => p.id !== item.id)
                         );
                       }}
                     >
@@ -357,16 +331,15 @@ export const TransactionPage = () => {
                     label="Amount"
                     labelFor="amount"
                     loading={loading}
-                    value={item.amount}
+                    value={item.count}
                     onChange={(e) => {
                       if (isNaN(Number(e.target.value))) return;
                       if (
-                        parseInt(e.target.value) >
-                        parseInt(selectedProducts[index].count)
+                        parseInt(e.target.value) > selectedProducts[index].count
                       ) {
                         setErrorMessage(
                           'Not enough stock in warehouse. Stock in warehouse: ' +
-                            selectedProducts[index].count
+                            selectedProducts[index].count.toString()
                         );
                         setTimeout(() => {
                           setErrorMessage(null);
@@ -375,8 +348,8 @@ export const TransactionPage = () => {
                       }
                       setInvoice({
                         ...invoice,
-                        items: invoice.items.map((i, idx) => {
-                          if (idx === index) i.amount = e.target.value;
+                        items: invoice.items?.map((i, idx) => {
+                          if (idx === index) i.count = Number(e.target.value);
 
                           return i;
                         }),
@@ -388,7 +361,7 @@ export const TransactionPage = () => {
                       {new Intl.NumberFormat('id-ID', {
                         style: 'currency',
                         currency: 'IDR',
-                      }).format(parseInt(item.price) * parseInt(item.amount))}
+                      }).format(item.sell_price * item.count)}
                     </p>
                   </div>
                 </div>
@@ -404,11 +377,10 @@ export const TransactionPage = () => {
               style: 'currency',
               currency: 'IDR',
             }).format(
-              invoice.items.reduce(
-                (acc, item) =>
-                  acc + parseInt(item.price) * parseInt(item.amount),
+              invoice.items?.reduce(
+                (acc, item) => acc + item.sell_price * item.count,
                 0
-              )
+              ) ?? 0
             )}
           </p>
         </div>
@@ -529,9 +501,7 @@ export const TransactionPage = () => {
                   );
                   setInvoice({
                     ...invoice,
-                    items: invoice.items.filter(
-                      (p) => p.product_id !== product.id
-                    ),
+                    items: invoice.items?.filter((p) => p.id !== product.id),
                   });
                 } else {
                   if (!product.id) return;
@@ -539,22 +509,18 @@ export const TransactionPage = () => {
                   setInvoice({
                     ...invoice,
                     items: [
-                      ...invoice.items,
+                      ...(invoice.items ?? []),
                       {
-                        product_id: product.id,
-                        amount: '1',
-                        price:
+                        id: product.id,
+                        count: 1,
+                        sell_price:
                           selectedCustomer?.SpecialPrice.find(
                             (p) => p.product_id === product.id
                           )?.price ?? product.sell_price,
-                        product_name:
-                          product.brand +
-                          ' ' +
-                          product.motor_type +
-                          ' ' +
-                          product.part +
-                          ' ' +
-                          product.available_color,
+                        brand: product.brand,
+                        motor_type: product.motor_type,
+                        part: product.part,
+                        available_color: product.available_color,
                         warehouse_position: product.warehouse_position,
                         is_returned: false,
                       },
@@ -585,7 +551,7 @@ export const TransactionPage = () => {
                 {new Intl.NumberFormat('id-ID', {
                   style: 'currency',
                   currency: 'IDR',
-                }).format(parseInt(product.sell_price))}
+                }).format(product.sell_price)}
               </SingleTableItem>
             </tr>
           ))
