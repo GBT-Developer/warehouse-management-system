@@ -11,11 +11,20 @@ import { PageLayout } from 'renderer/layout/PageLayout';
 export default function OpnamePage() {
   const [sales, setSales] = useState<Map<string, number>>();
   const [loading, setLoading] = useState(false);
-  // State for date range
+  // Take the first date of the month as the start date
   const [startDate, setStartDate] = useState(
-    format(addDays(new Date(), -7), 'yyyy-MM-dd')
+    format(
+      new Date(new Date().getFullYear(), new Date().getMonth(), 1),
+      'yyyy-MM-dd'
+    )
   );
-  const [endDate, setEndDate] = useState(format(new Date(), 'yyyy-MM-dd'));
+  // Take the last date of the month as the end date
+  const [endDate, setEndDate] = useState(
+    format(
+      new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0),
+      'yyyy-MM-dd'
+    )
+  );
 
   useEffect(() => {
     if (startDate === endDate) return;
@@ -88,9 +97,7 @@ export default function OpnamePage() {
           <BarChart
             data={sales}
             chartTitle="Sales Chart"
-            chartSubTitle={`Items sold: ${
-              sales?.size ? sales.size : 0
-            } | Total sales: ${new Intl.NumberFormat('id-ID', {
+            chartSubTitle={`Total sales: ${new Intl.NumberFormat('id-ID', {
               style: 'currency',
               currency: 'IDR',
             }).format(
