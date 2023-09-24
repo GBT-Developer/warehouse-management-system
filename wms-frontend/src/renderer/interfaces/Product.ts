@@ -7,6 +7,7 @@ export interface Product {
   part: string;
   available_color: string;
   sell_price: number;
+  purchase_price: number;
   warehouse_position: string;
   count: number;
   created_at?: string;

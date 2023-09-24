@@ -24,7 +24,8 @@ const newProductInitialState = {
   warehouse_position: '',
   count: 0,
   sell_price: 0,
-};
+  purchase_price: 0,
+} as Product;
 
 const newSupplierInitialState = {
   company_name: '',
@@ -102,10 +103,10 @@ export const NewProductPage = () => {
 
     if (
       Number.isNaN(Number(newProduct.sell_price)) ||
-      Number.isNaN(Number(newPurchase.purchase_price)) ||
+      Number.isNaN(Number(newProduct.purchase_price)) ||
       Number.isNaN(Number(newProduct.count)) ||
       Number(newProduct.sell_price) <= 0 ||
-      Number(newPurchase.purchase_price) <= 0 ||
+      Number(newProduct.purchase_price) <= 0 ||
       Number(newProduct.count) <= 0
     ) {
       setErrorMessage('Please input a valid number');
@@ -134,6 +135,7 @@ export const NewProductPage = () => {
       const newPurchaseRef = doc(collection(db, 'purchase_history'));
       transaction.set(newPurchaseRef, {
         ...newPurchase,
+        purchase_price: newProduct.purchase_price,
         payment_status: newPurchase.payment_status,
         supplier: newSupplierRef ? newSupplierRef.id : newProduct.supplier?.id,
         products: [
@@ -222,13 +224,13 @@ export const NewProductPage = () => {
           loading={loading}
           labelFor="purchase_price"
           label="Purchase Price"
-          value={newPurchase.purchase_price}
-          onChange={(e) =>
-            setNewPurchase({
-              ...newPurchase,
+          value={newProduct.purchase_price}
+          onChange={(e) => {
+            setNewProduct({
+              ...newProduct,
               purchase_price: Number(e.target.value),
-            })
-          }
+            });
+          }}
         />
         <InputField
           loading={loading}
