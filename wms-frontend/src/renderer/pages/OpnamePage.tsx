@@ -24,6 +24,7 @@ export default function OpnamePage() {
     daily_sales: Record<string, number>;
   }>();
   const [tax, setTax] = useState(10);
+  const [purchasePrice, setPurchasePrice] = useState(0);
   const [loading, setLoading] = useState(false);
   const [invoiceList, setInvoiceList] = useState<Invoice[]>([]);
   // Take the first date of the month as the start date
@@ -55,12 +56,20 @@ export default function OpnamePage() {
         const invoiceListDoc = await getDocs(q);
 
         const invoices: Invoice[] = [];
+        let totalPurchasePrice = 0;
         invoiceListDoc.forEach((invoice) => {
           const data = invoice.data() as Invoice;
           data.id = invoice.id;
           invoices.push(data);
         });
 
+        invoices.forEach((invoice) => {
+          invoice.items?.forEach((item) => {
+            totalPurchasePrice += item.purchase_price * item.count;
+          });
+        });
+
+        setPurchasePrice(totalPurchasePrice);
         setInvoiceList(invoices);
       } catch (error) {
         console.error('Error fetching data:', error);
@@ -147,7 +156,12 @@ export default function OpnamePage() {
               <p className="text-md">Total Profit: </p>
             </div>
             <div className="w-2/3 flex gap-2 items-center">
-              <p>// Profit calculation</p>
+              <p>
+                {new Intl.NumberFormat('id-ID', {
+                  style: 'currency',
+                  currency: 'IDR',
+                }).format((salesStats?.total_sales ?? 0) - purchasePrice)}
+              </p>
             </div>
           </div>
           <div className="w-full flex justify-between items-center">
