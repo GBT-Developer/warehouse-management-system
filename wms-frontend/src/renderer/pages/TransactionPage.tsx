@@ -149,30 +149,18 @@ export const TransactionPage = () => {
           (acc, item) => acc + item.sell_price * item.count,
           0
         );
-        if (selectedCustomer?.id) {
-          const newInvoiceRef = doc(db, 'invoice', selectedCustomer.id);
-          transaction.set(newInvoiceRef, {
-            customer_id: selectedCustomer.id,
-            customer_name: selectedCustomer.name,
-            // Current date
-            date: invoice.date,
-            total_price: totalPrice,
-            payment_method: invoice.payment_method,
-            items: invoice.items,
-          });
-        } else {
-          const newInvoiceRef = doc(db, 'invoice');
+        const newInvoiceRef = doc(collection(db, 'invoice'));
 
-          transaction.set(newInvoiceRef, {
-            customer_id: '',
-            customer_name: invoice.customer_name,
-            // Current date
-            date: invoice.date,
-            total_price: totalPrice,
-            payment_method: invoice.payment_method,
-            items: invoice.items,
-          });
-        }
+        transaction.set(newInvoiceRef, {
+          customer_id: selectedCustomer?.id ?? '',
+          customer_name: selectedCustomer?.name ?? invoice.customer_name,
+          // Current date
+          date: invoice.date,
+          total_price: totalPrice,
+          payment_method: invoice.payment_method,
+          items: invoice.items,
+        });
+
         return Promise.resolve();
       }).catch((error) => console.error('Transaction failed: ', error));
 
