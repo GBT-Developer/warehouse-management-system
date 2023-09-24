@@ -81,7 +81,11 @@ export const TransactionPage = () => {
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
 
-    if (invoice.items?.length === 0 || invoice.payment_method === '') {
+    if (
+      invoice.items?.length === 0 ||
+      invoice.payment_method === '' ||
+      !invoice.date
+    ) {
       setErrorMessage('Please fill all fields');
       setTimeout(() => {
         setErrorMessage(null);
@@ -119,7 +123,10 @@ export const TransactionPage = () => {
           },
           { merge: true }
         );
-
+        const totalPrice = invoice.items.reduce(
+          (acc, item) => acc + item.sell_price * item.count,
+          0
+        );
         if (selectedCustomer?.id) {
           const newInvoiceRef = doc(db, 'invoice', selectedCustomer.id);
           transaction.set(newInvoiceRef, {
@@ -127,9 +134,7 @@ export const TransactionPage = () => {
             customer_name: selectedCustomer.name,
             // Current date
             date: invoice.date,
-            total_price: invoice.items
-              .reduce((acc, item) => acc + item.sell_price * item.count, 0)
-              .toString(),
+            total_price: totalPrice,
             payment_method: invoice.payment_method,
             items: invoice.items,
           });
@@ -141,9 +146,7 @@ export const TransactionPage = () => {
             customer_name: invoice.customer_name,
             // Current date
             date: invoice.date,
-            total_price: invoice.items
-              .reduce((acc, item) => acc + item.sell_price * item.count, 0)
-              .toString(),
+            total_price: totalPrice,
             payment_method: invoice.payment_method,
             items: invoice.items,
           });
