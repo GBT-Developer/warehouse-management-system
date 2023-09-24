@@ -40,7 +40,6 @@ export default function OpnamePage() {
       'yyyy-MM-dd'
     )
   );
-  const [search, setSearch] = useState('');
 
   useEffect(() => {
     if (startDate === endDate) return;
@@ -214,33 +213,21 @@ export default function OpnamePage() {
                     </td>
                   </tr>
                 ) : (
-                  invoiceList
-                    .filter((invoice) => {
-                      if (search === '') return invoice;
-                      else if (
-                        invoice.customer_name
-                          ?.toLowerCase()
-                          .includes(search.toLowerCase())
-                      )
-                        return invoice;
-                    })
-                    .map((invoice) => (
-                      <tr key={invoice.id} className="border-b">
-                        <SingleTableItem>{invoice.date}</SingleTableItem>
-                        <SingleTableItem>
-                          {invoice.customer_name}
-                        </SingleTableItem>
-                        <SingleTableItem>
-                          {new Intl.NumberFormat('id-ID', {
-                            style: 'currency',
-                            currency: 'IDR',
-                          }).format(invoice.total_price ?? 0)}
-                        </SingleTableItem>
-                        <SingleTableItem>
-                          {invoice.payment_method}
-                        </SingleTableItem>
-                      </tr>
-                    ))
+                  invoiceList.map((invoice) => (
+                    <tr key={invoice.id} className="border-b">
+                      <SingleTableItem>{invoice.date}</SingleTableItem>
+                      <SingleTableItem>{invoice.customer_name}</SingleTableItem>
+                      <SingleTableItem>
+                        {new Intl.NumberFormat('id-ID', {
+                          style: 'currency',
+                          currency: 'IDR',
+                        }).format(invoice.total_price ?? 0)}
+                      </SingleTableItem>
+                      <SingleTableItem>
+                        {invoice.payment_method}
+                      </SingleTableItem>
+                    </tr>
+                  ))
                 )}
               </tbody>
             </table>
