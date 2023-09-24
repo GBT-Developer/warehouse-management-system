@@ -22,8 +22,8 @@ const newProductInitialState = {
   part: '',
   available_color: '',
   warehouse_position: '',
-  count: '',
-  sell_price: '',
+  count: 0,
+  sell_price: 0,
 };
 
 const newSupplierInitialState = {
@@ -37,7 +37,7 @@ const newSupplierInitialState = {
 
 const newPurchaseInitialState = {
   created_at: '',
-  purchase_price: '0',
+  purchase_price: 0,
   supplier: null,
   payment_status: 'unpaid',
   products: [],
@@ -216,7 +216,7 @@ export const NewProductPage = () => {
           label="Product Count"
           value={newProduct.count}
           onChange={(e) => {
-            setNewProduct({ ...newProduct, count: e.target.value });
+            setNewProduct({ ...newProduct, count: Number(e.target.value) });
           }}
         />
         <InputField
@@ -227,7 +227,7 @@ export const NewProductPage = () => {
           onChange={(e) =>
             setNewPurchase({
               ...newPurchase,
-              purchase_price: e.target.value,
+              purchase_price: Number(e.target.value),
             })
           }
         />
@@ -237,7 +237,7 @@ export const NewProductPage = () => {
           label="Sell Price"
           value={newProduct.sell_price}
           onChange={(e) =>
-            setNewProduct({ ...newProduct, sell_price: e.target.value })
+            setNewProduct({ ...newProduct, sell_price: Number(e.target.value) })
           }
         />
         <div>
