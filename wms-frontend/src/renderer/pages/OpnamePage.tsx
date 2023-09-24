@@ -1,10 +1,18 @@
 import { format } from 'date-fns';
 import { db } from 'firebase';
-import { doc, getDoc } from 'firebase/firestore';
+import {
+  collection,
+  doc,
+  getDoc,
+  getDocs,
+  query,
+  where,
+} from 'firebase/firestore';
 import { useEffect, useState } from 'react';
 import { AiOutlineLoading3Quarters } from 'react-icons/ai';
 import { BarChart } from 'renderer/components/BarChart';
 import DateRangeComp from 'renderer/components/DateRangeComp';
+import { Invoice } from 'renderer/interfaces/Invoice';
 import { PageLayout } from 'renderer/layout/PageLayout';
 
 export default function OpnamePage() {
@@ -13,8 +21,9 @@ export default function OpnamePage() {
     transaction_count: number;
     daily_sales: Record<string, number>;
   }>();
-  const [tax, setTax] = useState(0);
+  const [tax, setTax] = useState(10);
   const [loading, setLoading] = useState(false);
+  const [invoiceList, setInvoiceList] = useState<Invoice[]>([]);
   // Take the first date of the month as the start date
   const [startDate, setStartDate] = useState(
     format(
@@ -29,12 +38,35 @@ export default function OpnamePage() {
       'yyyy-MM-dd'
     )
   );
+  const [search, setSearch] = useState('');
 
   useEffect(() => {
     if (startDate === endDate) return;
 
-    // Fetch the data
     const fetchInvoiceList = async () => {
+      setLoading(true);
+      try {
+        const q = query(
+          collection(db, 'invoice'),
+          where('date', '>=', startDate),
+          where('date', '<=', endDate)
+        );
+        const invoiceListDoc = await getDocs(q);
+
+        const invoices: Invoice[] = [];
+        invoiceListDoc.forEach((invoice) => {
+          invoices.push(invoice.data() as Invoice);
+        });
+
+        setInvoiceList(invoices);
+      } catch (error) {
+        console.error('Error fetching data:', error);
+      }
+      setLoading(false);
+    };
+
+    // Fetch the data
+    const fetchInvoiceStats = async () => {
       setLoading(true);
       try {
         const statsDocRef = doc(db, 'invoice', '--stats--');
@@ -64,7 +96,10 @@ export default function OpnamePage() {
       }
       setLoading(false);
     };
-    fetchInvoiceList().catch(() => console.log('error'));
+
+    fetchInvoiceStats()
+      .then(() => fetchInvoiceList())
+      .catch(() => console.log('error'));
   }, [startDate, endDate]);
 
   return (
@@ -75,21 +110,43 @@ export default function OpnamePage() {
             <AiOutlineLoading3Quarters className="animate-spin flex justify-center text-4xl" />
           </div>
         )}
-        <h1 className="text-4xl font-extrabold tracking-tight text-gray-900 md:text-5xl">
-          Opname
-        </h1>
-        <DateRangeComp {...{ startDate, endDate, setStartDate, setEndDate }} />
-        <div className="w-full h-2/5">
-          <BarChart
-            data={salesStats?.daily_sales}
-            chartTitle="Sales Chart"
-            chartSubTitle={`Total sales: ${new Intl.NumberFormat('id-ID', {
-              style: 'currency',
-              currency: 'IDR',
-            }).format(salesStats?.total_sales ? salesStats.total_sales : 0)}`}
+        <div className="flex flex-col md:flex-row items-center justify-between space-y-3 md:space-y-0 md:space-x-4 py-4 mb-[2rem]">
+          <h1 className="text-4xl font-extrabold tracking-tight text-gray-900 md:text-5xl">
+            Opname
+          </h1>
+        </div>
+        <div className="flex flex-col justify-center">
+          <p>Date Range:</p>
+          <DateRangeComp
+            {...{ startDate, endDate, setStartDate, setEndDate }}
           />
         </div>
-        <div>
+        <div className="w-full h-2/5">
+          <BarChart data={salesStats?.daily_sales} chartTitle="Sales Chart" />
+        </div>
+        <div className="w-full h-[fit-content] flex flex-col gap-4">
+          <p className="text-2xl font-bold">Summary</p>
+          <div className="w-full flex justify-between items-center">
+            <div className="w-1/3">
+              <p className="text-md">Total Sales: </p>
+            </div>
+            <div className="w-2/3 flex gap-2 items-center">
+              <p>
+                {new Intl.NumberFormat('id-ID', {
+                  style: 'currency',
+                  currency: 'IDR',
+                }).format(salesStats?.total_sales ? salesStats.total_sales : 0)}
+              </p>
+            </div>
+          </div>
+          <div className="w-full flex justify-between items-center">
+            <div className="w-1/3">
+              <p className="text-md">Total Profit: </p>
+            </div>
+            <div className="w-2/3 flex gap-2 items-center">
+              <p>// Profit calculation</p>
+            </div>
+          </div>
           <div className="w-full flex justify-between items-center">
             <div className="w-1/3">
               <p className="text-md">Tax to be payed: </p>
@@ -104,7 +161,7 @@ export default function OpnamePage() {
               <p>x</p>
               <input
                 className={
-                  'placeholder:text-xs text-center placeholder:font-light bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 p-2 w-[3rem]'
+                  'placeholder:text-xs text-center placeholder:font-light bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 px-2 py-1 w-[3rem]'
                 }
                 type="text"
                 value={tax}
