@@ -123,9 +123,9 @@ export const seedProduct = async (
           brand: productBrand,
           motor_type: productMotorType,
           part: productPart,
-          count: the_count.toString(),
-          sell_price: sell_price,
-          purchase_price: (parseFloat(sell_price) * 0.8).toFixed(2),
+          count: the_count,
+          sell_price: parseInt(sell_price),
+          purchase_price: parseFloat(sell_price) * 0.8,
           warehouse_position:
             warehouse_positions[
               faker.number.int({ min: 0, max: warehouse_positions.length - 1 })
@@ -193,12 +193,14 @@ export const seedBrokenProduct = async (
           brand: faker.commerce.productName(),
           motor_type: faker.vehicle.type(),
           part: faker.vehicle.model(),
-          count: the_count.toString(),
+          count: the_count,
           supplier: Array.from(suppliers.keys())[the_supplier_id],
-          sell_price: faker.commerce.price({
-            min: 50000,
-            max: 1000000,
-          }),
+          sell_price: parseInt(
+            faker.commerce.price({
+              min: 50000,
+              max: 1000000,
+            })
+          ),
           warehouse_position:
             warehouse_positions[
               faker.number.int({ min: 0, max: warehouse_positions.length - 1 })
