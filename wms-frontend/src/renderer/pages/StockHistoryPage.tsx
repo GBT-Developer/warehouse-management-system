@@ -120,8 +120,7 @@ function StockHistoryPage() {
                           {stock_history.old_count}
                         </SingleTableItem>
                         <SingleTableItem>
-                          {parseInt(stock_history.old_count) +
-                            parseInt(stock_history.difference)}
+                          {stock_history.old_count + stock_history.difference}
                         </SingleTableItem>
                         <SingleTableItem>
                           <div className="flex items-center justify-between">
