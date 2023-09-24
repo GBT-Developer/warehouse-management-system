@@ -48,22 +48,23 @@ const DateRangeComp = ({
 
   return (
     <div className="flex flex-col w-2/3 relative">
-      <input
-        className="text-[22px] border-[2px] border-[#0000] rounded-[3px] p-[5px] w-full"
-        value={
-          'From:' +
-          ' ' +
-          format(new Date(startDate), 'dd/MM/yyyy') +
-          ' To: ' +
-          format(new Date(endDate), 'dd/MM/yyyy')
-        }
-        readOnly
+      <div
         onClick={() => {
           setOpen((open) => !open);
         }}
-      />
-      <div ref={refOne}>
-        {open && (
+        className="flex text-center items-center py-[0.15rem] w-[fit-content] rounded-sm cursor-pointer"
+      >
+        <p>From:&nbsp;</p>
+        <p className="font-medium text-[1.15rem]">
+          {format(new Date(startDate), 'dd/MM/yyyy')}
+        </p>
+        <p>&nbsp;&nbsp;to:&nbsp;</p>
+        <p className="font-medium text-[1.15rem]">
+          {format(new Date(endDate), 'dd/MM/yyyy')}
+        </p>
+      </div>
+      {open && (
+        <div ref={refOne}>
           <DateRange
             className="absolute top-[50px] left-0 z-[100]"
             onChange={(items) => {
@@ -90,8 +91,8 @@ const DateRangeComp = ({
             months={1}
             direction="horizontal"
           />
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 };
