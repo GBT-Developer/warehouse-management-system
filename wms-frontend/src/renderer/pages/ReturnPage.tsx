@@ -166,8 +166,8 @@ export default function ReturnPage() {
       // Update the invoice
       await runTransaction(db, (transaction) => {
         transaction.update(doc(db, 'invoice', invoiceNumber), {
-          items: newInvoice.items,
-          total_price: newInvoice.total_price,
+          items: newTransaction.items,
+          total_price: newTransaction.total_price,
         });
 
         // Put the returned product to broken product database
@@ -556,8 +556,8 @@ export default function ReturnPage() {
               <hr className="my-3" />
               <h1 className="text-2xl font-bold">New Transaction</h1>
               <ul className="my-3 space-y-3 font-regular">
-                {newTransaction.items?.map((item, index) => (
-                  <li key={index}>
+                {selectedNewItems.map((newItem, newIndex) => (
+                  <li key={newIndex}>
                     <div className="flex flex-row">
                       <div className="flex flex-col gap-2 w-full">
                         <div className="flex w-full justify-between">
@@ -574,12 +574,6 @@ export default function ReturnPage() {
                             type="button"
                             className="text-red-500 text-lg p-2 hover:text-red-700 cursor-pointer bg-transparent rounded-md"
                             onClick={() => {
-                              setNewTransaction({
-                                ...newTransaction,
-                                items: newTransaction.items?.filter(
-                                  (p) => p.id !== item.id
-                                ),
-                              });
                               setSelectedNewItems(
                                 selectedNewItems.filter(
                                   (item) => item.id !== newItem.id
@@ -596,8 +590,8 @@ export default function ReturnPage() {
                           </button>
                         </div>
                         <InputField
-                          label="Amount"
-                          labelFor="amount"
+                          label="new amount"
+                          labelFor="new amount"
                           loading={loading}
                           value={selectedNewItems[newIndex]?.count}
                           onChange={(e) => {
@@ -616,11 +610,9 @@ export default function ReturnPage() {
                                 )?.count ?? 0)
                             ) {
                               setErrorMessage(
-                                'Not enough stock in warehouse. Stock in warehouse: ' +
-                                  (
-                                    selectedNewItems[index].count + item.count
-                                  ).toString()
+                                'Amount cannot be more than the original amount'
                               );
+                              e.target.value = e.target.value.slice(0, -1);
                               setTimeout(() => {
                                 setErrorMessage(null);
                               }, 3000);
@@ -644,6 +636,7 @@ export default function ReturnPage() {
                             setSelectedNewItems(updatedSelectedNewItems);
                           }}
                         />
+
                         <div className="flex justify-end">
                           <p className="text-md">
                             {new Intl.NumberFormat('id-ID', {
@@ -671,9 +664,8 @@ export default function ReturnPage() {
                     selectedNewItems.reduce(
                       (acc, item) => acc + item.sell_price * item.count,
                       0
-                    ) ?? 0
+                    )
                   )}
-                  ,00
                 </p>
               </div>
 
@@ -709,8 +701,8 @@ export default function ReturnPage() {
                         value="Cash"
                         checked={newTransaction.payment_method === 'Cash'}
                         onChange={(e) => {
-                          setNewInvoice({
-                            ...newInvoice,
+                          setNewTransaction({
+                            ...newTransaction,
                             payment_method: e.target.value,
                           });
                         }}
@@ -730,10 +722,10 @@ export default function ReturnPage() {
                         name="payment-method"
                         id="cashless"
                         value="Cashless"
-                        checked={newInvoice.payment_method === 'Cashless'}
+                        checked={newTransaction.payment_method === 'Cashless'}
                         onChange={(e) => {
-                          setNewInvoice({
-                            ...newInvoice,
+                          setNewTransaction({
+                            ...newTransaction,
                             payment_method: e.target.value,
                           });
                         }}
@@ -786,9 +778,9 @@ export default function ReturnPage() {
               key={index}
               className="hover:bg-gray-100 cursor-pointer"
               onClick={() => {
-                if (selectedNewItems.find((p) => p === product)) {
-                  setSelectedNewItems(
-                    selectedNewItems.filter((p) => p !== product)
+                if (selectedProducts.some((p) => p.id === product.id)) {
+                  setSelectedProducts(
+                    selectedProducts.filter((p) => p.id !== product.id)
                   );
                   setNewTransaction({
                     ...newTransaction,
@@ -827,7 +819,7 @@ export default function ReturnPage() {
               <SingleTableItem>
                 <input
                   type="checkbox"
-                  checked={selectedNewItems.includes(product)}
+                  checked={selectedProducts.includes(product)}
                   readOnly
                 />
               </SingleTableItem>
