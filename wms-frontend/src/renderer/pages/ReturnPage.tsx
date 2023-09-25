@@ -1,5 +1,7 @@
+import { format } from 'date-fns';
 import { db } from 'firebase';
 import {
+  FieldValue,
   and,
   collection,
   doc,
@@ -191,13 +193,16 @@ export default function ReturnPage() {
 
           return Promise.resolve();
         });
-
+        // Reduce the sales stats
+        reduceSalesStats(invoice, false).catch((err) => console.log(err));
         return Promise.all(promises);
       });
     } else
       await runTransaction(db, (transaction) => {
         // Delete the invoice
         transaction.delete(doc(db, 'invoice', invoiceNumber));
+        // Reduce the sales stats
+        reduceSalesStats(invoice, false).catch((err) => console.log(err));
 
         // Put the old invoice to void list
         transaction.set(doc(db, 'void_invoice', invoiceNumber), {
@@ -216,7 +221,6 @@ export default function ReturnPage() {
           (acc, item) => acc + item.sell_price * item.count,
           0
         );
-
         transaction.set(doc(collection(db, 'invoice')), {
           customer_id: selectedCustomer?.id,
           customer_name: selectedCustomer?.name,
@@ -230,6 +234,23 @@ export default function ReturnPage() {
           date: new Date().toISOString().slice(0, 10),
           payment_method: newTransaction.payment_method,
         });
+        // Reduce the sales stats
+        reduceSalesStats(
+          {
+            customer_id: selectedCustomer?.id,
+            customer_name: selectedCustomer?.name,
+            total_price: total_price,
+            items: selectedNewItems.map((selectedNewItem) => {
+              return {
+                ...selectedNewItem,
+                is_returned: false,
+              };
+            }),
+            date: new Date().toISOString().slice(0, 10),
+            payment_method: newTransaction.payment_method,
+          },
+          true
+        ).catch((err) => console.log(err));
 
         return Promise.resolve();
       });
@@ -323,6 +344,56 @@ export default function ReturnPage() {
       products.push(data);
     });
     setProducts(products);
+  };
+
+  const reduceSalesStats = async (invoice: Invoice, positive: boolean) => {
+    // Reduce the sales stats
+    await runTransaction(db, (transaction) => {
+      if (!invoice.total_price) return Promise.resolve();
+
+      const incrementTransaction = increment(positive ? 1 : -1);
+      const incrementTotalSales = increment(
+        positive ? invoice.total_price : -invoice.total_price
+      );
+      const statsDocRef = doc(db, 'invoice', '--stats--');
+      const dailySales = new Map<string, FieldValue>();
+      const datePriceMap = new Map<string, number>();
+
+      invoice.items?.forEach((item) => {
+        if (!invoice.date) return;
+        const date = format(new Date(invoice.date), 'dd');
+        const total_price = item.sell_price * item.count;
+        const currentTotal = datePriceMap.get(date);
+        if (currentTotal) {
+          const currentIncrement = increment(
+            positive ? total_price + currentTotal : -total_price + currentTotal
+          );
+          datePriceMap.set(
+            date,
+            positive ? total_price + currentTotal : currentTotal - total_price
+          );
+          dailySales.set(date, currentIncrement);
+        } else {
+          const currentIncrement = increment(
+            positive ? total_price : -total_price
+          );
+          datePriceMap.set(date, total_price);
+          dailySales.set(date, currentIncrement);
+        }
+      });
+
+      transaction.set(
+        statsDocRef,
+        {
+          transaction_count: incrementTransaction,
+          total_sales: incrementTotalSales,
+          daily_sales: Object.fromEntries(dailySales),
+        },
+        { merge: true }
+      );
+
+      return Promise.resolve();
+    });
   };
 
   return (
@@ -480,66 +551,67 @@ export default function ReturnPage() {
                           </label>
                         </div>
                       </div>
-                      {checkedItems[index] && (
-                        <div className="w-1/5">
-                          <input
-                            disabled={loading || mode === 'return'}
-                            id={'amount'}
-                            name={'amount'}
-                            type="number"
-                            className="placeholder:text-xs placeholder:font-light bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 p-2 w-full
+                      {checkedItems[index] &&
+                        (mode === 'return' || mode === 'exchange') && (
+                          <div className="w-1/5">
+                            <input
+                              disabled={loading || mode === 'return'}
+                              id={'amount'}
+                              name={'amount'}
+                              type="number"
+                              className="placeholder:text-xs placeholder:font-light bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 p-2 w-full
                             "
-                            value={
-                              // If mode is return, set the amount to the original amount
-                              mode === 'return'
-                                ? item.count
-                                : selectedItems.find(
-                                    (selectedItem) =>
-                                      selectedItem.id === item.id
-                                  )?.count
-                            }
-                            onChange={(e) => {
-                              const newAmount = e.target.value;
-                              // If amount is not a number > 0, set it to 1
-                              if (
-                                isNaN(parseInt(newAmount)) ||
-                                parseInt(newAmount) <= 0
-                              ) {
-                                e.target.value = '1';
-                                return;
+                              value={
+                                // If mode is return, set the amount to the original amount
+                                mode === 'return'
+                                  ? item.count
+                                  : selectedItems.find(
+                                      (selectedItem) =>
+                                        selectedItem.id === item.id
+                                    )?.count
                               }
-                              if (
-                                parseInt(newAmount) <=
-                                parseInt(item.count.toString())
-                              ) {
-                                // Check if newAmount is smaller or equal to item.amount
-                                const newSelectedItems = [...selectedItems];
-                                const selectedItemIndex =
-                                  newSelectedItems.findIndex(
-                                    (selectedItem) =>
-                                      selectedItem.id === item.id
-                                  );
-                                if (selectedItemIndex !== -1) {
-                                  newSelectedItems[selectedItemIndex] = {
-                                    ...newSelectedItems[selectedItemIndex],
-                                    count: Number(newAmount),
-                                  };
-                                  setSelectedItems(newSelectedItems);
-                                  setErrorMessage(null); // Clear any previous error message
+                              onChange={(e) => {
+                                const newAmount = e.target.value;
+                                // If amount is not a number > 0, set it to 1
+                                if (
+                                  isNaN(parseInt(newAmount)) ||
+                                  parseInt(newAmount) <= 0
+                                ) {
+                                  e.target.value = '1';
+                                  return;
                                 }
-                              } else {
-                                setErrorMessage(
-                                  'Amount cannot be more than the original amount'
-                                );
-                                e.target.value = e.target.value.slice(0, -1);
-                                setTimeout(() => {
-                                  setErrorMessage(null);
-                                }, 3000);
-                              }
-                            }}
-                          />
-                        </div>
-                      )}
+                                if (
+                                  parseInt(newAmount) <=
+                                  parseInt(item.count.toString())
+                                ) {
+                                  // Check if newAmount is smaller or equal to item.amount
+                                  const newSelectedItems = [...selectedItems];
+                                  const selectedItemIndex =
+                                    newSelectedItems.findIndex(
+                                      (selectedItem) =>
+                                        selectedItem.id === item.id
+                                    );
+                                  if (selectedItemIndex !== -1) {
+                                    newSelectedItems[selectedItemIndex] = {
+                                      ...newSelectedItems[selectedItemIndex],
+                                      count: Number(newAmount),
+                                    };
+                                    setSelectedItems(newSelectedItems);
+                                    setErrorMessage(null); // Clear any previous error message
+                                  }
+                                } else {
+                                  setErrorMessage(
+                                    'Amount cannot be more than the original amount'
+                                  );
+                                  e.target.value = e.target.value.slice(0, -1);
+                                  setTimeout(() => {
+                                    setErrorMessage(null);
+                                  }, 3000);
+                                }
+                              }}
+                            />
+                          </div>
+                        )}
                     </div>
                   </li>
                 ))}
