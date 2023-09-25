@@ -33,6 +33,7 @@ import SupplierList from './pages/SupplierList';
 import TransactionHistory from './pages/TransactionHistory';
 import { TransactionPage } from './pages/TransactionPage';
 import { TransferItemPage } from './pages/TransferItemPage';
+import VoidListPage from './pages/VoidListPage';
 import { useAuth } from './providers/AuthProvider';
 
 type RouteConfig = RouteProps & {
@@ -147,6 +148,10 @@ export const routes: RouteConfig[] = [
   {
     path: 'on-dispatch',
     element: <OnDispatchListPage />,
+  },
+  {
+    path: 'void-list',
+    element: <VoidListPage />,
   },
 ];
 
