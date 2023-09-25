@@ -22,9 +22,10 @@ const newProductInitialState = {
   part: '',
   available_color: '',
   warehouse_position: '',
-  count: '',
-  sell_price: '',
-};
+  count: 0,
+  sell_price: 0,
+  purchase_price: 0,
+} as Product;
 
 const newSupplierInitialState = {
   company_name: '',
@@ -37,7 +38,7 @@ const newSupplierInitialState = {
 
 const newPurchaseInitialState = {
   created_at: '',
-  purchase_price: '0',
+  purchase_price: 0,
   supplier: null,
   payment_status: 'unpaid',
   products: [],
@@ -93,7 +94,6 @@ export const NewProductPage = () => {
       ) ||
       newProduct.warehouse_position === ''
     ) {
-      console.log(newProduct);
       setErrorMessage('Please fill all the fields');
       setTimeout(() => {
         setErrorMessage(null);
@@ -103,10 +103,10 @@ export const NewProductPage = () => {
 
     if (
       Number.isNaN(Number(newProduct.sell_price)) ||
-      Number.isNaN(Number(newPurchase.purchase_price)) ||
+      Number.isNaN(Number(newProduct.purchase_price)) ||
       Number.isNaN(Number(newProduct.count)) ||
       Number(newProduct.sell_price) <= 0 ||
-      Number(newPurchase.purchase_price) <= 0 ||
+      Number(newProduct.purchase_price) <= 0 ||
       Number(newProduct.count) <= 0
     ) {
       setErrorMessage('Please input a valid number');
@@ -135,6 +135,7 @@ export const NewProductPage = () => {
       const newPurchaseRef = doc(collection(db, 'purchase_history'));
       transaction.set(newPurchaseRef, {
         ...newPurchase,
+        purchase_price: newProduct.purchase_price,
         payment_status: newPurchase.payment_status,
         supplier: newSupplierRef ? newSupplierRef.id : newProduct.supplier?.id,
         products: [
@@ -165,7 +166,7 @@ export const NewProductPage = () => {
             console.log(error);
           });
         }}
-        className={`w-2/3 py-14 my-10 flex flex-col gap-3 relative${
+        className={`w-2/3 py-14 my-10 flex flex-col gap-3 relative ${
           loading ? 'p-2' : ''
         }`}
       >
@@ -216,20 +217,20 @@ export const NewProductPage = () => {
           label="Product Count"
           value={newProduct.count}
           onChange={(e) => {
-            setNewProduct({ ...newProduct, count: e.target.value });
+            setNewProduct({ ...newProduct, count: Number(e.target.value) });
           }}
         />
         <InputField
           loading={loading}
           labelFor="purchase_price"
           label="Purchase Price"
-          value={newPurchase.purchase_price}
-          onChange={(e) =>
-            setNewPurchase({
-              ...newPurchase,
-              purchase_price: e.target.value,
-            })
-          }
+          value={newProduct.purchase_price}
+          onChange={(e) => {
+            setNewProduct({
+              ...newProduct,
+              purchase_price: Number(e.target.value),
+            });
+          }}
         />
         <InputField
           loading={loading}
@@ -237,7 +238,7 @@ export const NewProductPage = () => {
           label="Sell Price"
           value={newProduct.sell_price}
           onChange={(e) =>
-            setNewProduct({ ...newProduct, sell_price: e.target.value })
+            setNewProduct({ ...newProduct, sell_price: Number(e.target.value) })
           }
         />
         <div>

@@ -8,6 +8,7 @@ export interface InputFieldProps {
   placeholder?: string;
   loading?: boolean;
   additionalStyle?: string;
+  type?: string;
 }
 
 export const InputField = ({
@@ -18,6 +19,7 @@ export const InputField = ({
   placeholder,
   loading,
   additionalStyle,
+  type,
 }: InputFieldProps) => {
   return (
     <div className="w-full flex justify-between items-center">
@@ -31,7 +33,7 @@ export const InputField = ({
           disabled={loading}
           id={labelFor}
           name={labelFor}
-          type="text"
+          type={type ?? 'text'}
           className={`placeholder:text-xs placeholder:font-light bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 p-2 w-full ${
             additionalStyle ?? ''
           }`}

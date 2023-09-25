@@ -65,34 +65,69 @@ export default function CustomerListPage() {
                 <th className=" py-3"></th>
               </TableHeader>
               <tbody className="overflow-y-auto">
-                {customerList.map((customer, index) => (
-                  <tr
-                    key={customer.id}
-                    className="border-b hover:shadow-md cursor-pointer hover:underline"
-                    onClick={() => navigate('/edit-customer/' + customer.id)}
-                  >
-                    <SingleTableItem>{customer.name}</SingleTableItem>
-                    <SingleTableItem>{customer.address}</SingleTableItem>
-                    <SingleTableItem>{customer.phone_number}</SingleTableItem>
-                    <SingleTableItem>
-                      <button
-                        type="button"
-                        className="text-red-500 text-lg p-2 hover:text-red-700 cursor-pointer bg-transparent rounded-md"
-                        onClick={async (e) => {
-                          e.stopPropagation();
-                          setLoading(true);
+                {customerList.length === 0 ? (
+                  <tr className="border-b">
+                    <td className="py-3" colSpan={3}>
+                      <p className="flex justify-center">No data</p>
+                    </td>
+                  </tr>
+                ) : (
+                  customerList
+                    .filter((customer) => {
+                      if (search === '') return customer;
+                      else if (
+                        customer.name
+                          .toLowerCase()
+                          .includes(search.toLowerCase()) ||
+                        customer.address
+                          .toLowerCase()
+                          .includes(search.toLowerCase()) ||
+                        customer.phone_number
+                          .toLowerCase()
+                          .includes(search.toLowerCase())
+                      )
+                        return customer;
+                    })
+                    .map((customer, index) => (
+                      <tr
+                        key={customer.id}
+                        className="border-b hover:shadow-md cursor-pointer hover:underline"
+                        onClick={() => {
                           if (!customer.id) return;
-                          const purchaseRef = doc(db, 'customer', customer.id);
-                          await deleteDoc(purchaseRef);
-                          customerList.splice(index, 1);
-                          setLoading(false);
+                          navigate('/edit-customer/' + customer.id);
                         }}
                       >
-                        <BiSolidTrash />
-                      </button>
-                    </SingleTableItem>
-                  </tr>
-                ))}
+                        <SingleTableItem>{customer.name}</SingleTableItem>
+                        <SingleTableItem>{customer.address}</SingleTableItem>
+                        <SingleTableItem>
+                          {customer.phone_number}
+                        </SingleTableItem>
+                        <SingleTableItem>
+                          <button
+                            type="button"
+                            className="text-red-500 text-lg p-2 hover:text-red-700 cursor-pointer bg-transparent rounded-md"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setLoading(true);
+                              if (!customer.id) return;
+                              const purchaseRef = doc(
+                                db,
+                                'customer',
+                                customer.id
+                              );
+                              deleteDoc(purchaseRef).catch((error) =>
+                                console.log(error)
+                              );
+                              customerList.splice(index, 1);
+                              setLoading(false);
+                            }}
+                          >
+                            <BiSolidTrash />
+                          </button>
+                        </SingleTableItem>
+                      </tr>
+                    ))
+                )}
               </tbody>
             </table>
           </div>

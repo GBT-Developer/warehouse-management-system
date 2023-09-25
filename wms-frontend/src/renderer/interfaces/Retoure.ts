@@ -3,7 +3,7 @@ export interface Retoure {
   invoice?: Invoice;
   created_at?: string;
   product_name?: string;
-  count?: string;
+  count?: number;
   remarks?: string;
   status?: string;
 }

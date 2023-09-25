@@ -41,7 +41,7 @@ const createRootUser = async () => {
           // Set custom claims
           firebaseAdmin
             .auth()
-            .setCustomUserClaims(userRecord.uid, { owner: true });
+            .setCustomUserClaims(userRecord.uid, { role: "owner" });
           functions.logger.info("Root user created");
         })
         .catch((error) => {
@@ -123,8 +123,9 @@ export const seedProduct = async (
           brand: productBrand,
           motor_type: productMotorType,
           part: productPart,
-          count: the_count.toString(),
-          sell_price: sell_price,
+          count: the_count,
+          sell_price: parseInt(sell_price),
+          purchase_price: parseFloat(sell_price) * 0.8,
           warehouse_position:
             warehouse_positions[
               faker.number.int({ min: 0, max: warehouse_positions.length - 1 })
@@ -178,6 +179,7 @@ export const seedBrokenProduct = async (
   const broken_products = await db.collection("broken_product").get();
 
   if (broken_products.size < num_of_product) {
+    const warehouse_positions = ["Gudang Jadi", "Gudang Bahan"];
     for (let i = 0; i < num_of_product; i++) {
       const the_count = faker.number.int({ min: 1, max: 10 });
       const the_supplier_id = faker.number.int({
@@ -191,11 +193,18 @@ export const seedBrokenProduct = async (
           brand: faker.commerce.productName(),
           motor_type: faker.vehicle.type(),
           part: faker.vehicle.model(),
-          count: the_count.toString(),
-          supplier: {
-            id: Array.from(suppliers.keys())[the_supplier_id],
-            company_name: Array.from(suppliers.values())[the_supplier_id],
-          },
+          count: the_count,
+          supplier: Array.from(suppliers.keys())[the_supplier_id],
+          sell_price: parseInt(
+            faker.commerce.price({
+              min: 50000,
+              max: 1000000,
+            })
+          ),
+          warehouse_position:
+            warehouse_positions[
+              faker.number.int({ min: 0, max: warehouse_positions.length - 1 })
+            ],
         })
         .catch((error) => console.log(error));
     }

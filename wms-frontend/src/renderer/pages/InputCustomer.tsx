@@ -54,14 +54,13 @@ function InputCustomerPage() {
       return;
     }
 
-    if (newCustomer.SpecialPrice.some((sp) => sp.price === '')) {
+    if (newCustomer.SpecialPrice.some((sp) => sp.price === 0)) {
       setErrorMessage('Please enter prices for all selected products');
       setTimeout(() => {
         setErrorMessage(null);
       }, 3000);
       return;
     }
-    console.log(newCustomer);
 
     // Make a code to input my data to firebase
     const productCollection = collection(db, '/customer');
@@ -112,7 +111,7 @@ function InputCustomerPage() {
     querySnapshot.forEach((theProduct) => {
       const data = theProduct.data() as Product;
       data.id = theProduct.id;
-      data.sell_price = theProduct.get('sell_price') as string;
+      data.sell_price = theProduct.get('sell_price') as number;
       productData.push(data);
     });
 
@@ -208,7 +207,9 @@ function InputCustomerPage() {
                         const index = newSpecialPriceProducts.findIndex(
                           (sp) => sp.product_id === product.id
                         );
-                        newSpecialPriceProducts[index].price = e.target.value;
+                        newSpecialPriceProducts[index].price = Number(
+                          e.target.value
+                        );
                         setNewCustomer(() => {
                           return {
                             ...newCustomer,

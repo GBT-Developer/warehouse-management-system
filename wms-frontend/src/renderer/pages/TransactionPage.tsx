@@ -1,16 +1,18 @@
+import { format } from 'date-fns';
 import { db } from 'firebase';
 import {
-  addDoc,
+  FieldValue,
   and,
   collection,
   doc,
   getDocs,
+  increment,
   or,
   query,
   runTransaction,
   where,
 } from 'firebase/firestore';
-import { FormEvent, useEffect, useState } from 'react';
+import React, { FormEvent, useEffect, useState } from 'react';
 import { AiOutlineLoading3Quarters } from 'react-icons/ai';
 import { BiSolidTrash } from 'react-icons/bi';
 import { useNavigate } from 'react-router-dom';
@@ -18,6 +20,7 @@ import { InputField } from 'renderer/components/InputField';
 import { SingleTableItem } from 'renderer/components/TableComponents/SingleTableItem';
 import { TableModal } from 'renderer/components/TableComponents/TableModal';
 import { Customer } from 'renderer/interfaces/Customer';
+import { Invoice } from 'renderer/interfaces/Invoice';
 import { Product } from 'renderer/interfaces/Product';
 import { PageLayout } from 'renderer/layout/PageLayout';
 
@@ -29,33 +32,19 @@ export const TransactionPage = () => {
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(
     null
   );
-  const [invoice, setInvoice] = useState<{
-    customer_id: string;
-    customer_name: string;
-    date: string;
-    warehouse_position: string;
-    total_price: string;
-    payment_method: string;
-    items: {
-      product_id: string;
-      amount: string;
-      price: string;
-      product_name: string;
-      warehouse_position: string;
-      is_returned: boolean;
-    }[];
-  }>({
+  const [invoice, setInvoice] = useState<Invoice>({
     customer_id: '',
     customer_name: '',
     date: '',
     warehouse_position: '',
-    total_price: '',
+    total_price: 0,
     payment_method: '',
     items: [],
   });
   const [products, setProducts] = useState<Product[]>([]);
   const [selectedProducts, setSelectedProducts] = useState<Product[]>([]);
   const [modalOpen, setModalOpen] = useState(false);
+  const dateInputRef = React.useRef<HTMLInputElement>(null);
   const [guestFormOpen, setGuestFormOpen] = useState(false);
 
   useEffect(() => {
@@ -91,10 +80,14 @@ export const TransactionPage = () => {
     });
   }, []);
 
-  const handleSubmit = async (e: FormEvent) => {
+  const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
 
-    if (invoice.items.length === 0 || invoice.payment_method === '') {
+    if (
+      invoice.items?.length === 0 ||
+      invoice.payment_method === '' ||
+      !invoice.date
+    ) {
       setErrorMessage('Please fill all fields');
       setTimeout(() => {
         setErrorMessage(null);
@@ -106,56 +99,68 @@ export const TransactionPage = () => {
       setLoading(true);
       // Update product count
       runTransaction(db, (transaction) => {
+        if (!invoice.items) return Promise.reject();
         for (const item of invoice.items) {
-          const currentProduct = selectedProducts.find(
-            (p) => p.id === item.product_id
-          );
-          if (!currentProduct) return Promise.reject();
-
-          const difference =
-            parseInt(currentProduct.count) - parseInt(item.amount);
-
-          transaction.update(
-            doc(db, 'product', item.product_id),
-            'count',
-            difference.toString()
-          );
+          if (!item.id) return Promise.reject('Product id not found');
+          const decrementStock = increment(-1 * item.count);
+          const productRef = doc(db, 'product', item.id);
+          transaction.update(productRef, {
+            count: decrementStock,
+          });
         }
+
+        const incrementTransaction = increment(1);
+        const incrementTotalSales = increment(
+          invoice.items.reduce(
+            (acc, item) => acc + item.sell_price * item.count,
+            0
+          )
+        );
+        const statsRef = doc(db, 'invoice', '--stats--');
+        const dailySales = new Map<string, FieldValue>();
+        const datePriceMap = new Map<string, number>();
+        invoice.items.forEach((item) => {
+          if (!invoice.date) return;
+          const date = format(new Date(invoice.date), 'dd');
+          const total_price = item.sell_price * item.count;
+          const currentTotal = datePriceMap.get(date);
+          if (currentTotal) {
+            const currentIncrement = increment(total_price + currentTotal);
+            datePriceMap.set(date, currentTotal + total_price);
+            dailySales.set(date, currentIncrement);
+          } else {
+            const currentIncrement = increment(total_price);
+            datePriceMap.set(date, total_price);
+            dailySales.set(date, currentIncrement);
+          }
+        });
+        transaction.set(
+          statsRef,
+          {
+            transaction_count: incrementTransaction,
+            total_sales: incrementTotalSales,
+            daily_sales: Object.fromEntries(dailySales),
+          },
+          { merge: true }
+        );
+        const totalPrice = invoice.items.reduce(
+          (acc, item) => acc + item.sell_price * item.count,
+          0
+        );
+        const newInvoiceRef = doc(collection(db, 'invoice'));
+
+        transaction.set(newInvoiceRef, {
+          customer_id: selectedCustomer?.id ?? '',
+          customer_name: selectedCustomer?.name ?? invoice.customer_name,
+          // Current date
+          date: invoice.date,
+          total_price: totalPrice,
+          payment_method: invoice.payment_method,
+          items: invoice.items,
+        });
+
         return Promise.resolve();
       }).catch((error) => console.error('Transaction failed: ', error));
-
-      const invoiceRef = collection(db, 'invoice');
-      if (selectedCustomer) {
-        await addDoc(invoiceRef, {
-          customer_id: selectedCustomer.id,
-          customer_name: selectedCustomer.name,
-          //current date
-          date: new Date().toISOString().slice(0, 10),
-          total_price: invoice.items
-            .reduce(
-              (acc, item) => acc + parseInt(item.price) * parseInt(item.amount),
-              0
-            )
-            .toString(),
-          payment_method: invoice.payment_method,
-          items: invoice.items,
-        });
-      } else {
-        await addDoc(invoiceRef, {
-          customer_id: '',
-          customer_name: invoice.customer_name,
-          //current date
-          date: new Date().toISOString().slice(0, 10),
-          total_price: invoice.items
-            .reduce(
-              (acc, item) => acc + parseInt(item.price) * parseInt(item.amount),
-              0
-            )
-            .toString(),
-          payment_method: invoice.payment_method,
-          items: invoice.items,
-        });
-      }
 
       // Clear invoice
       setInvoice({
@@ -163,7 +168,7 @@ export const TransactionPage = () => {
         customer_name: '',
         date: '',
         warehouse_position: '',
-        total_price: '',
+        total_price: 0,
         payment_method: '',
         items: [],
       });
@@ -218,15 +223,13 @@ export const TransactionPage = () => {
 
   return (
     <PageLayout>
-      <h1 className="text-4xl font-extrabold tracking-tight text-gray-900 md:text-5xl">
+      <h1 className="text-4xl font-extrabold tracking-tight text-gray-900 md:text-5xl pt-4">
         Transaction
       </h1>
       <form
         onSubmit={(e) => {
           e.preventDefault();
-          handleSubmit(e).catch(() => {
-            setErrorMessage('An error occured while submitting data');
-          });
+          handleSubmit(e);
         }}
         className={`w-2/3 py-14 my-10 flex flex-col gap-3 relative ${
           loading ? 'p-2' : ''
@@ -256,7 +259,6 @@ export const TransactionPage = () => {
                   setGuestFormOpen(true);
                 } else {
                   setGuestFormOpen(false);
-                  console.log(e.target.value);
                   setSelectedCustomer(
                     () =>
                       customerList.find(
@@ -295,7 +297,7 @@ export const TransactionPage = () => {
               label="Guest Name"
               labelFor="customer-name"
               loading={loading}
-              value={invoice.customer_name}
+              value={invoice.customer_name ?? ''}
               onChange={(e) => {
                 setInvoice({ ...invoice, customer_name: e.target.value });
               }}
@@ -306,7 +308,7 @@ export const TransactionPage = () => {
         <hr />
 
         <ul className="my-3 space-y-3 font-regular">
-          {invoice.items.map((item, index) => (
+          {invoice.items?.map((item, index) => (
             <li key={index}>
               <div className="flex flex-row">
                 <div className="flex flex-col gap-2 w-full">
@@ -326,14 +328,10 @@ export const TransactionPage = () => {
                       onClick={() => {
                         setInvoice({
                           ...invoice,
-                          items: invoice.items.filter(
-                            (p) => p.product_id !== item.product_id
-                          ),
+                          items: invoice.items?.filter((p) => p.id !== item.id),
                         });
                         setSelectedProducts(
-                          selectedProducts.filter(
-                            (p) => p.id !== item.product_id
-                          )
+                          selectedProducts.filter((p) => p.id !== item.id)
                         );
                       }}
                     >
@@ -344,16 +342,15 @@ export const TransactionPage = () => {
                     label="Amount"
                     labelFor="amount"
                     loading={loading}
-                    value={item.amount}
+                    value={item.count}
                     onChange={(e) => {
                       if (isNaN(Number(e.target.value))) return;
                       if (
-                        parseInt(e.target.value) >
-                        parseInt(selectedProducts[index].count)
+                        parseInt(e.target.value) > selectedProducts[index].count
                       ) {
                         setErrorMessage(
                           'Not enough stock in warehouse. Stock in warehouse: ' +
-                            selectedProducts[index].count
+                            selectedProducts[index].count.toString()
                         );
                         setTimeout(() => {
                           setErrorMessage(null);
@@ -362,8 +359,8 @@ export const TransactionPage = () => {
                       }
                       setInvoice({
                         ...invoice,
-                        items: invoice.items.map((i, idx) => {
-                          if (idx === index) i.amount = e.target.value;
+                        items: invoice.items?.map((i, idx) => {
+                          if (idx === index) i.count = Number(e.target.value);
 
                           return i;
                         }),
@@ -375,7 +372,7 @@ export const TransactionPage = () => {
                       {new Intl.NumberFormat('id-ID', {
                         style: 'currency',
                         currency: 'IDR',
-                      }).format(parseInt(item.price) * parseInt(item.amount))}
+                      }).format(item.sell_price * item.count)}
                     </p>
                   </div>
                 </div>
@@ -391,11 +388,10 @@ export const TransactionPage = () => {
               style: 'currency',
               currency: 'IDR',
             }).format(
-              invoice.items.reduce(
-                (acc, item) =>
-                  acc + parseInt(item.price) * parseInt(item.amount),
+              invoice.items?.reduce(
+                (acc, item) => acc + item.sell_price * item.count,
                 0
-              )
+              ) ?? 0
             )}
           </p>
         </div>
@@ -460,7 +456,25 @@ export const TransactionPage = () => {
             </div>
           </div>
         </div>
-
+        <div className="flex justify-between">
+          <div className="w-1/3 flex items-center">
+            <label htmlFor={'date-id'} className="text-md">
+              Transaction Date
+            </label>
+          </div>
+          <div className="w-2/3">
+            <input
+              ref={dateInputRef}
+              disabled={loading}
+              type="date"
+              name="date"
+              className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
+              onChange={(e) => {
+                setInvoice(() => ({ ...invoice, date: e.target.value }));
+              }}
+            />
+          </div>
+        </div>
         <div className="flex flex-row-reverse gap-2 justify-start">
           <button
             disabled={loading}
@@ -498,9 +512,7 @@ export const TransactionPage = () => {
                   );
                   setInvoice({
                     ...invoice,
-                    items: invoice.items.filter(
-                      (p) => p.product_id !== product.id
-                    ),
+                    items: invoice.items?.filter((p) => p.id !== product.id),
                   });
                 } else {
                   if (!product.id) return;
@@ -508,23 +520,20 @@ export const TransactionPage = () => {
                   setInvoice({
                     ...invoice,
                     items: [
-                      ...invoice.items,
+                      ...(invoice.items ?? []),
                       {
-                        product_id: product.id,
-                        amount: '1',
-                        price:
+                        id: product.id,
+                        count: 1,
+                        sell_price:
                           selectedCustomer?.SpecialPrice.find(
                             (p) => p.product_id === product.id
                           )?.price ?? product.sell_price,
-                        product_name:
-                          product.brand +
-                          ' ' +
-                          product.motor_type +
-                          ' ' +
-                          product.part +
-                          ' ' +
-                          product.available_color,
+                        brand: product.brand,
+                        motor_type: product.motor_type,
+                        part: product.part,
+                        available_color: product.available_color,
                         warehouse_position: product.warehouse_position,
+                        purchase_price: product.purchase_price,
                         is_returned: false,
                       },
                     ],
@@ -554,7 +563,7 @@ export const TransactionPage = () => {
                 {new Intl.NumberFormat('id-ID', {
                   style: 'currency',
                   currency: 'IDR',
-                }).format(parseInt(product.sell_price))}
+                }).format(product.sell_price)}
               </SingleTableItem>
             </tr>
           ))

@@ -20,10 +20,13 @@ import { AuthPage } from './pages/LoginPage';
 import { ManageProductPage } from './pages/ManageProductPage';
 import { ManageStockPage } from './pages/ManageStockPage';
 import { NewProductPage } from './pages/NewProductPage';
+import { OnDispatchListPage } from './pages/OnDispatchListPage';
+import OpnamePage from './pages/OpnamePage';
 import ProductDetailPage from './pages/ProductDetailPage';
 import ProfilePage from './pages/ProfilePage';
 import PurchaseReportPage from './pages/PurchaseReportPage';
 import ReturnPage from './pages/ReturnPage';
+import { ReturnedProductListPage } from './pages/ReturnedProductListPage';
 import StockHistoryPage from './pages/StockHistoryPage';
 import SupplierDetailPage from './pages/SupplierDetailPage';
 import SupplierList from './pages/SupplierList';
@@ -110,7 +113,7 @@ export const routes: RouteConfig[] = [
     element: <SupplierDetailPage />,
   },
   {
-    path: '/retourepage',
+    path: '/returnpage',
     element: <ReturnPage />,
   },
   {
@@ -126,12 +129,24 @@ export const routes: RouteConfig[] = [
     element: <InputCustomerPage />,
   },
   {
+    path: '/opnamepage',
+    element: <OpnamePage />,
+  },
+  {
     path: '/edit-customer/:id',
     element: <EditCustomerPage />,
   },
   {
     path: '/transactionpage',
     element: <TransactionPage />,
+  },
+  {
+    path: '/returnedproducts',
+    element: <ReturnedProductListPage />,
+  },
+  {
+    path: 'on-dispatch',
+    element: <OnDispatchListPage />,
   },
 ];
 
