@@ -227,7 +227,7 @@ export default function ReturnPage() {
               is_returned: false,
             };
           }),
-          date: new Date().toISOString(),
+          date: new Date().toISOString().slice(0, 10),
           payment_method: newTransaction.payment_method,
         });
 
