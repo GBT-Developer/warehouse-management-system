@@ -18,6 +18,7 @@ import { useNavigate } from 'react-router-dom';
 import { InputField } from 'renderer/components/InputField';
 import { SingleTableItem } from 'renderer/components/TableComponents/SingleTableItem';
 import { TableModal } from 'renderer/components/TableComponents/TableModal';
+import { Customer } from 'renderer/interfaces/Customer';
 import { Invoice } from 'renderer/interfaces/Invoice';
 import { Product } from 'renderer/interfaces/Product';
 import { PageLayout } from 'renderer/layout/PageLayout';
@@ -40,23 +41,22 @@ export default function ReturnPage() {
   const [modalOpen, setModalOpen] = useState(false);
   const [products, setProducts] = useState<Product[]>([]);
   const [selectedProducts, setSelectedProducts] = useState<Product[]>([]);
-
+  const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(
+    null
+  );
   const [invoice, setInvoice] = useState<Invoice>(invoiceInitialState);
   const [newInvoice, setNewInvoice] = useState<Invoice>(invoiceInitialState);
+  const [newTransaction, setNewTransaction] =
+    useState<Invoice>(invoiceInitialState);
   const [selectedItems, setSelectedItems] = useState<
     (Product & {
       is_returned?: boolean;
     })[]
   >([]);
   const [selectedNewItems, setSelectedNewItems] = useState<
-    {
-      product_id: string;
-      amount: string;
-      price: string;
-      product_name: string;
-      warehouse_position: string;
-      is_returned: boolean;
-    }[]
+    (Product & {
+      is_returned?: boolean;
+    })[]
   >([]);
 
   const getSpecialPriceForProduct = (productId: String) => {
@@ -183,6 +183,7 @@ export default function ReturnPage() {
       });
     } else if (mode === 'void') {
       // TO DO: Handle void transaction
+      console.log(newInvoice);
       await runTransaction(db, (transaction) => {
         // Delete the invoice
         transaction.delete(doc(db, 'invoice', invoiceNumber));
@@ -190,15 +191,33 @@ export default function ReturnPage() {
         transaction.set(doc(db, 'void_invoice', invoiceNumber), {
           ...invoice,
           items: checkedItems.map((checkedItem, index) => {
-            return {
-              ...invoice.items[index],
-              is_returned: true,
-            };
+            if (invoice.items)
+              return {
+                ...invoice.items[index],
+                is_returned: true,
+              };
           }),
         });
 
         console.log('new', newTransaction);
         //to-do: add new transaction
+        const total_price = newTransaction.items?.reduce(
+          (acc, item) => acc + item.sell_price * item.count,
+          0
+        );
+        transaction.set(doc(collection(db, 'invoice')), {
+          customer_id: selectedCustomer?.id,
+          customer_name: selectedCustomer?.name,
+          total_price: total_price,
+          items: selectedNewItems.map((selectedNewItem) => {
+            return {
+              ...selectedNewItem,
+              is_returned: false,
+            };
+          }),
+          date: new Date().toISOString(),
+          payment_method: newTransaction.payment_method,
+        });
 
         return Promise.resolve();
       });
@@ -218,11 +237,21 @@ export default function ReturnPage() {
     setNewTransaction({
       customer_id: '',
       customer_name: '',
-      total_price: '',
+      total_price: 0,
       payment_method: '',
       items: [],
     });
     setLoading(false);
+  };
+
+  const handleFetchCustomer = async () => {
+    console.log('fetching customer');
+    if (!invoice.customer_id) return;
+    const customerRef = doc(db, 'customer', invoice.customer_id);
+    const customerSnap = await getDoc(customerRef);
+    const customerData = customerSnap.data() as Customer;
+    setSelectedCustomer(customerData);
+    console.log(customerData);
   };
 
   const handleFetchInvoice = async () => {
@@ -530,32 +559,32 @@ export default function ReturnPage() {
               <hr className="my-3" />
               <h1 className="text-2xl font-bold">New Transaction</h1>
               <ul className="my-3 space-y-3 font-regular">
-                {newInvoice.items?.map((item, index) => (
+                {newTransaction.items?.map((item, index) => (
                   <li key={index}>
                     <div className="flex flex-row">
                       <div className="flex flex-col gap-2 w-full">
                         <div className="flex w-full justify-between">
                           <p className="text-lg font-semibold">
-                            {selectedProducts[index].brand +
+                            {selectedNewItems[index].brand +
                               ' ' +
-                              selectedProducts[index].motor_type +
+                              selectedNewItems[index].motor_type +
                               ' ' +
-                              selectedProducts[index].part +
+                              selectedNewItems[index].part +
                               ' ' +
-                              selectedProducts[index].available_color}
+                              selectedNewItems[index].available_color}
                           </p>
                           <button
                             type="button"
                             className="text-red-500 text-lg p-2 hover:text-red-700 cursor-pointer bg-transparent rounded-md"
                             onClick={() => {
-                              setNewInvoice({
-                                ...newInvoice,
-                                items: newInvoice.items?.filter(
+                              setNewTransaction({
+                                ...newTransaction,
+                                items: newTransaction.items?.filter(
                                   (p) => p.id !== item.id
                                 ),
                               });
-                              setSelectedProducts(
-                                selectedProducts.filter((p) => p.id !== item.id)
+                              setSelectedNewItems(
+                                selectedNewItems.filter((p) => p.id !== item.id)
                               );
                             }}
                           >
@@ -571,24 +600,28 @@ export default function ReturnPage() {
                             if (isNaN(Number(e.target.value))) return;
                             if (
                               parseInt(e.target.value) >
-                              selectedProducts[index].count
+                              selectedNewItems[index].count + item.count
                             ) {
                               setErrorMessage(
                                 'Not enough stock in warehouse. Stock in warehouse: ' +
-                                  selectedProducts[index].count.toString()
+                                  (
+                                    selectedNewItems[index].count + item.count
+                                  ).toString()
                               );
                               setTimeout(() => {
                                 setErrorMessage(null);
                               }, 3000);
                               return;
                             }
-                            setNewInvoice({
-                              ...invoice,
-                              items: invoice.items?.map((i, idx) => {
-                                if (idx === index)
-                                  i.count = Number(e.target.value);
-
-                                return i;
+                            setNewTransaction({
+                              ...newTransaction,
+                              items: newTransaction.items?.map((p) => {
+                                if (p.id === item.id)
+                                  return {
+                                    ...p,
+                                    count: Number(e.target.value),
+                                  };
+                                return p;
                               }),
                             });
                           }}
@@ -614,7 +647,7 @@ export default function ReturnPage() {
                     style: 'currency',
                     currency: 'IDR',
                   }).format(
-                    newInvoice.items?.reduce(
+                    newTransaction.items?.reduce(
                       (acc, item) => acc + item.sell_price * item.count,
                       0
                     ) ?? 0
@@ -732,21 +765,23 @@ export default function ReturnPage() {
               key={index}
               className="hover:bg-gray-100 cursor-pointer"
               onClick={() => {
-                if (selectedProducts.find((p) => p === product)) {
-                  setSelectedProducts(
-                    selectedProducts.filter((p) => p !== product)
+                if (selectedNewItems.find((p) => p === product)) {
+                  setSelectedNewItems(
+                    selectedNewItems.filter((p) => p !== product)
                   );
-                  setNewInvoice({
-                    ...newInvoice,
-                    items: newInvoice.items?.filter((p) => p.id !== product.id),
+                  setNewTransaction({
+                    ...newTransaction,
+                    items: newTransaction.items?.filter(
+                      (p) => p.id !== product.id
+                    ),
                   });
                 } else {
                   if (!product.id) return;
-                  setSelectedProducts([...selectedProducts, product]);
-                  setNewInvoice({
-                    ...newInvoice,
+                  setSelectedNewItems([...selectedNewItems, product]);
+                  setNewTransaction({
+                    ...newTransaction,
                     items: [
-                      ...(newInvoice.items ?? []),
+                      ...(newTransaction.items ?? []),
                       {
                         ...product,
                         is_returned: false,
@@ -759,7 +794,7 @@ export default function ReturnPage() {
               <SingleTableItem>
                 <input
                   type="checkbox"
-                  checked={selectedProducts.includes(product)}
+                  checked={selectedNewItems.includes(product)}
                   readOnly
                 />
               </SingleTableItem>
