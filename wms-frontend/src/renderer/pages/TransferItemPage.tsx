@@ -23,7 +23,7 @@ import { PageLayout } from 'renderer/layout/PageLayout';
 
 const newDispatchNoteInitialStates: DispatchNote = {
   painter: '',
-  created_at: '',
+  date: '',
   dispatch_items: [],
 };
 
@@ -42,7 +42,7 @@ export const TransferItemPage = () => {
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
 
-    if (!dispatchNote.created_at || !dispatchNote.painter) {
+    if (!dispatchNote.date || !dispatchNote.painter) {
       setErrorMessage('Please fill all fields');
       setTimeout(() => {
         setErrorMessage(null);
@@ -61,7 +61,7 @@ export const TransferItemPage = () => {
     // Check if color and amount is filled
     if (
       dispatchNote.dispatch_items.some(
-        (item) => item.color === '' || item.amount === ''
+        (item) => item.color === '' || item.amount === 0
       )
     ) {
       setErrorMessage('Please fill all fields');
@@ -75,13 +75,10 @@ export const TransferItemPage = () => {
     if (
       dispatchNote.dispatch_items.some(
         (item) =>
-          parseInt(item.amount) <= 0 ||
-          isNaN(parseInt(item.amount)) ||
-          parseInt(item.amount) >
-            parseInt(
-              selectedProducts.find((p) => p.id === item.product_id)?.count ??
-                '0'
-            )
+          item.amount <= 0 ||
+          isNaN(item.amount) ||
+          item.amount >
+            (selectedProducts.find((p) => p.id === item.product_id)?.count ?? 0)
       )
     ) {
       setErrorMessage('Invalid amount');
@@ -103,8 +100,7 @@ export const TransferItemPage = () => {
             (p) => p.id === item.product_id
           );
           if (!currentProduct) return Promise.reject();
-          const difference =
-            parseInt(currentProduct.count) - parseInt(item.amount);
+          const difference = currentProduct.count - item.amount;
           transaction.update(
             doc(db, 'product', item.product_id),
             'count',
@@ -187,11 +183,11 @@ export const TransferItemPage = () => {
 
   return (
     <PageLayout>
-      <h1 className="text-4xl font-extrabold tracking-tight text-gray-900 md:text-5xl">
+      <h1 className="text-4xl font-extrabold tracking-tight text-gray-900 md:text-5xl pt-4">
         Transfer Item
       </h1>
       <form
-        className={`w-2/3 py-14 my-10 flex flex-col gap-3 relative${
+        className={`w-2/3 py-14 my-10 flex flex-col gap-3 relative ${
           loading ? 'p-2' : ''
         }`}
       >
@@ -230,7 +226,7 @@ export const TransferItemPage = () => {
               onChange={(e) => {
                 setDispatchNote(() => ({
                   ...dispatchNote,
-                  created_at: e.target.value,
+                  date: e.target.value,
                 }));
               }}
             />
@@ -304,7 +300,8 @@ export const TransferItemPage = () => {
                           ...dispatchNote,
                           dispatch_items: dispatchNote.dispatch_items.map(
                             (i, idx) => {
-                              if (idx === index) i.amount = e.target.value;
+                              if (idx === index)
+                                i.amount = Number(e.target.value);
 
                               return i;
                             }
@@ -388,7 +385,7 @@ export const TransferItemPage = () => {
                       {
                         product_id: product.id,
                         color: '',
-                        amount: '',
+                        amount: 0,
                       },
                     ],
                   });

@@ -1,19 +1,19 @@
-import React, { useContext, useEffect, useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { auth } from 'firebase';
 import {
   onAuthStateChanged,
   signInWithEmailAndPassword,
   signOut,
 } from 'firebase/auth';
-import { auth } from 'firebase';
+import React, { useContext, useEffect, useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { CustomUser } from 'renderer/interfaces/CustomUser';
 
-export type LoginData = {
+export interface LoginData {
   password: string;
   email: string;
-};
+}
 
-export type AuthContext = {
+export interface AuthContext {
   accessToken: string | null;
   user: CustomUser | null;
   isLoggedIn: boolean;
@@ -21,7 +21,7 @@ export type AuthContext = {
     login: (loginData: LoginData) => Promise<CustomUser | void>;
     logout: () => void;
   };
-};
+}
 
 export const initialAuthContext = {
   accessToken: null,
@@ -37,7 +37,9 @@ export const authContext = React.createContext<AuthContext | null>(
   initialAuthContext
 );
 
-export type AuthProviderProps = { children: React.ReactNode };
+export interface AuthProviderProps {
+  children: React.ReactNode;
+}
 export const AuthProvider = ({ children }: AuthProviderProps) => {
   const navigate = useNavigate();
 
@@ -46,22 +48,22 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (newUser) => {
-      if (newUser) {
+      if (newUser)
         newUser
           .getIdToken()
           .then((newToken) => {
             setAccessToken(newToken);
-            const { owner } = JSON.parse(
+            const { role } = JSON.parse(
               atob(newToken.split('.')[1])
             ) as CustomUser;
             const theUser = newUser as CustomUser;
-            theUser.owner = owner;
+            theUser.role = role;
             setUser(theUser);
           })
           .catch(() => {
             // TODO: Handle error
           });
-      } else {
+      else {
         setAccessToken(null); // To be changed to a toast
         setUser(null);
         navigate('/');
@@ -78,9 +80,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   }, []);
 
   const onLogin = React.useCallback(async (loginData: LoginData) => {
-    if (!loginData.email || !loginData.password) {
-      return;
-    }
+    if (!loginData.email || !loginData.password) return;
 
     try {
       const userCredential = await signInWithEmailAndPassword(
@@ -114,8 +114,8 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
 export const useAuth = () => {
   const contextValue = useContext(authContext);
-  if (!contextValue) {
+  if (!contextValue)
     throw new Error('ensure to use useAuth within its provider');
-  }
+
   return contextValue;
 };

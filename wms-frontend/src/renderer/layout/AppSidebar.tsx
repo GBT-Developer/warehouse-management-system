@@ -1,6 +1,6 @@
 import React, { ReactNode } from 'react';
 import { AiOutlineDatabase, AiOutlineHome } from 'react-icons/ai';
-import { BsChevronDown, BsChevronUp } from 'react-icons/bs';
+import { BsBoxSeam, BsChevronDown, BsChevronUp, BsTruck } from 'react-icons/bs';
 import { CiLogout } from 'react-icons/ci';
 import { GiBrokenPottery } from 'react-icons/gi';
 import {
@@ -8,7 +8,12 @@ import {
   LiaMoneyBillWaveSolid,
 } from 'react-icons/lia';
 import { LuFolderEdit, LuHistory, LuPackageOpen } from 'react-icons/lu';
-import { MdHistoryEdu, MdInventory2, MdOutlinePeopleAlt } from 'react-icons/md';
+import {
+  MdHistoryEdu,
+  MdInventory2,
+  MdOutlineAssignmentReturn,
+  MdOutlinePeopleAlt,
+} from 'react-icons/md';
 import { PiPasswordLight, PiUserListLight } from 'react-icons/pi';
 import { TbPackageExport, TbTruckReturn } from 'react-icons/tb';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
@@ -142,6 +147,16 @@ export const AppSidebar = () => {
               </SidebarItem>
 
               <SidebarItem
+                icon={<BsTruck />}
+                onClick={() => {
+                  navigate('/on-dispatch');
+                }}
+                selected={location.pathname === '/on-dispatch'}
+              >
+                On Dispatch
+              </SidebarItem>
+
+              <SidebarItem
                 icon={<TbPackageExport />}
                 onClick={() => {
                   navigate('/transfer-item');
@@ -195,12 +210,32 @@ export const AppSidebar = () => {
 
           <SidebarItem
             onClick={() => {
-              navigate('/retourepage');
+              navigate('/returnpage');
             }}
             icon={<TbTruckReturn />}
+            selected={location.pathname === '/returnpage'}
+          >
+            Return
+          </SidebarItem>
+
+          <SidebarItem
+            onClick={() => {
+              navigate('/returnedproducts');
+            }}
+            icon={<MdOutlineAssignmentReturn />}
+            selected={location.pathname === '/returnedproducts'}
+          >
+            Returned Products
+          </SidebarItem>
+
+          <SidebarItem
+            onClick={() => {
+              navigate('/opnamepage');
+            }}
+            icon={<BsBoxSeam />}
             selected={location.pathname === '/'}
           >
-            Retoure
+            Opname
           </SidebarItem>
 
           <SidebarItem

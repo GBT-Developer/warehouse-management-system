@@ -1,15 +1,14 @@
 import { db } from 'firebase';
 import {
-  addDoc,
   and,
   collection,
   doc,
   getDoc,
   getDocs,
+  increment,
   or,
   query,
   runTransaction,
-  updateDoc,
   where,
 } from 'firebase/firestore';
 import { useState } from 'react';
@@ -20,8 +19,17 @@ import { InputField } from 'renderer/components/InputField';
 import { SingleTableItem } from 'renderer/components/TableComponents/SingleTableItem';
 import { TableModal } from 'renderer/components/TableComponents/TableModal';
 import { Customer } from 'renderer/interfaces/Customer';
+import { Invoice } from 'renderer/interfaces/Invoice';
 import { Product } from 'renderer/interfaces/Product';
 import { PageLayout } from 'renderer/layout/PageLayout';
+
+const invoiceInitialState: Invoice = {
+  customer_id: '',
+  customer_name: '',
+  total_price: 0,
+  payment_method: '',
+  items: [],
+};
 
 export default function ReturnPage() {
   const navigate = useNavigate();
@@ -36,68 +44,22 @@ export default function ReturnPage() {
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(
     null
   );
-  const [invoice, setInvoice] = useState<{
-    customer_id: string;
-    customer_name: string;
-    total_price: string;
-    payment_method: string;
-    items: {
-      product_id: string;
-      amount: string;
-      price: string;
-      product_name: string;
-      warehouse_position: string;
-      is_returned: boolean;
-    }[];
-  }>({
-    customer_id: '',
-    customer_name: '',
-    total_price: '',
-    payment_method: '',
-    items: [],
-  });
-  const [newTransaction, setNewTransaction] = useState<{
-    customer_id: string;
-    customer_name: string;
-    total_price: string;
-    payment_method: string;
-    items: {
-      product_id: string;
-      amount: string;
-      price: string;
-      product_name: string;
-      warehouse_position: string;
-      is_returned: boolean;
-    }[];
-  }>({
-    customer_id: '',
-    customer_name: '',
-    total_price: '',
-    payment_method: '',
-    items: [],
-  });
+  const [newTransaction, setNewTransaction] =
+    useState<Invoice>(invoiceInitialState);
+
+  const [invoice, setInvoice] = useState<Invoice>(invoiceInitialState);
   const [selectedItems, setSelectedItems] = useState<
-    {
-      product_id: string;
-      amount: string;
-      price: string;
-      product_name: string;
-      warehouse_position: string;
-      is_returned: boolean;
-    }[]
+    (Product & {
+      is_returned?: boolean;
+    })[]
   >([]);
   const [selectedNewItems, setSelectedNewItems] = useState<
-    {
-      product_id: string;
-      amount: string;
-      price: string;
-      product_name: string;
-      warehouse_position: string;
-      is_returned: boolean;
-    }[]
+    (Product & {
+      is_returned?: boolean;
+    })[]
   >([]);
 
-  const getSpecialPriceForProduct = (productId: String) => {
+  const getSpecialPriceForProduct = (productId: string) => {
     const specialPrice = selectedCustomer?.SpecialPrice.find(
       (p) => p.product_id === productId
     );
@@ -111,24 +73,33 @@ export default function ReturnPage() {
         try {
           const promises = selectedItems.map(async (item) => {
             // Get product data
-            const productRef = doc(db, 'product', item.product_id);
+            if (!item.id) return Promise.reject('Product id is undefined');
+            const productRef = doc(db, 'product', item.id);
             const productSnap = await getDoc(productRef);
             const product = productSnap.data() as Product;
 
             // Check if there is enough stock
-            if (parseInt(product.count) < parseInt(item.amount))
+            if (product.count < item.count)
               return Promise.reject('Not enough stock in the warehouse');
 
             // Update product count
-            const difference = parseInt(product.count) - parseInt(item.amount);
+            const difference = product.count - item.count;
             transaction.update(
-              doc(db, 'product', item.product_id),
+              doc(db, 'product', item.id),
               'count',
-              difference.toString()
+              difference
             );
 
             // Put the returned product to broken product database
-            await checkBrokenProduct(product, item.amount);
+            transaction.set(
+              doc(db, 'broken_product', item.id),
+              {
+                ...product,
+                count: difference,
+              },
+              { merge: true }
+            );
+
             return Promise.resolve('Success');
           });
           await Promise.all(promises);
@@ -138,48 +109,46 @@ export default function ReturnPage() {
         }
       });
     else if (mode === 'return') {
-      const newTransaction = { ...invoice };
-      // Decrease the amount of the item in the invoice
-      // If amount is 0, delete the item from the invoice
+      // Decrease the count of the item in the invoice
+      // If count is 0, delete the item from the invoice
       selectedItems.forEach((selectedItem) => {
-        const itemIndex = newTransaction.items.findIndex(
-          (item) => item.product_id === selectedItem.product_id
+        const itemInInvoice = newTransaction.items?.find(
+          (item) => item.id === selectedItem.id
         );
-        if (
-          parseInt(newTransaction.items[itemIndex].amount) ===
-          parseInt(selectedItem.amount)
-        )
+        if (itemInInvoice?.count === selectedItem.count)
           // Delete the item
-          newTransaction.items.splice(itemIndex, 1);
-        else
-          newTransaction.items[itemIndex].amount = (
-            parseInt(newTransaction.items[itemIndex].amount) -
-            parseInt(selectedItem.amount)
-          ).toString();
+          newTransaction.items?.splice(
+            newTransaction.items.findIndex(
+              (item) => item.id === selectedItem.id
+            ),
+            1
+          );
+        // Decrease the count
+        else if (itemInInvoice?.count)
+          itemInInvoice.count -= selectedItem.count;
       });
 
       // Reduce the total price
-      newTransaction.total_price = (
-        parseInt(newTransaction.total_price) -
-        selectedItems.reduce(
-          (acc, cur) => acc + parseInt(cur.price) * parseInt(cur.amount),
-          0
-        )
-      ).toString();
+      if (newTransaction.total_price)
+        newTransaction.total_price =
+          newTransaction.total_price -
+          selectedItems.reduce(
+            (acc, cur) => acc + cur.sell_price * cur.count,
+            0
+          );
 
       // Merge the invoice items with the selected items
-      // But if the item is already in the invoice, just increase the amount
+      // But if the item is already in the invoice, just increase the count
       selectedItems.forEach((selectedItem) => {
         selectedItem.is_returned = true;
-        const itemIndex = newTransaction.items.findIndex(
-          (item) => item.product_id === selectedItem.product_id
+        const itemIndex = newTransaction.items?.findIndex(
+          (item) => item.id === selectedItem.id
         );
-        if (itemIndex === -1) newTransaction.items.push(selectedItem);
-        else
-          newTransaction.items[itemIndex].amount = (
-            parseInt(newTransaction.items[itemIndex].amount) -
-            parseInt(selectedItem.amount)
-          ).toString();
+        if (itemIndex === -1 || itemIndex === undefined)
+          newTransaction.items?.push(selectedItem);
+        else if (newTransaction.items)
+          newTransaction.items[itemIndex].count =
+            newTransaction.items[itemIndex].count - selectedItem.count;
       });
 
       // Update the invoice
@@ -191,13 +160,23 @@ export default function ReturnPage() {
 
         // Put the returned product to broken product database
         const promises = selectedItems.map(async (item) => {
-          // Get product data
-          const productRef = doc(db, 'product', item.product_id);
-          const productSnap = await getDoc(productRef);
-          const product = productSnap.data() as Product;
+          const brokenProductRef = doc(
+            collection(db, 'broken_product'),
+            item.id
+          );
 
-          // Check if there is enough stock
-          await checkBrokenProduct(product, item.amount);
+          const updateCount = increment(item.count);
+          transaction.set(
+            brokenProductRef,
+            {
+              ...item,
+              count: updateCount,
+            },
+            {
+              merge: true,
+            }
+          );
+
           return Promise.resolve();
         });
 
@@ -212,7 +191,7 @@ export default function ReturnPage() {
     setInvoice({
       customer_id: '',
       customer_name: '',
-      total_price: '',
+      total_price: 0,
       payment_method: '',
       items: [],
     });
@@ -221,48 +200,12 @@ export default function ReturnPage() {
     setLoading(false);
   };
 
-  const checkBrokenProduct = async (
-    product: Product | undefined,
-    amount: string
-  ) => {
-    if (!product) return;
-    // Check if the product is already in broken product database
-    const brokenProductQuery = query(
-      collection(db, 'broken_product'),
-      where('warehouse_position', '==', 'Gudang Jadi'),
-      where('available_color', '==', product.available_color),
-      where('brand', '==', product.brand),
-      where('motor_type', '==', product.motor_type),
-      where('part', '==', product.part),
-      where('supplier', '==', product.supplier)
-    );
-
-    const brokenProductQuerySnapshot = await getDocs(brokenProductQuery);
-
-    if (brokenProductQuerySnapshot.empty)
-      await addDoc(collection(db, 'broken_product'), {
-        ...product,
-        count: amount,
-        warehouse_position: 'Gudang Jadi',
-      });
-    else {
-      // Update broken product count
-      const brokenProduct = brokenProductQuerySnapshot.docs[0];
-
-      await updateDoc(brokenProduct.ref, {
-        count:
-          parseInt(amount) + parseInt((brokenProduct.data() as Product).count),
-      });
-    }
-  };
-
   const handleFetchCustomer = async () => {
-    console.log('fetching customer');
+    if (!invoice.customer_id) return;
     const customerRef = doc(db, 'customer', invoice.customer_id);
     const customerSnap = await getDoc(customerRef);
     const customerData = customerSnap.data() as Customer;
     setSelectedCustomer(customerData);
-    console.log(customerData);
   };
 
   const handleFetchInvoice = async () => {
@@ -275,16 +218,11 @@ export default function ReturnPage() {
       const invoiceData = invoiceSnap.data() as {
         customer_id: string;
         customer_name: string;
-        total_price: string;
+        total_price: number;
         payment_method: string;
-        items: {
-          product_id: string;
-          amount: string;
-          price: string;
-          product_name: string;
-          warehouse_position: string;
-          is_returned: boolean;
-        }[];
+        items: (Product & {
+          is_returned?: boolean;
+        })[];
       } | null;
 
       if (!invoiceData) {
@@ -297,6 +235,8 @@ export default function ReturnPage() {
       }
 
       setInvoice(invoiceData);
+
+      console.log(invoiceData);
 
       setCheckedItems(new Array(invoiceData.items.length).fill(false));
       setLoading(false);
@@ -351,10 +291,10 @@ export default function ReturnPage() {
         Return
       </h1>
       <form
-        onSubmit={(e) => {
+        onSubmit={() => {
           () => handleFetchInvoice();
         }}
-        className={`w-2/3 pt-14 mt-10 flex flex-col gap-3 relative${
+        className={`w-2/3 pt-14 mt-10 flex flex-col gap-3 relative ${
           loading ? 'p-2' : ''
         }`}
       >
@@ -407,10 +347,8 @@ export default function ReturnPage() {
             disabled={loading}
             className="absolute top-0 right-0 h-full flex items-center justify-center px-3"
             onClick={() => {
-              console.log('clicked');
               handleFetchInvoice().catch(() => console.log('error'));
               handleFetchCustomer().catch(() => console.log('error'));
-              console.log(selectedCustomer);
             }}
           >
             <AiOutlineReload />
@@ -418,7 +356,7 @@ export default function ReturnPage() {
         </div>
       </form>
 
-      {invoice.items.length > 0 && (
+      {invoice.items && invoice.items.length > 0 && (
         // Invoice data
         <form
           onSubmit={(e) => {
@@ -448,7 +386,7 @@ export default function ReturnPage() {
                   {new Intl.NumberFormat('id-ID', {
                     style: 'currency',
                     currency: 'IDR',
-                  }).format(parseInt(invoice.total_price))}
+                  }).format(invoice.total_price ?? 0)}
                 </p>
               </div>
               <div className="flex justify-between">
@@ -461,14 +399,16 @@ export default function ReturnPage() {
                     <div className="w-full flex justify-between items-center">
                       <div
                         className={`flex ${
-                          checkedItems[index] ? 'w-4/5' : 'w-full'
+                          checkedItems[index]
+                            ? 'w-4/5  bg-blue-300'
+                            : 'w-full bg-red-300'
                         }`}
                       >
                         <div className="pt-1">
                           <input
                             type="checkbox"
                             checked={checkedItems[index] || mode === 'void'}
-                            disabled={item.is_returned || mode === 'void'}
+                            disabled={mode === 'void' || item.is_returned}
                             onChange={() => {
                               const newCheckedItems = checkedItems;
                               newCheckedItems[index] = !newCheckedItems[index];
@@ -477,8 +417,7 @@ export default function ReturnPage() {
                                 setSelectedItems([...selectedItems, item]);
                               else {
                                 const newSelectedItems = selectedItems.filter(
-                                  (selectedItem) =>
-                                    selectedItem.product_id !== item.product_id
+                                  (selectedItem) => selectedItem.id !== item.id
                                 );
                                 setSelectedItems([...newSelectedItems]);
                               }
@@ -487,7 +426,15 @@ export default function ReturnPage() {
                         </div>
                         <div className="px-3">
                           <label className="text-lg font-semibold">
-                            {item.amount + 'x ' + item.product_name}
+                            {item.count.toString() +
+                              'x ' +
+                              item.brand +
+                              ' ' +
+                              item.motor_type +
+                              ' ' +
+                              item.part +
+                              ' ' +
+                              item.available_color}
                             {item.is_returned && ' (Returned)'}
                           </label>
                         </div>
@@ -504,12 +451,11 @@ export default function ReturnPage() {
                             value={
                               // If mode is return, set the amount to the original amount
                               mode === 'return'
-                                ? item.amount
+                                ? item.count
                                 : selectedItems.find(
                                     (selectedItem) =>
-                                      selectedItem.product_id ===
-                                      item.product_id
-                                  )?.amount
+                                      selectedItem.id === item.id
+                                  )?.count
                             }
                             onChange={(e) => {
                               const newAmount = e.target.value;
@@ -522,20 +468,20 @@ export default function ReturnPage() {
                                 return;
                               }
                               if (
-                                parseInt(newAmount) <= parseInt(item.amount)
+                                parseInt(newAmount) <=
+                                parseInt(item.count.toString())
                               ) {
                                 // Check if newAmount is smaller or equal to item.amount
                                 const newSelectedItems = [...selectedItems];
                                 const selectedItemIndex =
                                   newSelectedItems.findIndex(
                                     (selectedItem) =>
-                                      selectedItem.product_id ===
-                                      item.product_id
+                                      selectedItem.id === item.id
                                   );
                                 if (selectedItemIndex !== -1) {
                                   newSelectedItems[selectedItemIndex] = {
                                     ...newSelectedItems[selectedItemIndex],
-                                    amount: newAmount,
+                                    count: Number(newAmount),
                                   };
                                   setSelectedItems(newSelectedItems);
                                   setErrorMessage(null); // Clear any previous error message
@@ -575,7 +521,13 @@ export default function ReturnPage() {
                       <div className="flex flex-col gap-2 w-full">
                         <div className="flex w-full justify-between">
                           <p className="text-lg font-semibold">
-                            {newItem.product_name}
+                            {newItem.brand +
+                              ' ' +
+                              newItem.motor_type +
+                              ' ' +
+                              newItem.part +
+                              ' ' +
+                              newItem.available_color}
                           </p>
                           <button
                             type="button"
@@ -583,13 +535,12 @@ export default function ReturnPage() {
                             onClick={() => {
                               setSelectedNewItems(
                                 selectedNewItems.filter(
-                                  (item) =>
-                                    item.product_id !== newItem.product_id
+                                  (item) => item.id !== newItem.id
                                 )
                               );
                               setSelectedProducts(
                                 selectedProducts.filter(
-                                  (p) => p.id !== newItem.product_id
+                                  (p) => p.id !== newItem.id
                                 )
                               );
                             }}
@@ -601,20 +552,20 @@ export default function ReturnPage() {
                           label="new amount"
                           labelFor="new amount"
                           loading={loading}
-                          value={selectedNewItems[newIndex]?.amount}
+                          value={selectedNewItems[newIndex]?.count}
                           onChange={(e) => {
                             const newAmount = e.target.value;
+                            console.log(newAmount);
+                            console.log(isNaN(Number(newAmount)));
                             if (isNaN(Number(newAmount))) return;
+                            console.log('masuk');
                             if (
                               parseInt(e.target.value) >
-                              parseInt(selectedProducts[newIndex].count) +
-                                parseInt(
-                                  invoice.items.find(
-                                    (item) =>
-                                      item.product_id ===
-                                      selectedProducts[newIndex].id
-                                  )?.amount ?? '0'
-                                )
+                              selectedProducts[newIndex].count +
+                                (invoice.items?.find(
+                                  (item) =>
+                                    item.id === selectedProducts[newIndex].id
+                                )?.count ?? 0)
                             ) {
                               setErrorMessage(
                                 'Amount cannot be more than the original amount'
@@ -629,12 +580,12 @@ export default function ReturnPage() {
                             // Use map to create a new array with updated amount
                             const updatedSelectedNewItems =
                               selectedNewItems.map((item, i) => {
-                                if (i === newIndex) {
+                                if (i === newIndex)
                                   return {
                                     ...item,
-                                    amount: newAmount,
+                                    count: parseInt(newAmount),
                                   };
-                                }
+
                                 return item;
                               });
 
@@ -648,9 +599,8 @@ export default function ReturnPage() {
                               style: 'currency',
                               currency: 'IDR',
                             }).format(
-                              parseInt(
-                                selectedNewItems[newIndex]?.amount ?? '0'
-                              ) * parseInt(selectedNewItems[newIndex].price)
+                              (selectedNewItems[newIndex]?.count ?? 0) *
+                                selectedNewItems[newIndex].sell_price
                             )}
                           </p>
                         </div>
@@ -668,8 +618,7 @@ export default function ReturnPage() {
                     currency: 'IDR',
                   }).format(
                     selectedNewItems.reduce(
-                      (acc, item) =>
-                        acc + parseInt(item.price) * parseInt(item.amount),
+                      (acc, item) => acc + item.sell_price * item.count,
                       0
                     )
                   )}
@@ -791,8 +740,8 @@ export default function ReturnPage() {
                   );
                   setNewTransaction({
                     ...newTransaction,
-                    items: newTransaction.items.filter(
-                      (p) => p.product_id !== product.id
+                    items: newTransaction.items?.filter(
+                      (p) => p.id !== product.id
                     ),
                   });
                 } else {
@@ -802,25 +751,21 @@ export default function ReturnPage() {
                   setSelectedNewItems([
                     ...selectedNewItems,
                     {
-                      product_id: product.id,
-                      amount: '1',
-                      price:
+                      id: product.id,
+                      count: 1,
+                      sell_price:
                         specialPrice !== null
                           ? specialPrice
                           : product.sell_price,
-                      product_name:
-                        product.brand +
-                        ' ' +
-                        product.motor_type +
-                        ' ' +
-                        product.part +
-                        ' ' +
-                        product.available_color,
+                      brand: product.brand,
+                      motor_type: product.motor_type,
+                      part: product.part,
+                      available_color: product.available_color,
+                      purchase_price: product.purchase_price,
                       warehouse_position: product.warehouse_position,
                       is_returned: false,
                     },
                   ]);
-                  console.log(selectedNewItems);
                 }
               }}
             >

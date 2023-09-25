@@ -78,7 +78,7 @@ function EditCustomerPage() {
       return;
     }
 
-    if (newCustomer.SpecialPrice.some((sp) => sp.price === '')) {
+    if (newCustomer.SpecialPrice.some((sp) => sp.price === 0)) {
       setErrorMessage('Please enter prices for all selected products');
       setTimeout(() => {
         setErrorMessage(null);
@@ -140,7 +140,7 @@ function EditCustomerPage() {
     querySnapshot.forEach((theProduct) => {
       const data = theProduct.data() as SpecialPrice;
       data.product_id = theProduct.id;
-      data.price = theProduct.get('sell_price') as string;
+      data.price = theProduct.get('sell_price') as number;
       productData.push(data);
     });
 
@@ -217,7 +217,7 @@ function EditCustomerPage() {
                       disabled={loading}
                       id={'price'}
                       name={'price'}
-                      type="text"
+                      type={'number'}
                       className={`placeholder:text-xs placeholder:font-light bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 p-2 w-full
                       `}
                       value={
@@ -237,7 +237,9 @@ function EditCustomerPage() {
                         const index = newSpecialPriceProducts.findIndex(
                           (sp) => sp.product_id === product.product_id
                         );
-                        newSpecialPriceProducts[index].price = e.target.value;
+                        newSpecialPriceProducts[index].price = Number(
+                          e.target.value
+                        );
                         setNewCustomer(() => {
                           return {
                             ...newCustomer,

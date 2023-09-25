@@ -245,7 +245,7 @@ export default function ProductDetailPage() {
               value={product?.count ?? ''}
               onChange={(e) => {
                 if (product === undefined) return;
-                setProduct({ ...product, count: e.target.value });
+                setProduct({ ...product, count: Number(e.target.value) });
               }}
               additionalStyle={`${
                 editToggle ? '' : 'border-none outline-none bg-inherit'
@@ -258,7 +258,7 @@ export default function ProductDetailPage() {
               value={product?.sell_price ?? ''}
               onChange={(e) => {
                 if (product === undefined) return;
-                setProduct({ ...product, sell_price: e.target.value });
+                setProduct({ ...product, sell_price: Number(e.target.value) });
               }}
               additionalStyle={`${
                 editToggle ? '' : 'border-none outline-none bg-inherit'
