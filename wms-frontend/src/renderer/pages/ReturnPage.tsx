@@ -67,6 +67,18 @@ export default function ReturnPage() {
   };
 
   const handleSubmit = async () => {
+    // Check whether all inputs are filled
+    if (mode === '') return Promise.reject('Please select a mode');
+    if (!invoiceNumber) return Promise.reject('Please input invoice number');
+    if (mode !== 'void' && selectedItems.length === 0)
+      return Promise.reject('Please select at least one item');
+    if (mode === 'void' && selectedNewItems.length === 0)
+      return Promise.reject('Please select at least one item');
+    if (mode === 'void' && !newTransaction.payment_method)
+      return Promise.reject('Please select a payment method');
+
+    setLoading(true);
+
     // If mode is exchange, check if there is enough stock
     if (mode === 'exchange')
       await runTransaction(db, async (transaction) => {
@@ -182,48 +194,76 @@ export default function ReturnPage() {
 
         return Promise.all(promises);
       });
-    } else if (mode === 'void') {
-      // TO DO: Handle void transaction
-    }
+    } else
+      await runTransaction(db, (transaction) => {
+        // Delete the invoice
+        transaction.delete(doc(db, 'invoice', invoiceNumber));
+
+        // Put the old invoice to void list
+        transaction.set(doc(db, 'void_invoice', invoiceNumber), {
+          ...invoice,
+          items: checkedItems.map((checkedItem, index) => {
+            if (invoice.items)
+              return {
+                ...invoice.items[index],
+                is_returned: true,
+              };
+          }),
+        });
+
+        // Put the new invoice to invoice list
+        const total_price = selectedNewItems.reduce(
+          (acc, item) => acc + item.sell_price * item.count,
+          0
+        );
+
+        transaction.set(doc(collection(db, 'invoice')), {
+          customer_id: selectedCustomer?.id,
+          customer_name: selectedCustomer?.name,
+          total_price: total_price,
+          items: selectedNewItems.map((selectedNewItem) => {
+            return {
+              ...selectedNewItem,
+              is_returned: false,
+            };
+          }),
+          date: new Date().toISOString(),
+          payment_method: newTransaction.payment_method,
+        });
+
+        return Promise.resolve();
+      });
+
     // Clear the form
     setInvoiceNumber('');
     setCheckedItems([]);
-    setInvoice({
-      customer_id: '',
-      customer_name: '',
-      total_price: 0,
-      payment_method: '',
-      items: [],
-    });
+    setInvoice(invoiceInitialState);
     setSelectedItems([]);
     setMode('');
+    setSelectedProducts([]);
+    setSelectedNewItems([]);
+    setNewTransaction(invoiceInitialState);
     setLoading(false);
   };
 
-  const handleFetchCustomer = async () => {
-    if (!invoice.customer_id) return;
-    const customerRef = doc(db, 'customer', invoice.customer_id);
+  const handleFetchCustomer = async (theInvoice: Invoice) => {
+    if (!theInvoice.customer_id) return;
+    const customerRef = doc(db, 'customer', theInvoice.customer_id);
     const customerSnap = await getDoc(customerRef);
     const customerData = customerSnap.data() as Customer;
+    customerData.id = customerSnap.id;
     setSelectedCustomer(customerData);
   };
 
-  const handleFetchInvoice = async () => {
+  const handleFetchInvoice = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
     if (!invoiceNumber) return;
 
     try {
       setLoading(true);
       const invoiceRef = doc(db, 'invoice', invoiceNumber);
       const invoiceSnap = await getDoc(invoiceRef);
-      const invoiceData = invoiceSnap.data() as {
-        customer_id: string;
-        customer_name: string;
-        total_price: number;
-        payment_method: string;
-        items: (Product & {
-          is_returned?: boolean;
-        })[];
-      } | null;
+      const invoiceData = invoiceSnap.data() as Invoice | undefined;
 
       if (!invoiceData) {
         setErrorMessage('Invoice not found');
@@ -234,12 +274,12 @@ export default function ReturnPage() {
         return;
       }
 
-      setInvoice(invoiceData);
+      setInvoice(() => invoiceData);
 
-      console.log(invoiceData);
-
-      setCheckedItems(new Array(invoiceData.items.length).fill(false));
+      setCheckedItems(new Array(invoiceData.items?.length).fill(false));
       setLoading(false);
+
+      return Promise.resolve(invoiceData);
     } catch (err) {
       setErrorMessage('An error occured while fetching invoice');
       setLoading(false);
@@ -291,8 +331,13 @@ export default function ReturnPage() {
         Return
       </h1>
       <form
-        onSubmit={() => {
-          () => handleFetchInvoice();
+        onSubmit={(e) => {
+          handleFetchInvoice(e)
+            .then((invoice) => {
+              if (!invoice) return;
+              handleFetchCustomer(invoice).catch((err) => console.log(err));
+            })
+            .catch(() => console.log('error'));
         }}
         className={`w-2/3 pt-14 mt-10 flex flex-col gap-3 relative ${
           loading ? 'p-2' : ''
@@ -346,10 +391,6 @@ export default function ReturnPage() {
             type="submit"
             disabled={loading}
             className="absolute top-0 right-0 h-full flex items-center justify-center px-3"
-            onClick={() => {
-              handleFetchInvoice().catch(() => console.log('error'));
-              handleFetchCustomer().catch(() => console.log('error'));
-            }}
           >
             <AiOutlineReload />
           </button>
@@ -554,11 +595,12 @@ export default function ReturnPage() {
                           loading={loading}
                           value={selectedNewItems[newIndex]?.count}
                           onChange={(e) => {
+                            if (
+                              !/^[0-9]*(\.[0-9]*)?$/.test(e.target.value) &&
+                              e.target.value !== ''
+                            )
+                              return;
                             const newAmount = e.target.value;
-                            console.log(newAmount);
-                            console.log(isNaN(Number(newAmount)));
-                            if (isNaN(Number(newAmount))) return;
-                            console.log('masuk');
                             if (
                               parseInt(e.target.value) >
                               selectedProducts[newIndex].count +
@@ -583,7 +625,9 @@ export default function ReturnPage() {
                                 if (i === newIndex)
                                   return {
                                     ...item,
-                                    count: parseInt(newAmount),
+                                    count: parseInt(
+                                      newAmount === '' ? '0' : newAmount
+                                    ),
                                   };
 
                                 return item;
@@ -655,7 +699,7 @@ export default function ReturnPage() {
                         name="payment-method"
                         id="cash"
                         value="Cash"
-                        checked={invoice.payment_method === 'Cash'}
+                        checked={newTransaction.payment_method === 'Cash'}
                         onChange={(e) => {
                           setNewTransaction({
                             ...newTransaction,
@@ -744,6 +788,9 @@ export default function ReturnPage() {
                       (p) => p.id !== product.id
                     ),
                   });
+                  setSelectedNewItems(
+                    selectedNewItems.filter((p) => p.id !== product.id)
+                  );
                 } else {
                   if (!product.id) return;
                   const specialPrice = getSpecialPriceForProduct(product.id);
