@@ -205,6 +205,25 @@ export default function ReturnPage() {
       });
     } else if (mode === 'void') {
       // TO DO: Handle void transaction
+      await runTransaction(db, (transaction) => {
+        // Delete the invoice
+        transaction.delete(doc(db, 'invoice', invoiceNumber));
+        //put the invoice to void list
+        transaction.set(doc(db, 'void_invoice', invoiceNumber), {
+          ...invoice,
+          items: checkedItems.map((checkedItem, index) => {
+            return {
+              ...invoice.items[index],
+              is_returned: true,
+            };
+          }),
+        });
+
+        console.log('new', newTransaction);
+        //to-do: add new transaction
+
+        return Promise.resolve();
+      });
     }
     // Clear the form
     setInvoiceNumber('');
@@ -218,6 +237,13 @@ export default function ReturnPage() {
     });
     setSelectedItems([]);
     setMode('');
+    setNewTransaction({
+      customer_id: '',
+      customer_name: '',
+      total_price: '',
+      payment_method: '',
+      items: [],
+    });
     setLoading(false);
   };
 
@@ -639,6 +665,10 @@ export default function ReturnPage() {
                               });
 
                             setSelectedNewItems(updatedSelectedNewItems);
+                            setNewTransaction({
+                              ...newTransaction,
+                              items: updatedSelectedNewItems,
+                            });
                           }}
                         />
 
@@ -706,8 +736,9 @@ export default function ReturnPage() {
                         name="payment-method"
                         id="cash"
                         value="Cash"
-                        checked={invoice.payment_method === 'Cash'}
+                        checked={newTransaction.payment_method === 'Cash'}
                         onChange={(e) => {
+                          console.log(e.target.value);
                           setNewTransaction({
                             ...newTransaction,
                             payment_method: e.target.value,
@@ -731,6 +762,7 @@ export default function ReturnPage() {
                         value="Cashless"
                         checked={newTransaction.payment_method === 'Cashless'}
                         onChange={(e) => {
+                          console.log(e.target.value);
                           setNewTransaction({
                             ...newTransaction,
                             payment_method: e.target.value,
@@ -789,6 +821,7 @@ export default function ReturnPage() {
                   setSelectedProducts(
                     selectedProducts.filter((p) => p.id !== product.id)
                   );
+                  console.log(selectedProducts);
                   setNewTransaction({
                     ...newTransaction,
                     items: newTransaction.items.filter(
@@ -820,6 +853,30 @@ export default function ReturnPage() {
                       is_returned: false,
                     },
                   ]);
+                  setNewTransaction({
+                    ...newTransaction,
+                    items: [
+                      ...newTransaction.items,
+                      {
+                        product_id: product.id,
+                        amount: '1',
+                        price:
+                          specialPrice !== null
+                            ? specialPrice
+                            : product.sell_price,
+                        product_name:
+                          product.brand +
+                          ' ' +
+                          product.motor_type +
+                          ' ' +
+                          product.part +
+                          ' ' +
+                          product.available_color,
+                        warehouse_position: product.warehouse_position,
+                        is_returned: false,
+                      },
+                    ],
+                  });
                   console.log(selectedNewItems);
                 }
               }}
