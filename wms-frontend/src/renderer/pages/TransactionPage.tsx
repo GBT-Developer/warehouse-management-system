@@ -94,7 +94,7 @@ export const TransactionPage = () => {
       }, 3000);
       return;
     }
-
+    console.log(invoice);
     try {
       setLoading(true);
       // Update product count

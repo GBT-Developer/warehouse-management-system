@@ -1,5 +1,9 @@
 import React, { ReactNode } from 'react';
-import { AiOutlineDatabase, AiOutlineHome } from 'react-icons/ai';
+import {
+  AiOutlineDatabase,
+  AiOutlineHome,
+  AiOutlineStop,
+} from 'react-icons/ai';
 import { BsBoxSeam, BsChevronDown, BsChevronUp, BsTruck } from 'react-icons/bs';
 import { CiLogout } from 'react-icons/ci';
 import { GiBrokenPottery } from 'react-icons/gi';
@@ -174,6 +178,15 @@ export const AppSidebar = () => {
                 selected={location.pathname === '/broken-product-list-page'}
               >
                 Broken Products
+              </SidebarItem>
+              <SidebarItem
+                icon={<AiOutlineStop />}
+                onClick={() => {
+                  navigate('/void-list');
+                }}
+                selected={location.pathname === '/void-list'}
+              >
+                Void List
               </SidebarItem>
             </ul>
           </li>
