@@ -14,13 +14,14 @@ import React, { FormEvent, useState } from 'react';
 import { AiOutlineLoading3Quarters } from 'react-icons/ai';
 import { BiSolidTrash } from 'react-icons/bi';
 import { useNavigate } from 'react-router-dom';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import { InputField } from 'renderer/components/InputField';
 import { SingleTableItem } from 'renderer/components/TableComponents/SingleTableItem';
 import { TableModal } from 'renderer/components/TableComponents/TableModal';
 import { DispatchNote } from 'renderer/interfaces/DispatchNote';
 import { Product } from 'renderer/interfaces/Product';
 import { PageLayout } from 'renderer/layout/PageLayout';
-
 const newDispatchNoteInitialStates: DispatchNote = {
   painter: '',
   date: '',
@@ -38,7 +39,9 @@ export const TransferItemPage = () => {
   const [selectedProducts, setSelectedProducts] = useState<Product[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const dateInputRef = React.useRef<HTMLInputElement>(null);
-
+  const successNotify = () => toast.success('Item successfully transferred');
+  const failNotify = (e?: string) =>
+    toast.error(e ?? 'Failed to transfer item');
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
 
@@ -122,10 +125,13 @@ export const TransferItemPage = () => {
             dispatch_note_id: dispatchNoteDoc.id,
           });
         }
-
+        setLoading(false);
+        successNotify();
         return Promise.resolve();
       }).catch((error) => {
-        console.error('Transaction failed: ', error);
+        setLoading(false);
+        const errorMessage = error as unknown as string;
+        failNotify(errorMessage);
       });
 
       // Clear form
@@ -419,6 +425,18 @@ export const TransferItemPage = () => {
           </tr>
         )}
       </TableModal>
+      <ToastContainer
+        position="top-right"
+        autoClose={2000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="light"
+      />
     </PageLayout>
   );
 };

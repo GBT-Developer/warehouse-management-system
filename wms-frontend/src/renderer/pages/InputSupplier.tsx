@@ -3,11 +3,12 @@ import { addDoc, collection } from 'firebase/firestore';
 import { useState } from 'react';
 import { AiOutlineLoading3Quarters } from 'react-icons/ai';
 import { useNavigate } from 'react-router-dom';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import { AreaField } from 'renderer/components/AreaField';
 import { InputField } from 'renderer/components/InputField';
 import { Supplier } from 'renderer/interfaces/Supplier';
 import { PageLayout } from 'renderer/layout/PageLayout';
-
 const newSupplierInitialState = {
   company_name: '',
   address: '',
@@ -15,6 +16,8 @@ const newSupplierInitialState = {
   phone_number: '',
   bank_number: '',
   remarks: '',
+  contact_person: '',
+  bank_owner: '',
 } as Supplier;
 
 function InputSupplier() {
@@ -24,6 +27,8 @@ function InputSupplier() {
   );
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const successNotify = () => toast.success('Supplier Successfully Added');
+  const failNotify = (e?: string) => toast.error(e ?? 'Supplier Failed to Add');
 
   function handleSubmit(e: { preventDefault: () => void }) {
     e.preventDefault();
@@ -61,13 +66,13 @@ function InputSupplier() {
       .then(() => {
         setNewSupplier(newSupplierInitialState);
         setLoading(false);
-        navigate(-1);
+        successNotify();
         // Set the select value back to default
       })
       .catch((error) => {
         setLoading(false);
-        // eslint-disable-next-line no-console
-        console.log(error);
+        const errorMessage = error as unknown as string;
+        failNotify(errorMessage);
       });
   }
   return (
@@ -189,6 +194,18 @@ function InputSupplier() {
           <p className="text-red-500 text-sm ">{errorMessage}</p>
         )}
       </form>
+      <ToastContainer
+        position="top-right"
+        autoClose={2000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="light"
+      />
     </PageLayout>
   );
 }

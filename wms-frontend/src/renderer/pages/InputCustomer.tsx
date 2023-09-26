@@ -5,6 +5,8 @@ import { FormEvent, useState } from 'react';
 import { AiOutlineLoading3Quarters } from 'react-icons/ai';
 import { IoRemoveCircleOutline } from 'react-icons/io5';
 import { useNavigate } from 'react-router-dom';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import { InputField } from 'renderer/components/InputField';
 import { SingleTableItem } from 'renderer/components/TableComponents/SingleTableItem';
 import { TableModal } from 'renderer/components/TableComponents/TableModal';
@@ -29,7 +31,8 @@ function InputCustomerPage() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [selectedProducts, setSelectedProducts] = useState<Product[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
-
+  const successNotify = () => toast.success('Customer Successfully Added');
+  const failNotify = (e?: string) => toast.error(e ?? 'Failed to add customer');
   function handleSubmit(e: FormEvent) {
     e.preventDefault();
     // If one or more fields are empty except remarks, return early
@@ -68,11 +71,13 @@ function InputCustomerPage() {
     addDoc(productCollection, newCustomer)
       .then(() => {
         setLoading(false);
-        navigate(-1);
+        successNotify();
+        setNewCustomer(newCustomerInitialState);
       })
       .catch((error) => {
-        console.error('Error adding document: ', error);
         setLoading(false);
+        const errorMessage = error as unknown as string;
+        failNotify(errorMessage);
       });
   }
 
@@ -343,6 +348,18 @@ function InputCustomerPage() {
           </tr>
         )}
       </TableModal>
+      <ToastContainer
+        position="top-right"
+        autoClose={2000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="light"
+      />
     </PageLayout>
   );
 }

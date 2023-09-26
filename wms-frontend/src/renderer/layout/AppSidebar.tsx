@@ -76,17 +76,6 @@ export const AppSidebar = () => {
         <div className="px-3">
           <Profile />
         </div>
-        <div className="flex px-2.5 py-1.5 justify-between items-center text-black">
-          <button className="text-black hover:bg-gray-500 hover:text-white focus:ring-4 focus:ring-gray-500 font-medium rounded-lg text-xs px-2.5 py-1.5 w-1/4">
-            Gudang Jadi
-          </button>
-          <button className="text-black hover:bg-gray-500 hover:text-white focus:ring-4 focus:ring-gray-500 font-medium rounded-lg text-xs px-2.5 py-1.5 w-1/4">
-            Gudang Bahan
-          </button>
-          <button className="text-black hover:bg-gray-500 hover:text-white focus:ring-4 focus:ring-gray-500 font-medium rounded-lg text-xs px-2.5 py-1.5 w-1/4">
-            Semua Gudang
-          </button>
-        </div>
       </div>
       <div className="h-full px-3 hover:overflow-y-auto overflow-clip">
         <div className={'w-full my-2 border-b border-gray-300'} />

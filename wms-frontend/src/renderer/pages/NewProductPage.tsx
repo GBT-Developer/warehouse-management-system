@@ -9,6 +9,8 @@ import {
 import { FormEvent, useEffect, useRef, useState } from 'react';
 import { AiOutlineLoading3Quarters } from 'react-icons/ai';
 import { useNavigate } from 'react-router-dom';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import { AreaField } from 'renderer/components/AreaField';
 import { InputField } from 'renderer/components/InputField';
 import { Product } from 'renderer/interfaces/Product';
@@ -59,7 +61,8 @@ export const NewProductPage = () => {
   const [newPurchase, setNewPurchase] = useState<PurchaseHistory>(
     newPurchaseInitialState
   );
-
+  const successNotify = () => toast.success('Product Successfully Added');
+  const failNotify = (e?: string) => toast.error(e ?? 'Failed to Add Product');
   // Take product from firebase
   useEffect(() => {
     const fetchData = async () => {
@@ -146,10 +149,13 @@ export const NewProductPage = () => {
           },
         ],
       });
-
+      setLoading(false);
+      successNotify();
       return Promise.resolve(newProductRef);
     }).catch((error) => {
-      console.log(error);
+      setLoading(false);
+      const errorMessage = error as unknown as string;
+      failNotify(errorMessage);
     });
 
     setLoading(false);
@@ -450,6 +456,18 @@ export const NewProductPage = () => {
           <p className="text-red-500 text-sm ">{errorMessage}</p>
         )}
       </form>
+      <ToastContainer
+        position="top-right"
+        autoClose={2000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="light"
+      />
     </PageLayout>
   );
 };

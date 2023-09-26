@@ -5,6 +5,8 @@ import { FormEvent, useEffect, useState } from 'react';
 import { AiOutlineLoading3Quarters } from 'react-icons/ai';
 import { IoRemoveCircleOutline } from 'react-icons/io5';
 import { useNavigate, useParams } from 'react-router-dom';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import { InputField } from 'renderer/components/InputField';
 import { SingleTableItem } from 'renderer/components/TableComponents/SingleTableItem';
 import { TableModal } from 'renderer/components/TableComponents/TableModal';
@@ -30,6 +32,11 @@ function EditCustomerPage() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [selectedProducts, setSelectedProducts] = useState<SpecialPrice[]>([]);
   const [products, setProducts] = useState<SpecialPrice[]>([]);
+
+  const successNotify = () =>
+    toast.success('Customer Data Successfully Updated');
+  const failNotify = (e?: string) =>
+    toast.error(e ?? 'Failed to update customer data');
 
   useEffect(() => {
     const fetchData = async () => {
@@ -98,9 +105,11 @@ function EditCustomerPage() {
         SpecialPrice: selectedProducts,
       });
       setLoading(false);
-      navigate(-1);
+      successNotify();
     } catch (error) {
-      console.error('Error updating document:', error);
+      setLoading(false);
+      const errorMessage = error as unknown as string;
+      failNotify(errorMessage);
     }
   }
 
@@ -374,6 +383,18 @@ function EditCustomerPage() {
           </tr>
         )}
       </TableModal>
+      <ToastContainer
+        position="top-right"
+        autoClose={2000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="light"
+      />
     </PageLayout>
   );
 }

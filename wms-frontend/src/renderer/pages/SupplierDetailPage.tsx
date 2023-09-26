@@ -4,6 +4,8 @@ import { useEffect, useState } from 'react';
 import { AiFillEdit, AiOutlineLoading3Quarters } from 'react-icons/ai';
 import { GiCancel } from 'react-icons/gi';
 import { useNavigate, useParams } from 'react-router-dom';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import { AreaField } from 'renderer/components/AreaField';
 import { InputField } from 'renderer/components/InputField';
 import { Supplier } from 'renderer/interfaces/Supplier';
@@ -15,7 +17,10 @@ export default function SupplierDetailPage() {
   const [supplier, setSupplier] = useState<Supplier>();
   const [editToggle, setEditToggle] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-
+  const successNotify = () =>
+    toast.success('Supplier data successfully updated');
+  const failNotify = (e?: string) =>
+    toast.error(e ?? 'Failed to update supplier data');
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -84,9 +89,11 @@ export default function SupplierDetailPage() {
     setLoading(true);
 
     updateDoc(supplierRef, updatedSupplier).catch((error) => {
-      console.error('Error updating document: ', error);
+      setLoading(false);
+      const errorMessage = error as unknown as string;
+      failNotify(errorMessage);
     });
-
+    successNotify();
     setLoading(false);
     setEditToggle(false);
   }
@@ -258,6 +265,18 @@ export default function SupplierDetailPage() {
           <p className="text-red-500 text-sm ">{errorMessage}</p>
         )}
       </div>
+      <ToastContainer
+        position="top-right"
+        autoClose={2000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="light"
+      />
     </PageLayout>
   );
 }
