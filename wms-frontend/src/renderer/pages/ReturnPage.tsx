@@ -222,8 +222,8 @@ export default function ReturnPage() {
           0
         );
         transaction.set(doc(collection(db, 'invoice')), {
-          customer_id: selectedCustomer?.id,
-          customer_name: selectedCustomer?.name,
+          customer_id: selectedCustomer?.id ?? '',
+          customer_name: selectedCustomer?.name ?? invoice.customer_name ?? '',
           total_price: total_price,
           items: selectedNewItems.map((selectedNewItem) => {
             return {
@@ -237,8 +237,9 @@ export default function ReturnPage() {
         // Reduce the sales stats
         reduceSalesStats(
           {
-            customer_id: selectedCustomer?.id,
-            customer_name: selectedCustomer?.name,
+            customer_id: selectedCustomer?.id ?? '',
+            customer_name:
+              selectedCustomer?.name ?? invoice.customer_name ?? '',
             total_price: total_price,
             items: selectedNewItems.map((selectedNewItem) => {
               return {
