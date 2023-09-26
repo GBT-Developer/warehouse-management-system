@@ -87,7 +87,12 @@ export default function OpnamePage() {
           total_sales: number;
           transaction_count: number;
           daily_sales: Record<string, number>;
-        };
+        } | null;
+
+        if (!statsDocData) {
+          setLoading(false);
+          return;
+        }
 
         for (
           let date = new Date(startDate);
@@ -116,9 +121,9 @@ export default function OpnamePage() {
 
   return (
     <PageLayout>
-      <div className="relative flex flex-col w-2/3 h-full pt-4">
+      <div className="relative flex flex-col w-2/3 h-[fit-content] pt-4">
         {loading && (
-          <div className="absolute flex justify-center items-center py-2 px-3 top-0 left-0 w-full h-full bg-gray-50 rounded-lg z-0 bg-opacity-50">
+          <div className="absolute flex justify-center items-center py-2 px-3 top-0 left-0 w-full h-full bg-gray-50 rounded-lg z-50 bg-opacity-50">
             <AiOutlineLoading3Quarters className="animate-spin flex justify-center text-4xl" />
           </div>
         )}
@@ -133,7 +138,7 @@ export default function OpnamePage() {
             {...{ startDate, endDate, setStartDate, setEndDate }}
           />
         </div>
-        <div className="w-full h-2/5">
+        <div className="w-full min-h-[30rem]">
           <BarChart data={salesStats?.daily_sales} chartTitle="Sales Chart" />
         </div>
         <div className="w-full h-[fit-content] flex flex-col gap-4">
@@ -207,12 +212,6 @@ export default function OpnamePage() {
             <p className="text-2xl font-bold">Transaction List</p>
           </div>
           <div className="overflow-y-auto h-full relative">
-            {loading && (
-              <div className="absolute flex justify-center items-center py-2 px-3 top-0 left-0 w-full h-full bg-gray-50 rounded-lg z-0 bg-opacity-50">
-                <AiOutlineLoading3Quarters className="animate-spin flex justify-center text-4xl" />
-              </div>
-            )}
-
             <table className="w-full text-sm text-left text-gray-500">
               <TableHeader>
                 <th className=" py-3">Date</th>
