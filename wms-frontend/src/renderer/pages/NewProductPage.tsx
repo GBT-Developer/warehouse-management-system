@@ -151,6 +151,8 @@ export const NewProductPage = () => {
       });
       setLoading(false);
       successNotify();
+      setNewProduct(newProductInitialState);
+      setNewSupplier(newSupplierInitialState);
       return Promise.resolve(newProductRef);
     }).catch((error) => {
       setLoading(false);

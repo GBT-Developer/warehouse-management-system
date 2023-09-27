@@ -16,6 +16,8 @@ import {
   AiOutlineReload,
 } from 'react-icons/ai';
 import { useNavigate } from 'react-router-dom';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import { InputField } from 'renderer/components/InputField';
 import { SingleTableItem } from 'renderer/components/TableComponents/SingleTableItem';
 import { TableModal } from 'renderer/components/TableComponents/TableModal';
@@ -62,6 +64,9 @@ export const ManageStockPage = () => {
   const dateInputRef = React.useRef<HTMLInputElement>(null);
   const [returnedProduct, setReturnedProduct] = useState(false);
 
+  const successNotify = () => toast.success('Stock data successfully updated');
+  const failNotify = (e?: string) =>
+    toast.error(e ?? 'Failed to update stock data');
   useEffect(() => {
     setLoading(true);
 
@@ -317,9 +322,18 @@ export const ManageStockPage = () => {
       });
 
     setNewPurchase(newPurchaseInitialState);
+    setSelectedSupplier(null);
+    setSelectedWarehouse('');
+    if (selectedSupplierRef.current) selectedSupplierRef.current.value = '';
+    if (selectedWarehouseRef.current) selectedWarehouseRef.current.value = '';
+    if (dateInputRef.current) dateInputRef.current.value = '';
+    setReturnedProduct(false);
+    setProducts([]);
+    setAcceptedProducts([]);
+    setDispatchNote('');
 
     setLoading(false);
-    navigate(-1);
+    successNotify();
   };
 
   const deleteDispatchNote = () => {
@@ -384,7 +398,8 @@ export const ManageStockPage = () => {
         onSubmit={(e) => {
           e.preventDefault();
           handleSubmit().catch(() => {
-            setErrorMessage('An error occured while submitting data');
+            failNotify();
+            setLoading(false);
           });
         }}
         className={`w-2/3 py-14 my-10 flex flex-col gap-3 relative ${
@@ -881,6 +896,18 @@ export const ManageStockPage = () => {
           </tr>
         )}
       </TableModal>
+      <ToastContainer
+        position="top-right"
+        autoClose={2000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="light"
+      />
     </PageLayout>
   );
 };
