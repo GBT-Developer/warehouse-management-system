@@ -104,12 +104,13 @@ export default function ReturnPage() {
               difference
             );
 
+            const incrementBorkenProductStock = increment(item.count);
             // Put the returned product to broken product database
             transaction.set(
               doc(db, 'broken_product', item.id),
               {
                 ...product,
-                count: difference,
+                count: incrementBorkenProductStock,
               },
               { merge: true }
             );
@@ -512,9 +513,7 @@ export default function ReturnPage() {
                     <div className="w-full flex justify-between items-center">
                       <div
                         className={`flex ${
-                          checkedItems[index]
-                            ? 'w-4/5  bg-blue-300'
-                            : 'w-full bg-red-300'
+                          checkedItems[index] ? 'w-4/5 ' : 'w-full'
                         }`}
                       >
                         <div className="pt-1">
