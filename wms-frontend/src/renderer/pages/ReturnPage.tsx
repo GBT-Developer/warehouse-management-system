@@ -17,6 +17,8 @@ import { useState } from 'react';
 import { AiOutlineLoading3Quarters, AiOutlineReload } from 'react-icons/ai';
 import { BiSolidTrash } from 'react-icons/bi';
 import { useNavigate } from 'react-router-dom';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import { InputField } from 'renderer/components/InputField';
 import { SingleTableItem } from 'renderer/components/TableComponents/SingleTableItem';
 import { TableModal } from 'renderer/components/TableComponents/TableModal';
@@ -61,6 +63,9 @@ export default function ReturnPage() {
     })[]
   >([]);
 
+  const successNotify = () => toast.success('Submit successful');
+  const failNotify = (e?: string) =>
+    toast.error(e ?? 'An error occured while submitting');
   const getSpecialPriceForProduct = (productId: string) => {
     const specialPrice = selectedCustomer?.SpecialPrice.find(
       (p) => p.product_id === productId
@@ -267,6 +272,7 @@ export default function ReturnPage() {
     setSelectedNewItems([]);
     setNewTransaction(invoiceInitialState);
     setLoading(false);
+    successNotify();
   };
 
   const handleFetchCustomer = async (theInvoice: Invoice) => {
@@ -476,7 +482,7 @@ export default function ReturnPage() {
           onSubmit={(e) => {
             e.preventDefault();
             handleSubmit().catch((e: string) => {
-              setErrorMessage(e);
+              failNotify(e);
               setTimeout(() => {
                 setErrorMessage(null);
               }, 3000);
@@ -917,6 +923,18 @@ export default function ReturnPage() {
           </tr>
         )}
       </TableModal>
+      <ToastContainer
+        position="top-right"
+        autoClose={2000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="light"
+      />
     </PageLayout>
   );
 }
