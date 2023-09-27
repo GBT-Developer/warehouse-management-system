@@ -224,8 +224,9 @@ const productPicker = async (num_of_products: number) => {
     part: string;
     available_color: string;
     warehouse_position: string;
-    price: string;
-    sell_price: string;
+    sell_price: number;
+    purchase_price: number;
+    count: number;
   }[] = [];
   // Fetch random products
   for (let i = 0; i < num_of_products; i++) {
@@ -247,7 +248,9 @@ const productPicker = async (num_of_products: number) => {
       part: string;
       available_color: string;
       warehouse_position: string;
-      sell_price: string;
+      sell_price: number;
+      purchase_price: number;
+      count: number;
     };
 
     productsList.push({
@@ -258,8 +261,9 @@ const productPicker = async (num_of_products: number) => {
       part: product_data.part,
       available_color: product_data.available_color,
       warehouse_position: product_data.warehouse_position,
-      price: (parseFloat(product_data.sell_price) * 0.8).toFixed(2),
       sell_price: product_data.sell_price,
+      purchase_price: product_data.sell_price * 0.8,
+      count: product_data.count,
     });
 
     // Remove the product from the list
@@ -294,7 +298,7 @@ export const seedCustomer = async (num_of_customer: number) => {
             part: product.part,
             available_color: product.available_color,
             warehouse_position: product.warehouse_position,
-            price: product.price,
+            purchase_price: product.purchase_price,
             sell_price: product.sell_price,
           };
         }),
@@ -302,5 +306,63 @@ export const seedCustomer = async (num_of_customer: number) => {
     }
   } else {
     functions.logger.info("Enough customer already");
+  }
+};
+
+export const seedTransaction = async (num_of_transaction: number) => {
+  const db = firebaseAdmin.firestore();
+  const transactions = await db.collection("invoice").get();
+
+  if (transactions.size < num_of_transaction) {
+    let totalSales = 0;
+    let daily_sales: Record<string, number> = {};
+    for (let i = 0; i < num_of_transaction; i++) {
+      const numOfProducts = faker.number.int({ min: 1, max: 5 });
+      const products = await productPicker(numOfProducts);
+      const totalPrice = products.reduce(
+        (acc, curr) => acc + curr.sell_price,
+        0
+      );
+      const purchaseDate = faker.date.past().toISOString(); // ISO String, ex: 2021-03-10T05:24:31.000Z
+      // Take the date
+      const date = purchaseDate.split("T")[0]; // ex: 2021-03-10
+      // Take the day
+      const day = date.split("-")[2]; // ex: 10
+      totalSales += totalPrice;
+      const hasPrice = daily_sales[day];
+      if (hasPrice) {
+        daily_sales[day] += totalPrice;
+      } else {
+        daily_sales[day] = totalPrice;
+      }
+      await db.collection("invoice").add({
+        customer_id: "",
+        customer_name: faker.person.fullName(),
+        date: purchaseDate.split("T")[0],
+        payment_method: "Cash",
+        total_price: totalPrice,
+        items: products.map((product) => {
+          return {
+            available_color: product.available_color,
+            brand: product.brand,
+            count: faker.number.int({ min: 1, max: 5 }),
+            id: product.product_id,
+            is_returned: false,
+            motor_type: product.motor_type,
+            part: product.part,
+            purchase_price: product.purchase_price,
+            sell_price: product.sell_price,
+            warehouse_position: product.warehouse_position,
+          };
+        }),
+      });
+    }
+    await db.collection("invoice").doc("--stats--").set({
+      total_sales: totalSales,
+      transaction_count: num_of_transaction,
+      daily_sales: daily_sales,
+    });
+  } else {
+    functions.logger.info("Enough transaction already");
   }
 };

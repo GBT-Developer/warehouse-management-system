@@ -1,5 +1,7 @@
+import { format } from 'date-fns';
 import { db } from 'firebase';
 import {
+  FieldValue,
   and,
   collection,
   doc,
@@ -44,10 +46,10 @@ export default function ReturnPage() {
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(
     null
   );
-  const [invoice, setInvoice] = useState<Invoice>(invoiceInitialState);
-  const [newInvoice, setNewInvoice] = useState<Invoice>(invoiceInitialState);
   const [newTransaction, setNewTransaction] =
     useState<Invoice>(invoiceInitialState);
+
+  const [invoice, setInvoice] = useState<Invoice>(invoiceInitialState);
   const [selectedItems, setSelectedItems] = useState<
     (Product & {
       is_returned?: boolean;
@@ -59,7 +61,7 @@ export default function ReturnPage() {
     })[]
   >([]);
 
-  const getSpecialPriceForProduct = (productId: String) => {
+  const getSpecialPriceForProduct = (productId: string) => {
     const specialPrice = selectedCustomer?.SpecialPrice.find(
       (p) => p.product_id === productId
     );
@@ -67,6 +69,18 @@ export default function ReturnPage() {
   };
 
   const handleSubmit = async () => {
+    // Check whether all inputs are filled
+    if (mode === '') return Promise.reject('Please select a mode');
+    if (!invoiceNumber) return Promise.reject('Please input invoice number');
+    if (mode !== 'void' && selectedItems.length === 0)
+      return Promise.reject('Please select at least one item');
+    if (mode === 'void' && selectedNewItems.length === 0)
+      return Promise.reject('Please select at least one item');
+    if (mode === 'void' && !newTransaction.payment_method)
+      return Promise.reject('Please select a payment method');
+
+    setLoading(true);
+
     // If mode is exchange, check if there is enough stock
     if (mode === 'exchange')
       await runTransaction(db, async (transaction) => {
@@ -90,12 +104,13 @@ export default function ReturnPage() {
               difference
             );
 
+            const incrementBorkenProductStock = increment(item.count);
             // Put the returned product to broken product database
             transaction.set(
               doc(db, 'broken_product', item.id),
               {
                 ...product,
-                count: difference,
+                count: incrementBorkenProductStock,
               },
               { merge: true }
             );
@@ -109,17 +124,18 @@ export default function ReturnPage() {
         }
       });
     else if (mode === 'return') {
-      const newInvoice = { ...invoice };
       // Decrease the count of the item in the invoice
       // If count is 0, delete the item from the invoice
       selectedItems.forEach((selectedItem) => {
-        const itemInInvoice = newInvoice.items?.find(
+        const itemInInvoice = newTransaction.items?.find(
           (item) => item.id === selectedItem.id
         );
         if (itemInInvoice?.count === selectedItem.count)
           // Delete the item
-          newInvoice.items?.splice(
-            newInvoice.items.findIndex((item) => item.id === selectedItem.id),
+          newTransaction.items?.splice(
+            newTransaction.items.findIndex(
+              (item) => item.id === selectedItem.id
+            ),
             1
           );
         // Decrease the count
@@ -128,9 +144,9 @@ export default function ReturnPage() {
       });
 
       // Reduce the total price
-      if (newInvoice.total_price)
-        newInvoice.total_price =
-          newInvoice.total_price -
+      if (newTransaction.total_price)
+        newTransaction.total_price =
+          newTransaction.total_price -
           selectedItems.reduce(
             (acc, cur) => acc + cur.sell_price * cur.count,
             0
@@ -140,21 +156,21 @@ export default function ReturnPage() {
       // But if the item is already in the invoice, just increase the count
       selectedItems.forEach((selectedItem) => {
         selectedItem.is_returned = true;
-        const itemIndex = newInvoice.items?.findIndex(
+        const itemIndex = newTransaction.items?.findIndex(
           (item) => item.id === selectedItem.id
         );
         if (itemIndex === -1 || itemIndex === undefined)
-          newInvoice.items?.push(selectedItem);
-        else if (newInvoice.items)
-          newInvoice.items[itemIndex].count =
-            newInvoice.items[itemIndex].count - selectedItem.count;
+          newTransaction.items?.push(selectedItem);
+        else if (newTransaction.items)
+          newTransaction.items[itemIndex].count =
+            newTransaction.items[itemIndex].count - selectedItem.count;
       });
 
       // Update the invoice
       await runTransaction(db, (transaction) => {
         transaction.update(doc(db, 'invoice', invoiceNumber), {
-          items: newInvoice.items,
-          total_price: newInvoice.total_price,
+          items: newTransaction.items,
+          total_price: newTransaction.total_price,
         });
 
         // Put the returned product to broken product database
@@ -178,16 +194,18 @@ export default function ReturnPage() {
 
           return Promise.resolve();
         });
-
+        // Reduce the sales stats
+        reduceSalesStats(invoice, false).catch((err) => console.log(err));
         return Promise.all(promises);
       });
-    } else if (mode === 'void') {
-      // TO DO: Handle void transaction
-      console.log(newInvoice);
+    } else
       await runTransaction(db, (transaction) => {
         // Delete the invoice
         transaction.delete(doc(db, 'invoice', invoiceNumber));
-        //put the invoice to void list
+        // Reduce the sales stats
+        reduceSalesStats(invoice, false).catch((err) => console.log(err));
+
+        // Put the old invoice to void list
         transaction.set(doc(db, 'void_invoice', invoiceNumber), {
           ...invoice,
           items: checkedItems.map((checkedItem, index) => {
@@ -199,15 +217,14 @@ export default function ReturnPage() {
           }),
         });
 
-        console.log('new', newTransaction);
-        //to-do: add new transaction
-        const total_price = newTransaction.items?.reduce(
+        // Put the new invoice to invoice list
+        const total_price = selectedNewItems.reduce(
           (acc, item) => acc + item.sell_price * item.count,
           0
         );
         transaction.set(doc(collection(db, 'invoice')), {
-          customer_id: selectedCustomer?.id,
-          customer_name: selectedCustomer?.name,
+          customer_id: selectedCustomer?.id ?? '',
+          customer_name: selectedCustomer?.name ?? invoice.customer_name ?? '',
           total_price: total_price,
           items: selectedNewItems.map((selectedNewItem) => {
             return {
@@ -215,61 +232,61 @@ export default function ReturnPage() {
               is_returned: false,
             };
           }),
-          date: new Date().toISOString(),
+          date: new Date().toISOString().slice(0, 10),
           payment_method: newTransaction.payment_method,
         });
+        // Reduce the sales stats
+        reduceSalesStats(
+          {
+            customer_id: selectedCustomer?.id ?? '',
+            customer_name:
+              selectedCustomer?.name ?? invoice.customer_name ?? '',
+            total_price: total_price,
+            items: selectedNewItems.map((selectedNewItem) => {
+              return {
+                ...selectedNewItem,
+                is_returned: false,
+              };
+            }),
+            date: new Date().toISOString().slice(0, 10),
+            payment_method: newTransaction.payment_method,
+          },
+          true
+        ).catch((err) => console.log(err));
 
         return Promise.resolve();
       });
-    }
+
     // Clear the form
     setInvoiceNumber('');
     setCheckedItems([]);
-    setInvoice({
-      customer_id: '',
-      customer_name: '',
-      total_price: 0,
-      payment_method: '',
-      items: [],
-    });
+    setInvoice(invoiceInitialState);
     setSelectedItems([]);
     setMode('');
-    setNewTransaction({
-      customer_id: '',
-      customer_name: '',
-      total_price: 0,
-      payment_method: '',
-      items: [],
-    });
+    setSelectedProducts([]);
+    setSelectedNewItems([]);
+    setNewTransaction(invoiceInitialState);
     setLoading(false);
   };
 
-  const handleFetchCustomer = async () => {
-    console.log('fetching customer');
-    if (!invoice.customer_id) return;
-    const customerRef = doc(db, 'customer', invoice.customer_id);
+  const handleFetchCustomer = async (theInvoice: Invoice) => {
+    if (!theInvoice.customer_id) return;
+    const customerRef = doc(db, 'customer', theInvoice.customer_id);
     const customerSnap = await getDoc(customerRef);
     const customerData = customerSnap.data() as Customer;
+    customerData.id = customerSnap.id;
     setSelectedCustomer(customerData);
-    console.log(customerData);
   };
 
-  const handleFetchInvoice = async () => {
+  const handleFetchInvoice = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
     if (!invoiceNumber) return;
 
     try {
       setLoading(true);
       const invoiceRef = doc(db, 'invoice', invoiceNumber);
       const invoiceSnap = await getDoc(invoiceRef);
-      const invoiceData = invoiceSnap.data() as {
-        customer_id: string;
-        customer_name: string;
-        total_price: number;
-        payment_method: string;
-        items: (Product & {
-          is_returned?: boolean;
-        })[];
-      } | null;
+      const invoiceData = invoiceSnap.data() as Invoice | undefined;
 
       if (!invoiceData) {
         setErrorMessage('Invoice not found');
@@ -280,10 +297,12 @@ export default function ReturnPage() {
         return;
       }
 
-      setInvoice(invoiceData);
+      setInvoice(() => invoiceData);
 
-      setCheckedItems(new Array(invoiceData.items.length).fill(false));
+      setCheckedItems(new Array(invoiceData.items?.length).fill(false));
       setLoading(false);
+
+      return Promise.resolve(invoiceData);
     } catch (err) {
       setErrorMessage('An error occured while fetching invoice');
       setLoading(false);
@@ -329,6 +348,56 @@ export default function ReturnPage() {
     setProducts(products);
   };
 
+  const reduceSalesStats = async (invoice: Invoice, positive: boolean) => {
+    // Reduce the sales stats
+    await runTransaction(db, (transaction) => {
+      if (!invoice.total_price) return Promise.resolve();
+
+      const incrementTransaction = increment(positive ? 1 : -1);
+      const incrementTotalSales = increment(
+        positive ? invoice.total_price : -invoice.total_price
+      );
+      const statsDocRef = doc(db, 'invoice', '--stats--');
+      const dailySales = new Map<string, FieldValue>();
+      const datePriceMap = new Map<string, number>();
+
+      invoice.items?.forEach((item) => {
+        if (!invoice.date) return;
+        const date = format(new Date(invoice.date), 'dd');
+        const total_price = item.sell_price * item.count;
+        const currentTotal = datePriceMap.get(date);
+        if (currentTotal) {
+          const currentIncrement = increment(
+            positive ? total_price + currentTotal : -total_price + currentTotal
+          );
+          datePriceMap.set(
+            date,
+            positive ? total_price + currentTotal : currentTotal - total_price
+          );
+          dailySales.set(date, currentIncrement);
+        } else {
+          const currentIncrement = increment(
+            positive ? total_price : -total_price
+          );
+          datePriceMap.set(date, total_price);
+          dailySales.set(date, currentIncrement);
+        }
+      });
+
+      transaction.set(
+        statsDocRef,
+        {
+          transaction_count: incrementTransaction,
+          total_sales: incrementTotalSales,
+          daily_sales: Object.fromEntries(dailySales),
+        },
+        { merge: true }
+      );
+
+      return Promise.resolve();
+    });
+  };
+
   return (
     <PageLayout>
       <h1 className="text-4xl font-extrabold tracking-tight text-gray-900 md:text-5xl pt-4">
@@ -336,7 +405,12 @@ export default function ReturnPage() {
       </h1>
       <form
         onSubmit={(e) => {
-          () => handleFetchInvoice();
+          handleFetchInvoice(e)
+            .then((invoice) => {
+              if (!invoice) return;
+              handleFetchCustomer(invoice).catch((err) => console.log(err));
+            })
+            .catch(() => console.log('error'));
         }}
         className={`w-2/3 pt-14 mt-10 flex flex-col gap-3 relative ${
           loading ? 'p-2' : ''
@@ -390,12 +464,6 @@ export default function ReturnPage() {
             type="submit"
             disabled={loading}
             className="absolute top-0 right-0 h-full flex items-center justify-center px-3"
-            onClick={() => {
-              console.log('clicked');
-              handleFetchInvoice().catch(() => console.log('error'));
-              handleFetchCustomer().catch(() => console.log('error'));
-              console.log(selectedCustomer);
-            }}
           >
             <AiOutlineReload />
           </button>
@@ -445,14 +513,14 @@ export default function ReturnPage() {
                     <div className="w-full flex justify-between items-center">
                       <div
                         className={`flex ${
-                          checkedItems[index] ? 'w-4/5' : 'w-full'
+                          checkedItems[index] ? 'w-4/5 ' : 'w-full'
                         }`}
                       >
                         <div className="pt-1">
                           <input
                             type="checkbox"
-                            checked={checkedItems[index]}
-                            disabled={item.is_returned ?? mode === 'void'}
+                            checked={checkedItems[index] || mode === 'void'}
+                            disabled={mode === 'void' || item.is_returned}
                             onChange={() => {
                               const newCheckedItems = checkedItems;
                               newCheckedItems[index] = !newCheckedItems[index];
@@ -483,66 +551,67 @@ export default function ReturnPage() {
                           </label>
                         </div>
                       </div>
-                      {checkedItems[index] && (
-                        <div className="w-1/5">
-                          <input
-                            disabled={loading || mode === 'return'}
-                            id={'amount'}
-                            name={'amount'}
-                            type="number"
-                            className="placeholder:text-xs placeholder:font-light bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 p-2 w-full
+                      {checkedItems[index] &&
+                        (mode === 'return' || mode === 'exchange') && (
+                          <div className="w-1/5">
+                            <input
+                              disabled={loading || mode === 'return'}
+                              id={'amount'}
+                              name={'amount'}
+                              type="number"
+                              className="placeholder:text-xs placeholder:font-light bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 p-2 w-full
                             "
-                            value={
-                              // If mode is return, set the amount to the original amount
-                              mode === 'return'
-                                ? item.count
-                                : selectedItems.find(
-                                    (selectedItem) =>
-                                      selectedItem.id === item.id
-                                  )?.count
-                            }
-                            onChange={(e) => {
-                              const newAmount = e.target.value;
-                              // If amount is not a number > 0, set it to 1
-                              if (
-                                isNaN(parseInt(newAmount)) ||
-                                parseInt(newAmount) <= 0
-                              ) {
-                                e.target.value = '1';
-                                return;
+                              value={
+                                // If mode is return, set the amount to the original amount
+                                mode === 'return'
+                                  ? item.count
+                                  : selectedItems.find(
+                                      (selectedItem) =>
+                                        selectedItem.id === item.id
+                                    )?.count
                               }
-                              if (
-                                parseInt(newAmount) <=
-                                parseInt(item.count.toString())
-                              ) {
-                                // Check if newAmount is smaller or equal to item.amount
-                                const newSelectedItems = [...selectedItems];
-                                const selectedItemIndex =
-                                  newSelectedItems.findIndex(
-                                    (selectedItem) =>
-                                      selectedItem.id === item.id
-                                  );
-                                if (selectedItemIndex !== -1) {
-                                  newSelectedItems[selectedItemIndex] = {
-                                    ...newSelectedItems[selectedItemIndex],
-                                    count: Number(newAmount),
-                                  };
-                                  setSelectedItems(newSelectedItems);
-                                  setErrorMessage(null); // Clear any previous error message
+                              onChange={(e) => {
+                                const newAmount = e.target.value;
+                                // If amount is not a number > 0, set it to 1
+                                if (
+                                  isNaN(parseInt(newAmount)) ||
+                                  parseInt(newAmount) <= 0
+                                ) {
+                                  e.target.value = '1';
+                                  return;
                                 }
-                              } else {
-                                setErrorMessage(
-                                  'Amount cannot be more than the original amount'
-                                );
-                                e.target.value = e.target.value.slice(0, -1);
-                                setTimeout(() => {
-                                  setErrorMessage(null);
-                                }, 3000);
-                              }
-                            }}
-                          />
-                        </div>
-                      )}
+                                if (
+                                  parseInt(newAmount) <=
+                                  parseInt(item.count.toString())
+                                ) {
+                                  // Check if newAmount is smaller or equal to item.amount
+                                  const newSelectedItems = [...selectedItems];
+                                  const selectedItemIndex =
+                                    newSelectedItems.findIndex(
+                                      (selectedItem) =>
+                                        selectedItem.id === item.id
+                                    );
+                                  if (selectedItemIndex !== -1) {
+                                    newSelectedItems[selectedItemIndex] = {
+                                      ...newSelectedItems[selectedItemIndex],
+                                      count: Number(newAmount),
+                                    };
+                                    setSelectedItems(newSelectedItems);
+                                    setErrorMessage(null); // Clear any previous error message
+                                  }
+                                } else {
+                                  setErrorMessage(
+                                    'Amount cannot be more than the original amount'
+                                  );
+                                  e.target.value = e.target.value.slice(0, -1);
+                                  setTimeout(() => {
+                                    setErrorMessage(null);
+                                  }, 3000);
+                                }
+                              }}
+                            />
+                          </div>
+                        )}
                     </div>
                   </li>
                 ))}
@@ -559,32 +628,33 @@ export default function ReturnPage() {
               <hr className="my-3" />
               <h1 className="text-2xl font-bold">New Transaction</h1>
               <ul className="my-3 space-y-3 font-regular">
-                {newTransaction.items?.map((item, index) => (
-                  <li key={index}>
+                {selectedNewItems.map((newItem, newIndex) => (
+                  <li key={newIndex}>
                     <div className="flex flex-row">
                       <div className="flex flex-col gap-2 w-full">
                         <div className="flex w-full justify-between">
                           <p className="text-lg font-semibold">
-                            {selectedNewItems[index].brand +
+                            {newItem.brand +
                               ' ' +
-                              selectedNewItems[index].motor_type +
+                              newItem.motor_type +
                               ' ' +
-                              selectedNewItems[index].part +
+                              newItem.part +
                               ' ' +
-                              selectedNewItems[index].available_color}
+                              newItem.available_color}
                           </p>
                           <button
                             type="button"
                             className="text-red-500 text-lg p-2 hover:text-red-700 cursor-pointer bg-transparent rounded-md"
                             onClick={() => {
-                              setNewTransaction({
-                                ...newTransaction,
-                                items: newTransaction.items?.filter(
-                                  (p) => p.id !== item.id
-                                ),
-                              });
                               setSelectedNewItems(
-                                selectedNewItems.filter((p) => p.id !== item.id)
+                                selectedNewItems.filter(
+                                  (item) => item.id !== newItem.id
+                                )
+                              );
+                              setSelectedProducts(
+                                selectedProducts.filter(
+                                  (p) => p.id !== newItem.id
+                                )
                               );
                             }}
                           >
@@ -592,46 +662,62 @@ export default function ReturnPage() {
                           </button>
                         </div>
                         <InputField
-                          label="Amount"
-                          labelFor="amount"
+                          label="new amount"
+                          labelFor="new amount"
                           loading={loading}
-                          value={item.count}
+                          value={selectedNewItems[newIndex]?.count}
                           onChange={(e) => {
-                            if (isNaN(Number(e.target.value))) return;
+                            if (
+                              !/^[0-9]*(\.[0-9]*)?$/.test(e.target.value) &&
+                              e.target.value !== ''
+                            )
+                              return;
+                            const newAmount = e.target.value;
                             if (
                               parseInt(e.target.value) >
-                              selectedNewItems[index].count + item.count
+                              selectedProducts[newIndex].count +
+                                (invoice.items?.find(
+                                  (item) =>
+                                    item.id === selectedProducts[newIndex].id
+                                )?.count ?? 0)
                             ) {
                               setErrorMessage(
-                                'Not enough stock in warehouse. Stock in warehouse: ' +
-                                  (
-                                    selectedNewItems[index].count + item.count
-                                  ).toString()
+                                'Amount cannot be more than the original amount'
                               );
+                              e.target.value = e.target.value.slice(0, -1);
                               setTimeout(() => {
                                 setErrorMessage(null);
                               }, 3000);
                               return;
                             }
-                            setNewTransaction({
-                              ...newTransaction,
-                              items: newTransaction.items?.map((p) => {
-                                if (p.id === item.id)
+
+                            // Use map to create a new array with updated amount
+                            const updatedSelectedNewItems =
+                              selectedNewItems.map((item, i) => {
+                                if (i === newIndex)
                                   return {
-                                    ...p,
-                                    count: Number(e.target.value),
+                                    ...item,
+                                    count: parseInt(
+                                      newAmount === '' ? '0' : newAmount
+                                    ),
                                   };
-                                return p;
-                              }),
-                            });
+
+                                return item;
+                              });
+
+                            setSelectedNewItems(updatedSelectedNewItems);
                           }}
                         />
+
                         <div className="flex justify-end">
                           <p className="text-md">
                             {new Intl.NumberFormat('id-ID', {
                               style: 'currency',
                               currency: 'IDR',
-                            }).format(item.sell_price * item.count)}
+                            }).format(
+                              (selectedNewItems[newIndex]?.count ?? 0) *
+                                selectedNewItems[newIndex].sell_price
+                            )}
                           </p>
                         </div>
                       </div>
@@ -647,12 +733,11 @@ export default function ReturnPage() {
                     style: 'currency',
                     currency: 'IDR',
                   }).format(
-                    newTransaction.items?.reduce(
+                    selectedNewItems.reduce(
                       (acc, item) => acc + item.sell_price * item.count,
                       0
-                    ) ?? 0
+                    )
                   )}
-                  ,00
                 </p>
               </div>
 
@@ -686,10 +771,10 @@ export default function ReturnPage() {
                         name="payment-method"
                         id="cash"
                         value="Cash"
-                        checked={invoice.payment_method === 'Cash'}
+                        checked={newTransaction.payment_method === 'Cash'}
                         onChange={(e) => {
-                          setNewInvoice({
-                            ...newInvoice,
+                          setNewTransaction({
+                            ...newTransaction,
                             payment_method: e.target.value,
                           });
                         }}
@@ -709,10 +794,10 @@ export default function ReturnPage() {
                         name="payment-method"
                         id="cashless"
                         value="Cashless"
-                        checked={newInvoice.payment_method === 'Cashless'}
+                        checked={newTransaction.payment_method === 'Cashless'}
                         onChange={(e) => {
-                          setNewInvoice({
-                            ...newInvoice,
+                          setNewTransaction({
+                            ...newTransaction,
                             payment_method: e.target.value,
                           });
                         }}
@@ -765,9 +850,9 @@ export default function ReturnPage() {
               key={index}
               className="hover:bg-gray-100 cursor-pointer"
               onClick={() => {
-                if (selectedNewItems.find((p) => p === product)) {
-                  setSelectedNewItems(
-                    selectedNewItems.filter((p) => p !== product)
+                if (selectedProducts.some((p) => p.id === product.id)) {
+                  setSelectedProducts(
+                    selectedProducts.filter((p) => p.id !== product.id)
                   );
                   setNewTransaction({
                     ...newTransaction,
@@ -775,26 +860,38 @@ export default function ReturnPage() {
                       (p) => p.id !== product.id
                     ),
                   });
+                  setSelectedNewItems(
+                    selectedNewItems.filter((p) => p.id !== product.id)
+                  );
                 } else {
                   if (!product.id) return;
-                  setSelectedNewItems([...selectedNewItems, product]);
-                  setNewTransaction({
-                    ...newTransaction,
-                    items: [
-                      ...(newTransaction.items ?? []),
-                      {
-                        ...product,
-                        is_returned: false,
-                      },
-                    ],
-                  });
+                  const specialPrice = getSpecialPriceForProduct(product.id);
+                  setSelectedProducts([...selectedProducts, product]);
+                  setSelectedNewItems([
+                    ...selectedNewItems,
+                    {
+                      id: product.id,
+                      count: 1,
+                      sell_price:
+                        specialPrice !== null
+                          ? specialPrice
+                          : product.sell_price,
+                      brand: product.brand,
+                      motor_type: product.motor_type,
+                      part: product.part,
+                      available_color: product.available_color,
+                      purchase_price: product.purchase_price,
+                      warehouse_position: product.warehouse_position,
+                      is_returned: false,
+                    },
+                  ]);
                 }
               }}
             >
               <SingleTableItem>
                 <input
                   type="checkbox"
-                  checked={selectedNewItems.includes(product)}
+                  checked={selectedProducts.includes(product)}
                   readOnly
                 />
               </SingleTableItem>

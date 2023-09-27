@@ -1,6 +1,7 @@
 import { db } from 'firebase';
 import { collection, getDocs, query } from 'firebase/firestore';
 import React, { useEffect, useState } from 'react';
+import { AiOutlineLoading3Quarters } from 'react-icons/ai';
 import { SingleTableItem } from 'renderer/components/TableComponents/SingleTableItem';
 import { TableHeader } from 'renderer/components/TableComponents/TableHeader';
 import { TableTitle } from 'renderer/components/TableComponents/TableTitle';
@@ -14,24 +15,19 @@ export default function VoidListPage() {
   const [showProductsMap, setShowProductsMap] = useState<
     Record<string, boolean>
   >({});
-  //take void list from firebase
+  // Take void list from firebase
   useEffect(() => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        //TO-DO change invoice to void_list
-        const q = query(collection(db, 'invoice'));
+        const q = query(collection(db, 'void_invoice'));
         const querySnapshot = await getDocs(q);
 
         const voidData: Invoice[] = [];
-        let counter = 0;
         querySnapshot.forEach((doc) => {
-          if (counter > 0) {
-            const data = doc.data() as Invoice;
-            data.id = doc.id;
-            voidData.push(data);
-          }
-          counter++;
+          const data = doc.data() as Invoice;
+          data.id = doc.id;
+          voidData.push(data);
         });
         setVoidList(voidData);
         setLoading(false);
@@ -44,21 +40,23 @@ export default function VoidListPage() {
       console.log(error);
     });
   }, []);
-  console.log(voidList);
+
   // Create a function to format the currency
-  function formatCurrency(amount: any) {
+  function formatCurrency(amount: number | undefined) {
     return new Intl.NumberFormat('id-ID', {
       style: 'currency',
       currency: 'IDR',
     }).format(amount ?? 0);
   }
-  //show product
+
+  // Show product
   const toggleShowProducts = (purchaseId: string) => {
     setShowProductsMap((prevState) => ({
       ...prevState,
       [purchaseId]: !prevState[purchaseId],
     }));
   };
+
   return (
     <PageLayout>
       <div className="w-full h-full bg-transparent overflow-hidden">
@@ -68,7 +66,12 @@ export default function VoidListPage() {
               Void List
             </h1>
           </TableTitle>
-          <div className="overflow-y-auto h-full py-11">
+          <div className="overflow-y-auto h-full relative">
+            {loading && (
+              <div className="absolute flex justify-center items-center py-2 px-3 top-0 left-0 w-full h-full bg-gray-50 rounded-lg z-0 bg-opacity-50">
+                <AiOutlineLoading3Quarters className="animate-spin flex justify-center text-4xl" />
+              </div>
+            )}
             <table className="w-full text-sm text-left text-gray-500">
               <TableHeader>
                 <th className="py-3">Void Invoice ID</th>
@@ -116,17 +119,13 @@ export default function VoidListPage() {
                         <tr className="border-b">
                           <td colSpan={5}>
                             {' '}
-                            {void_list.items &&
-                              void_list.items.map((product, productIndex) => (
-                                <div
-                                  key={productIndex}
-                                  className="py-[0.75rem]"
-                                >
-                                  <div>
-                                    {product.brand}: {product.count}x
-                                  </div>
+                            {void_list.items?.map((product, productIndex) => (
+                              <div key={productIndex} className="py-[0.75rem]">
+                                <div>
+                                  {product.brand}: {product.count}x
                                 </div>
-                              ))}
+                              </div>
+                            ))}
                           </td>
                         </tr>
                       )}

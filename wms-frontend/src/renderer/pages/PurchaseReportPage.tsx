@@ -9,6 +9,7 @@ import {
   where,
 } from 'firebase/firestore';
 import React, { useEffect, useState } from 'react';
+import { AiOutlineLoading3Quarters } from 'react-icons/ai';
 import { BiSolidTrash } from 'react-icons/bi';
 import { useNavigate, useParams } from 'react-router-dom';
 import { SingleTableItem } from 'renderer/components/TableComponents/SingleTableItem';
@@ -75,7 +76,12 @@ export default function PurchaseHistoryPage() {
               Purchase Report
             </h1>
           </TableTitle>
-          <div className="overflow-y-auto h-full py-11">
+          <div className="overflow-y-auto h-full relative">
+            {loading && (
+              <div className="absolute flex justify-center items-center py-2 px-3 top-0 left-0 w-full h-full bg-gray-50 rounded-lg z-0 bg-opacity-50">
+                <AiOutlineLoading3Quarters className="animate-spin flex justify-center text-4xl" />
+              </div>
+            )}
             <table className="w-full text-sm text-left text-gray-500">
               <TableHeader>
                 <th className="py-3">Invoice ID</th>

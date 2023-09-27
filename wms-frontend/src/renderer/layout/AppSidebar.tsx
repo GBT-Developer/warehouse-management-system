@@ -7,10 +7,7 @@ import {
 import { BsBoxSeam, BsChevronDown, BsChevronUp, BsTruck } from 'react-icons/bs';
 import { CiLogout } from 'react-icons/ci';
 import { GiBrokenPottery } from 'react-icons/gi';
-import {
-  LiaFileInvoiceDollarSolid,
-  LiaMoneyBillWaveSolid,
-} from 'react-icons/lia';
+import { LiaMoneyBillWaveSolid } from 'react-icons/lia';
 import { LuFolderEdit, LuHistory, LuPackageOpen } from 'react-icons/lu';
 import {
   MdHistoryEdu,
@@ -209,16 +206,6 @@ export const AppSidebar = () => {
             selected={location.pathname === '/transactionhistory'}
           >
             Transaction History
-          </SidebarItem>
-
-          <SidebarItem
-            onClick={() => {
-              navigate('/');
-            }}
-            icon={<LiaFileInvoiceDollarSolid />}
-            selected={location.pathname === '/'}
-          >
-            Invoice
           </SidebarItem>
 
           <SidebarItem

@@ -303,6 +303,7 @@ export const ManageStockPage = () => {
               {
                 ...acceptedProduct,
                 count: updateCount,
+                warehouse_position: 'Gudang Jadi',
               },
               {
                 merge: true,
