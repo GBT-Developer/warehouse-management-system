@@ -93,6 +93,32 @@ export const ManageProductPage = () => {
                       )
                         return product;
                     })
+                    .sort((a, b) => {
+                      if (
+                        a.available_color === undefined ||
+                        b.available_color === undefined
+                      )
+                        return 0;
+                      return a.available_color.localeCompare(b.available_color);
+                    })
+                    .sort((a, b) => {
+                      if (a.part === undefined || b.part === undefined)
+                        return 0;
+                      return a.part.localeCompare(b.part);
+                    })
+                    .sort((a, b) => {
+                      if (
+                        a.motor_type === undefined ||
+                        b.motor_type === undefined
+                      )
+                        return 0;
+                      return a.motor_type.localeCompare(b.motor_type);
+                    })
+                    .sort((a, b) => {
+                      if (a.brand === undefined || b.brand === undefined)
+                        return 0;
+                      return a.brand.localeCompare(b.brand);
+                    })
                     .map((product) => (
                       <tr
                         key={product.id}
@@ -112,7 +138,12 @@ export const ManageProductPage = () => {
                             product.available_color}
                         </SingleTableItem>
                         <SingleTableItem>{product.count}</SingleTableItem>
-                        <SingleTableItem>{product.sell_price}</SingleTableItem>
+                        <SingleTableItem>
+                          {new Intl.NumberFormat('id-ID', {
+                            style: 'currency',
+                            currency: 'IDR',
+                          }).format(product.sell_price)}
+                        </SingleTableItem>
                         <SingleTableItem>
                           {product.warehouse_position}
                         </SingleTableItem>

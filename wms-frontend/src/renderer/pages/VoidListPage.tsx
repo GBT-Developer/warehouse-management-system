@@ -94,6 +94,12 @@ export default function VoidListPage() {
                         .includes(search.toLowerCase())
                     );
                   })
+                  .sort((a, b) => {
+                    if (a.date === undefined || b.date === undefined) return 0;
+                    return (
+                      new Date(b.date).getTime() - new Date(a.date).getTime()
+                    );
+                  })
                   .map((void_list, index) => (
                     <React.Fragment key={index}>
                       <tr

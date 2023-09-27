@@ -13,7 +13,7 @@ import {
   runTransaction,
   where,
 } from 'firebase/firestore';
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { AiOutlineLoading3Quarters, AiOutlineReload } from 'react-icons/ai';
 import { BiSolidTrash } from 'react-icons/bi';
 import { useNavigate } from 'react-router-dom';
@@ -62,7 +62,7 @@ export default function ReturnPage() {
       is_returned?: boolean;
     })[]
   >([]);
-
+  const dateInputRef = React.useRef<HTMLInputElement>(null);
   const successNotify = () => toast.success('Submit successful');
   const failNotify = (e?: string) =>
     toast.error(e ?? 'An error occured while submitting');
@@ -227,6 +227,15 @@ export default function ReturnPage() {
           (acc, item) => acc + item.sell_price * item.count,
           0
         );
+        const currentDateandTime = new Date();
+        if (!newTransaction.date) return Promise.reject('Date not found');
+        let theTime = '';
+        //if invoice date is the same as current date, take the current time
+        if (newTransaction.date === format(currentDateandTime, 'yyyy-MM-dd')) {
+          theTime = format(currentDateandTime, 'HH:mm:ss');
+        } else {
+          theTime = '23:59:59';
+        }
         transaction.set(doc(collection(db, 'invoice')), {
           customer_id: selectedCustomer?.id ?? '',
           customer_name: selectedCustomer?.name ?? invoice.customer_name ?? '',
@@ -237,7 +246,7 @@ export default function ReturnPage() {
               is_returned: false,
             };
           }),
-          date: new Date().toISOString().slice(0, 10),
+          date: newTransaction.date + ' ' + theTime,
           payment_method: newTransaction.payment_method,
         });
         // Reduce the sales stats
@@ -826,6 +835,28 @@ export default function ReturnPage() {
                       />
                     </label>
                   </div>
+                </div>
+              </div>
+              <div className="flex justify-between">
+                <div className="w-1/3 flex items-center">
+                  <label htmlFor={'date-id'} className="text-md">
+                    Transaction Date
+                  </label>
+                </div>
+                <div className="w-2/3">
+                  <input
+                    ref={dateInputRef}
+                    disabled={loading}
+                    type="date"
+                    name="date"
+                    className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
+                    onChange={(e) => {
+                      setNewTransaction(() => ({
+                        ...newTransaction,
+                        date: e.target.value,
+                      }));
+                    }}
+                  />
                 </div>
               </div>
             </div>

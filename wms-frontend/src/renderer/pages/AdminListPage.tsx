@@ -33,7 +33,13 @@ export const AdminListPage = () => {
   useEffect(() => {
     httpsCallable(functions, 'getUsers')()
       .then((result) => {
-        setAdminList(result.data as CustomUser[]);
+        const resultList = result.data as CustomUser[];
+        resultList.sort((a, b) => {
+          if (a?.displayName === undefined || b?.displayName === undefined)
+            return 0;
+          return a.displayName?.localeCompare(b.displayName ?? '') ?? 0;
+        });
+        setAdminList(resultList);
       })
       .catch((error) => {
         console.log(error);

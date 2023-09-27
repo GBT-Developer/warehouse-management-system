@@ -1,3 +1,4 @@
+import { format } from 'date-fns';
 import { db } from 'firebase';
 import {
   collection,
@@ -154,7 +155,15 @@ export const ManageStockPage = () => {
     }
 
     setLoading(true);
-
+    const currentDateandTime = new Date();
+    if (!newPurchase.created_at) return Promise.reject('Date not found');
+    let theTime = '';
+    //if invoice date is the same as current date, take the current time
+    if (newPurchase.created_at === format(currentDateandTime, 'yyyy-MM-dd')) {
+      theTime = format(currentDateandTime, 'HH:mm:ss');
+    } else {
+      theTime = '23:59:59';
+    }
     if (manageStockMode === 'purchase' || manageStockMode === 'force-change')
       await runTransaction(db, (transaction) => {
         if (newPurchase.products.length === 0 || selectedSupplier === null)
@@ -168,32 +177,6 @@ export const ManageStockPage = () => {
           transaction.update(productRef, {
             count: updateStock,
           });
-
-          // If not returned product, create new purchase history
-          if (!returnedProduct && manageStockMode === 'purchase') {
-            const newPurchaseHistoryDocRef = doc(
-              collection(db, 'purchase_history')
-            );
-
-            transaction.set(newPurchaseHistoryDocRef, {
-              supplier: selectedSupplier.id,
-              created_at: newPurchase.created_at,
-              purchase_price: newPurchase.purchase_price,
-              payment_status: newPurchase.payment_status,
-              products: newPurchase.products.map((product, index) => ({
-                id: product.id,
-                name:
-                  products[index].brand +
-                  ' ' +
-                  products[index].motor_type +
-                  ' ' +
-                  products[index].part +
-                  ' ' +
-                  products[index].available_color,
-                quantity: product.quantity,
-              })),
-            });
-          }
 
           const productDetail = products.find(
             (product) => product.id === product.id
@@ -217,10 +200,35 @@ export const ManageStockPage = () => {
             difference: product.quantity,
             warehouse_position: selectedWarehouse,
             type: 'purchase',
-            created_at: newPurchase.created_at,
+            created_at: newPurchase.created_at + ' ' + theTime,
           });
         });
 
+        // If not returned product, create new purchase history
+        if (!returnedProduct && manageStockMode === 'purchase') {
+          const newPurchaseHistoryDocRef = doc(
+            collection(db, 'purchase_history')
+          );
+
+          transaction.set(newPurchaseHistoryDocRef, {
+            supplier: selectedSupplier.id,
+            created_at: newPurchase.created_at + ' ' + theTime,
+            purchase_price: newPurchase.purchase_price,
+            payment_status: newPurchase.payment_status,
+            products: newPurchase.products.map((product, index) => ({
+              id: product.id,
+              name:
+                products[index].brand +
+                ' ' +
+                products[index].motor_type +
+                ' ' +
+                products[index].part +
+                ' ' +
+                products[index].available_color,
+              quantity: product.quantity,
+            })),
+          });
+        }
         // Wait for all promises in the map to resolve
         Promise.all(productsPromises).catch(() => console.log('error'));
 
@@ -277,7 +285,7 @@ export const ManageStockPage = () => {
               count: acceptedProduct.count + theOldCount,
               warehouse_position: selectedWarehouse,
               type: 'from_other_warehouse',
-              created_at: newPurchase.created_at,
+              created_at: newPurchase.created_at + ' ' + theTime,
             },
             {
               merge: true,

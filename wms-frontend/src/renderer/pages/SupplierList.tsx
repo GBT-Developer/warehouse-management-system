@@ -88,6 +88,10 @@ export default function SupplierList() {
                       )
                         return supplier;
                     })
+                    .sort((a, b) => a.address.localeCompare(b.address))
+                    .sort((a, b) =>
+                      a.company_name.localeCompare(b.company_name)
+                    )
                     .map((supplier: Supplier, index) => (
                       <tr
                         key={index}

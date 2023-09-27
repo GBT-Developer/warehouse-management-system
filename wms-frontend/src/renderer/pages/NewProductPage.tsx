@@ -1,3 +1,4 @@
+import { format } from 'date-fns';
 import { db } from 'firebase';
 import {
   collection,
@@ -136,8 +137,19 @@ export const NewProductPage = () => {
       });
 
       const newPurchaseRef = doc(collection(db, 'purchase_history'));
+      const currentDateandTime = new Date();
+      if (!newPurchase.created_at) return Promise.reject('Date not found');
+      let theTime = '';
+      //if invoice date is the same as current date, take the current time
+      if (newPurchase.created_at === format(currentDateandTime, 'yyyy-MM-dd')) {
+        theTime = format(currentDateandTime, 'HH:mm:ss');
+      } else {
+        theTime = '23:59:59';
+      }
+
       transaction.set(newPurchaseRef, {
         ...newPurchase,
+        created_at: newPurchase.created_at + ' ' + theTime,
         purchase_price: newProduct.purchase_price,
         payment_status: newPurchase.payment_status,
         supplier: newSupplierRef ? newSupplierRef.id : newProduct.supplier?.id,

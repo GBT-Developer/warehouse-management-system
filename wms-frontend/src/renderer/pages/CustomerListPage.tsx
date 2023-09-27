@@ -88,6 +88,11 @@ export default function CustomerListPage() {
                       )
                         return customer;
                     })
+                    .sort((a, b) => {
+                      if (a.name === undefined || b.name === undefined)
+                        return 0;
+                      return a.name.localeCompare(b.name);
+                    })
                     .map((customer, index) => (
                       <tr
                         key={customer.id}

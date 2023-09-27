@@ -152,11 +152,20 @@ export const TransactionPage = () => {
         );
         const newInvoiceRef = doc(collection(db, 'invoice'));
 
+        const currentDateandTime = new Date();
+        if (!invoice.date) return Promise.reject('Date not found');
+        let theTime = '';
+        //if invoice date is the same as current date, take the current time
+        if (invoice.date === format(currentDateandTime, 'yyyy-MM-dd')) {
+          theTime = format(currentDateandTime, 'HH:mm:ss');
+        } else {
+          theTime = '23:59:59';
+        }
         transaction.set(newInvoiceRef, {
           customer_id: selectedCustomer?.id ?? '',
           customer_name: selectedCustomer?.name ?? invoice.customer_name,
           // Current date
-          date: invoice.date,
+          date: invoice.date + ' ' + theTime,
           total_price: totalPrice,
           payment_method: invoice.payment_method,
           items: invoice.items,

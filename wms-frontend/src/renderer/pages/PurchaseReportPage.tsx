@@ -99,6 +99,17 @@ export default function PurchaseHistoryPage() {
                       .toLowerCase()
                       .includes(search.toLowerCase());
                   })
+                  .sort((a, b) => {
+                    if (
+                      a.created_at === undefined ||
+                      b.created_at === undefined
+                    )
+                      return 0;
+                    return (
+                      new Date(b.created_at).getTime() -
+                      new Date(a.created_at).getTime()
+                    );
+                  })
                   .map((purchase_history, index) => (
                     <React.Fragment key={index}>
                       <tr
