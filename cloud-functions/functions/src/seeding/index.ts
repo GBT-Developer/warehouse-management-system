@@ -323,9 +323,17 @@ export const seedTransaction = async (num_of_transaction: number) => {
         (acc, curr) => acc + curr.sell_price,
         0
       );
-      const purchaseDate = faker.date.past().toISOString(); // ISO String, ex: 2021-03-10T05:24:31.000Z
+      // Generate date of this month
+      const purchaseDate = faker.date
+        .between({
+          from: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
+          to: new Date(),
+        })
+        .toISOString(); // ex: 2021-03-10T07:00:00.000Z
       // Take the date
       const date = purchaseDate.split("T")[0]; // ex: 2021-03-10
+      // Get the time of the day, format: HH:MM:SS
+      const time = purchaseDate.split("T")[1].split(".")[0]; // ex: 07:00:00
       // Take the day
       const day = date.split("-")[2]; // ex: 10
       totalSales += totalPrice;
@@ -338,7 +346,7 @@ export const seedTransaction = async (num_of_transaction: number) => {
       await db.collection("invoice").add({
         customer_id: "",
         customer_name: faker.person.fullName(),
-        date: purchaseDate.split("T")[0],
+        date: purchaseDate.split("T")[0] + " " + time,
         payment_method: "Cash",
         total_price: totalPrice,
         items: products.map((product) => {
