@@ -1,7 +1,16 @@
 import { db } from 'firebase';
-import { collectionGroup, getDocs, query } from 'firebase/firestore';
-import { useEffect, useState } from 'react';
+import {
+  collectionGroup,
+  deleteDoc,
+  doc,
+  getDocs,
+  query,
+} from 'firebase/firestore';
+import React, { useEffect, useState } from 'react';
 import { AiOutlineLoading3Quarters } from 'react-icons/ai';
+import { BiSolidTrash } from 'react-icons/bi';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import { SingleTableItem } from 'renderer/components/TableComponents/SingleTableItem';
 import { TableHeader } from 'renderer/components/TableComponents/TableHeader';
 import { TableTitle } from 'renderer/components/TableComponents/TableTitle';
@@ -11,7 +20,12 @@ export default function TransactionHistory() {
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(false);
   const [invoiceHistory, setInvoiceHistory] = useState<Invoice[]>([]);
-
+  const [showProductsMap, setShowProductsMap] = useState<
+    Record<string, boolean>
+  >({});
+  const successNotify = () => toast.success('Transaction deleted successfully');
+  const failNotify = (e?: string) =>
+    toast.error(e ?? 'Failed to delete transaction');
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
@@ -41,6 +55,13 @@ export default function TransactionHistory() {
       console.log(error);
     });
   }, []);
+  // Show product
+  const toggleShowProducts = (purchaseId: string) => {
+    setShowProductsMap((prevState) => ({
+      ...prevState,
+      [purchaseId]: !prevState[purchaseId],
+    }));
+  };
   return (
     <PageLayout>
       <div className="w-full h-full bg-transparent overflow-hidden">
@@ -60,9 +81,11 @@ export default function TransactionHistory() {
               <TableHeader>
                 <th className=" py-3">Date</th>
                 <th className=" py-3">Invoice Number</th>
+                <th className=" py-3">Customer Name</th>
                 <th className=" py-3">Warehouse</th>
                 <th className=" py-3">Sales</th>
                 <th className=" py-3">Payment</th>
+                <th className=" py-3"></th>
               </TableHeader>
               <tbody className="overflow-y-auto">
                 {invoiceHistory
@@ -76,33 +99,106 @@ export default function TransactionHistory() {
                     )
                       return invoiceHistory;
                   })
-                  .map((invoiceHistory: Invoice, index) => (
-                    <tr key={index} className="border-b">
-                      <SingleTableItem>{invoiceHistory.date}</SingleTableItem>
-                      <SingleTableItem>{invoiceHistory.id}</SingleTableItem>
-                      <SingleTableItem>
-                        {invoiceHistory.items
-                          ? invoiceHistory.items[0].warehouse_position
-                          : ''}
-                      </SingleTableItem>
-                      <SingleTableItem>
-                        {invoiceHistory.items
-                          ? new Intl.NumberFormat('id-ID', {
-                              style: 'currency',
-                              currency: 'IDR',
-                            }).format(invoiceHistory.total_price ?? 0)
-                          : ''}
-                      </SingleTableItem>
-                      <SingleTableItem>
-                        {invoiceHistory.payment_method}
-                      </SingleTableItem>
-                    </tr>
+                  .map((mapInvoiceHistory: Invoice, index) => (
+                    <React.Fragment key={index}>
+                      <tr
+                        className="border-b hover:shadow-md cursor-pointer"
+                        onClick={() => {
+                          if (!mapInvoiceHistory.id) return;
+                          toggleShowProducts(mapInvoiceHistory.id);
+                        }}
+                      >
+                        <SingleTableItem>
+                          {mapInvoiceHistory.date}
+                        </SingleTableItem>
+                        <SingleTableItem>
+                          {mapInvoiceHistory.id}
+                        </SingleTableItem>
+                        <SingleTableItem>
+                          {mapInvoiceHistory.customer_name}
+                        </SingleTableItem>
+                        <SingleTableItem>
+                          {mapInvoiceHistory.items
+                            ? mapInvoiceHistory.items[0].warehouse_position
+                            : ''}
+                        </SingleTableItem>
+                        <SingleTableItem>
+                          {mapInvoiceHistory.items
+                            ? new Intl.NumberFormat('id-ID', {
+                                style: 'currency',
+                                currency: 'IDR',
+                              }).format(mapInvoiceHistory.total_price ?? 0)
+                            : ''}
+                        </SingleTableItem>
+                        <SingleTableItem>
+                          {mapInvoiceHistory.payment_method}
+                        </SingleTableItem>
+                        <SingleTableItem>
+                          <button
+                            type="button"
+                            className="text-red-500 text-lg p-2 hover:text-red-700 cursor-pointer bg-transparent rounded-md"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setLoading(true);
+                              if (!mapInvoiceHistory.id) return;
+                              const purchaseRef = doc(
+                                db,
+                                'invoice',
+                                mapInvoiceHistory.id
+                              );
+                              deleteDoc(purchaseRef)
+                                .then(() => {
+                                  const newInvoiceHistroy = [...invoiceHistory];
+                                  newInvoiceHistroy.splice(index, 1);
+                                  setInvoiceHistory(newInvoiceHistroy);
+                                })
+                                .catch((error) => failNotify(error));
+                              setLoading(false);
+                              successNotify();
+                            }}
+                          >
+                            <BiSolidTrash />
+                          </button>
+                        </SingleTableItem>
+                      </tr>
+                      {mapInvoiceHistory.id &&
+                        showProductsMap[mapInvoiceHistory.id] && (
+                          <tr className="border-b">
+                            <td colSpan={6}>
+                              {mapInvoiceHistory.items?.map(
+                                (product, productIndex) => (
+                                  <div
+                                    key={productIndex}
+                                    className="py-[0.75rem]"
+                                  >
+                                    <div>
+                                      {product.brand}: {product.count}x
+                                    </div>
+                                  </div>
+                                )
+                              )}
+                            </td>
+                          </tr>
+                        )}
+                    </React.Fragment>
                   ))}
               </tbody>
             </table>
           </div>
         </div>
       </div>
+      <ToastContainer
+        position="top-right"
+        autoClose={2000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="light"
+      />
     </PageLayout>
   );
 }
