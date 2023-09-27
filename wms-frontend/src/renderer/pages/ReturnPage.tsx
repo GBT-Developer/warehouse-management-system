@@ -733,8 +733,8 @@ export default function ReturnPage() {
               </ul>
 
               <div className="flex justify-end">
-                <p className="text-lg font-semibold">Total: &nbsp;</p>
-                <p className="text-lg font-semibold">
+                <p className="text-lg ">Total: &nbsp;</p>
+                <p className="text-lg ">
                   {new Intl.NumberFormat('id-ID', {
                     style: 'currency',
                     currency: 'IDR',
@@ -743,6 +743,21 @@ export default function ReturnPage() {
                       (acc, item) => acc + item.sell_price * item.count,
                       0
                     )
+                  )}
+                </p>
+              </div>
+
+              <div className="flex justify-end">
+                <p className="text-lg font-semibold">To be paid: &nbsp;</p>
+                <p className="text-lg font-semibold">
+                  {new Intl.NumberFormat('id-ID', {
+                    style: 'currency',
+                    currency: 'IDR',
+                  }).format(
+                    selectedNewItems.reduce(
+                      (acc, item) => acc + item.sell_price * item.count,
+                      0
+                    ) - (invoice.total_price ?? 0)
                   )}
                 </p>
               </div>
