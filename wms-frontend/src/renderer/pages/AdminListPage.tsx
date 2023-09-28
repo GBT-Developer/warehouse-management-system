@@ -4,6 +4,7 @@ import { httpsCallable } from 'firebase/functions';
 import { useEffect, useState } from 'react';
 import { AiOutlineLoading3Quarters } from 'react-icons/ai';
 import { BiSolidTrash } from 'react-icons/bi';
+import { useNavigate } from 'react-router-dom';
 import { SingleTableItem } from 'renderer/components/TableComponents/SingleTableItem';
 import { TableHeader } from 'renderer/components/TableComponents/TableHeader';
 import { TableTitle } from 'renderer/components/TableComponents/TableTitle';
@@ -16,6 +17,7 @@ export const AdminListPage = () => {
   const [adminList, setAdminList] = useState<CustomUser[]>([]);
   const { user } = useAuth();
   const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
   const handleDelete = (uid: string) => {
     httpsCallable(
@@ -123,6 +125,15 @@ export const AdminListPage = () => {
                     ))}
                 </tbody>
               </table>
+              <div className="flex flex-row-reverse gap-2 w-full justify-start">
+                <button
+                  type="submit"
+                  className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 focus:outline-none hover:-translate-y-1 "
+                  onClick={() => navigate('/createadminpage')}
+                >
+                  + New
+                </button>
+              </div>
             </div>
           </div>
         </div>
