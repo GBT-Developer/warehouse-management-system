@@ -81,62 +81,75 @@ export default function VoidListPage() {
                 <th className="py-3">Price</th>
               </TableHeader>
               <tbody className="overflow-y-auto">
-                {voidList
-                  .filter((void_list) => {
-                    if (!void_list.id || !void_list.customer_name) return false;
-                    if (search === '') return true;
-                    return (
-                      void_list.id
-                        .toLowerCase()
-                        .includes(search.toLowerCase()) ||
-                      void_list.customer_name
-                        .toLowerCase()
-                        .includes(search.toLowerCase())
-                    );
-                  })
-                  .sort((a, b) => {
-                    if (a.date === undefined || b.date === undefined) return 0;
-                    return (
-                      new Date(b.date).getTime() - new Date(a.date).getTime()
-                    );
-                  })
-                  .map((void_list, index) => (
-                    <React.Fragment key={index}>
-                      <tr
-                        className="border-b hover:shadow-md cursor-pointer"
-                        onClick={() => {
-                          if (!void_list.id) return;
-                          toggleShowProducts(void_list.id);
-                        }}
-                      >
-                        <SingleTableItem>{void_list.id}</SingleTableItem>
-                        <SingleTableItem>
-                          {void_list.customer_name}
-                        </SingleTableItem>
-                        <SingleTableItem>{void_list.date}</SingleTableItem>
-                        <SingleTableItem>
-                          {void_list.payment_method}
-                        </SingleTableItem>
-                        <SingleTableItem>
-                          {formatCurrency(void_list.total_price)}
-                        </SingleTableItem>
-                      </tr>
-                      {void_list.id && showProductsMap[void_list.id] && (
-                        <tr className="border-b">
-                          <td colSpan={5}>
-                            {' '}
-                            {void_list.items?.map((product, productIndex) => (
-                              <div key={productIndex} className="py-[0.75rem]">
-                                <div>
-                                  {product.brand}: {product.count}x
-                                </div>
-                              </div>
-                            ))}
-                          </td>
+                {voidList.length === 0 ? (
+                  <tr className="border-b">
+                    <td className="py-3" colSpan={6}>
+                      <p className="flex justify-center">No data</p>
+                    </td>
+                  </tr>
+                ) : (
+                  voidList
+                    .filter((void_list) => {
+                      if (!void_list.id || !void_list.customer_name)
+                        return false;
+                      if (search === '') return true;
+                      return (
+                        void_list.id
+                          .toLowerCase()
+                          .includes(search.toLowerCase()) ||
+                        void_list.customer_name
+                          .toLowerCase()
+                          .includes(search.toLowerCase())
+                      );
+                    })
+                    .sort((a, b) => {
+                      if (a.date === undefined || b.date === undefined)
+                        return 0;
+                      return (
+                        new Date(b.date).getTime() - new Date(a.date).getTime()
+                      );
+                    })
+                    .map((void_list, index) => (
+                      <React.Fragment key={index}>
+                        <tr
+                          className="border-b hover:shadow-md cursor-pointer"
+                          onClick={() => {
+                            if (!void_list.id) return;
+                            toggleShowProducts(void_list.id);
+                          }}
+                        >
+                          <SingleTableItem>{void_list.id}</SingleTableItem>
+                          <SingleTableItem>
+                            {void_list.customer_name}
+                          </SingleTableItem>
+                          <SingleTableItem>{void_list.date}</SingleTableItem>
+                          <SingleTableItem>
+                            {void_list.payment_method}
+                          </SingleTableItem>
+                          <SingleTableItem>
+                            {formatCurrency(void_list.total_price)}
+                          </SingleTableItem>
                         </tr>
-                      )}
-                    </React.Fragment>
-                  ))}
+                        {void_list.id && showProductsMap[void_list.id] && (
+                          <tr className="border-b">
+                            <td colSpan={5}>
+                              {' '}
+                              {void_list.items?.map((product, productIndex) => (
+                                <div
+                                  key={productIndex}
+                                  className="py-[0.75rem]"
+                                >
+                                  <div>
+                                    {product.brand}: {product.count}x
+                                  </div>
+                                </div>
+                              ))}
+                            </td>
+                          </tr>
+                        )}
+                      </React.Fragment>
+                    ))
+                )}
               </tbody>
             </table>
           </div>
