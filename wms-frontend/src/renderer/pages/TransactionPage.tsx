@@ -85,20 +85,28 @@ export const TransactionPage = () => {
   }, []);
   //check all of the input empty or not
   useEffect(() => {
-    if (
-      invoice.date === '' &&
-      invoice.payment_method === '' &&
-      invoice.items?.length === 0
-    ) {
-      setIsEmpty(true);
-      return;
+    if (invoice.items?.length === 0) {
+      if (invoice.date === '' && invoice.payment_method === '') {
+        setIsEmpty(true);
+        return;
+      } else if (invoice.date != '' && invoice.payment_method != '') {
+        setIsEmpty(true);
+        return;
+      }
     } else if (
       invoice.date != '' &&
       invoice.payment_method != '' &&
       invoice.items?.length != 0
     ) {
-      setIsEmpty(false);
-      return;
+      invoice.items?.map((item) => {
+        if (item.count === 0) {
+          setIsEmpty(true);
+          return;
+        } else {
+          setIsEmpty(false);
+          return;
+        }
+      });
     }
     console.log('isEmpty', isEmpty);
   }, [invoice]);
