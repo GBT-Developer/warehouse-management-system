@@ -1,4 +1,4 @@
-import React, { ReactNode } from 'react';
+import React, { ReactNode, useState } from 'react';
 import {
   AiOutlineDatabase,
   AiOutlineHome,
@@ -42,7 +42,9 @@ const SidebarItem = ({
         onClick={onClick}
       >
         {icon}
-        <span className="flex-1 text-start whitespace-nowrap">{children}</span>
+        <span className="flex-1 text-start overflow-hidden whitespace-nowrap overflow-ellipsis">
+          {children}
+        </span>
       </button>
     </li>
   );
@@ -50,7 +52,62 @@ const SidebarItem = ({
 
 const Profile = () => {
   const { user } = useAuth();
-  return <p className="text-sm text-gray-400">{user?.email}</p>;
+  const [isWarehouseDropdownOpen, setIsWarehouseDropdownOpen] = useState(false);
+  const [warehouse, setWarehouse] = useState<
+    'Raw Material Warehouse' | 'Finished Goods Warehouse' | 'Both'
+  >('Raw Material Warehouse');
+
+  const warehouseOptions = [
+    'Raw Material Warehouse',
+    'Finished Goods Warehouse',
+    'Both',
+  ].filter((option) => option !== warehouse);
+
+  return (
+    <div>
+      <p className="text-sm text-gray-400">{user?.email}</p>
+      <ul className="mt-2">
+        <li>
+          <button
+            type="button"
+            className={`flex gap-2 w-full items-center p-2 text-black rounded-lg group hover:bg-gray-300
+            `}
+            onClick={() => {
+              setIsWarehouseDropdownOpen(!isWarehouseDropdownOpen);
+            }}
+          >
+            <span className="flex-1 text-start overflow-hidden whitespace-nowrap overflow-ellipsis">
+              {warehouse}
+            </span>
+            <div className="flex justify-end">
+              {isWarehouseDropdownOpen ? <BsChevronUp /> : <BsChevronDown />}
+            </div>
+          </button>
+          <ul
+            className={`${isWarehouseDropdownOpen ? '' : 'hidden'} space-y-2`}
+          >
+            {warehouseOptions.map((option) => (
+              <SidebarItem
+                key={option}
+                onClick={() => {
+                  setWarehouse(
+                    option as
+                      | 'Raw Material Warehouse'
+                      | 'Finished Goods Warehouse'
+                      | 'Both'
+                  );
+                  setIsWarehouseDropdownOpen(false);
+                }}
+                selected={false}
+              >
+                {option}
+              </SidebarItem>
+            ))}
+          </ul>
+        </li>
+      </ul>
+    </div>
+  );
 };
 
 export const AppSidebar = () => {
@@ -58,13 +115,14 @@ export const AppSidebar = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [isInventDropdownOpen, setIsInventDropdownOpen] = React.useState(false);
+  //warehouse mode: raw material warehouse, finished goods warehouse, both
 
   return (
     <aside
       id="sidebar-multi-level-sidebar"
       className="flex flex-col h-screen sidebar-bg min-w-[16rem] px-2 pt-[2rem] w-1/5 "
     >
-      <div className="py-6">
+      <div className="py-4">
         <div className="flex px-3 justify-between items-center text-black">
           <Link to="/">
             <p className="text-4xl font-bold">WMS</p>
@@ -74,7 +132,7 @@ export const AppSidebar = () => {
           <Profile />
         </div>
       </div>
-      <div className={'w-full my-2 border-b border-gray-300'} />
+      <div className={'w-full mb-2 border-b border-gray-300'} />
       <div className="h-full px-3 hover:overflow-y-auto overflow-hidden">
         <p className="text-sm font-bold text-gray-500 ">Main Functions</p>
         <ul className="my-3 space-y-2 font-regular">
