@@ -7,13 +7,27 @@ export const seedUser = async (num_of_user: number) => {
   const users = await firebaseAdmin.auth().listUsers();
   if (users.users.length < num_of_user) {
     for (let i = 0; i < num_of_user; i++) {
+      const theEmail = faker.internet.email();
+      const thePassword = faker.internet.password();
+      const theDisplayName = faker.person.fullName();
       await firebaseAdmin.auth().createUser({
-        email: faker.internet.email(),
+        email: theEmail,
         emailVerified: false,
-        password: faker.internet.password(),
-        displayName: faker.person.fullName(),
+        password: thePassword,
+        displayName: theDisplayName,
         disabled: false,
       });
+
+      const roles = ["Gudang Jadi", "Gudang Bahan"];
+      await firebaseAdmin
+        .firestore()
+        .collection("user")
+        .add({
+          email: theEmail,
+          display_name: theDisplayName,
+          password: thePassword,
+          role: roles[faker.number.int({ min: 0, max: roles.length - 1 })],
+        });
     }
   } else {
     functions.logger.info("Enough user already");
@@ -21,14 +35,14 @@ export const seedUser = async (num_of_user: number) => {
 };
 
 const createRootUser = async () => {
-  firebaseAdmin
+  await firebaseAdmin
     .auth()
     .getUserByEmail("test@gmail.com")
     .then(() => {
       functions.logger.info("Root user already exists");
     })
-    .catch(() => {
-      firebaseAdmin
+    .catch(async () => {
+      await firebaseAdmin
         .auth()
         .createUser({
           email: "test@gmail.com",
@@ -47,6 +61,11 @@ const createRootUser = async () => {
         .catch((error) => {
           functions.logger.error(error);
         });
+      await firebaseAdmin.firestore().collection("user").add({
+        email: "test@gmail.com",
+        display_name: "Test",
+        role: "Owner",
+      });
     });
 };
 
@@ -209,7 +228,7 @@ export const seedBrokenProduct = async (
         .catch((error) => console.log(error));
     }
   } else {
-    functions.logger.info("Enough product already");
+    functions.logger.info("Enough broken product already");
   }
 };
 const productPicker = async (num_of_products: number) => {
