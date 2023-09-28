@@ -1,44 +1,37 @@
-import { functions } from 'firebase';
-import { httpsCallable } from 'firebase/functions';
-import React, { FormEvent, useState } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AuthCard } from 'renderer/components/AuthCard';
 import { PageLayout } from 'renderer/layout/PageLayout';
+import { useAuth } from 'renderer/providers/AuthProvider';
 
 export const CreateAdminPage = () => {
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
-  const signUp = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    const res = await httpsCallable(
-      functions,
-      'createUser'
-    )({
-      email,
-      password,
-    });
-
-    if (res.data) {
-      navigate('/adminlistpage');
-    }
-
-    setEmail('');
-    setPassword('');
-  };
+  const { register } = useAuth().actions;
 
   return (
     <PageLayout>
       <AuthCard>
         <div className="flex flex-col gap-[0.5rem]">
-          <form className="flex flex-col gap-[0.5rem]" onSubmit={signUp}>
+          <form
+            className="flex flex-col gap-[0.5rem]"
+            onSubmit={(e) => {
+              e.preventDefault();
+              register({ email, password })
+                .then((e) => {
+                  console.log(e);
+                })
+                .catch(() => console.log('error creating user'));
+            }}
+          >
             <input
               type="email"
               name="email"
               id="email"
               placeholder="name@company.com"
-              className="bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+              className="bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
               required
               onChange={(event) => setEmail(event.target.value)}
             />
@@ -47,7 +40,7 @@ export const CreateAdminPage = () => {
               placeholder="••••••••"
               name="password"
               id="password"
-              className="bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
+              className="bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
               required
               onChange={(event) => setPassword(event.target.value)}
             />
@@ -61,7 +54,7 @@ export const CreateAdminPage = () => {
           <button
             type="button"
             onClick={() => navigate('/adminlistpage')}
-            className="py-2.5 px-5 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700"
+            className="py-2 px-5 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-200"
           >
             Cancel
           </button>
