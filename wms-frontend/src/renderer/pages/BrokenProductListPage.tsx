@@ -9,6 +9,8 @@ import {
 } from 'firebase/firestore';
 import { useEffect, useState } from 'react';
 import { AiOutlineLoading3Quarters } from 'react-icons/ai';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import { ReturnModal } from 'renderer/components/ReturnModal';
 import { SingleTableItem } from 'renderer/components/TableComponents/SingleTableItem';
 import { TableHeader } from 'renderer/components/TableComponents/TableHeader';
@@ -25,6 +27,10 @@ export const BrokenProductListPage = () => {
   const [reason, setReason] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
   const [painterName, setPainterName] = useState('');
+  const successNotify = () =>
+    toast.success('Product status successfully updated');
+  const failNotify = (e?: string) =>
+    toast.error(e ?? 'Failed to update product status');
 
   useEffect(() => {
     const fetchData = async () => {
@@ -136,7 +142,12 @@ export const BrokenProductListPage = () => {
       setReason('');
       setModalOpen(false);
       return Promise.resolve();
-    });
+    })
+      .then(() => successNotify())
+      .catch((error) => {
+        const errorMessage = error as string;
+        failNotify(errorMessage);
+      });
   };
 
   return (
@@ -312,6 +323,18 @@ export const BrokenProductListPage = () => {
           </div>
         </div>
       </div>
+      <ToastContainer
+        position="top-right"
+        autoClose={2000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="light"
+      />
     </PageLayout>
   );
 };
