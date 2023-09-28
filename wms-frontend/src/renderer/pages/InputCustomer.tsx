@@ -1,7 +1,7 @@
 import { collection, getDocs, query } from '@firebase/firestore';
 import { db } from 'firebase';
 import { addDoc, and, or, where } from 'firebase/firestore';
-import { FormEvent, useState } from 'react';
+import { FormEvent, useEffect, useState } from 'react';
 import { AiOutlineLoading3Quarters } from 'react-icons/ai';
 import { IoRemoveCircleOutline } from 'react-icons/io5';
 import { useNavigate } from 'react-router-dom';
@@ -33,6 +33,26 @@ function InputCustomerPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const successNotify = () => toast.success('Customer Successfully Added');
   const failNotify = (e?: string) => toast.error(e ?? 'Failed to add customer');
+  const [isEmpty, setIsEmpty] = useState(false);
+
+  useEffect(() => {
+    if (
+      newCustomer.name === '' ||
+      newCustomer.address === '' ||
+      newCustomer.phone_number === ''
+    ) {
+      setIsEmpty(true);
+      return;
+    } else if (
+      newCustomer.name !== '' &&
+      newCustomer.address !== '' &&
+      newCustomer.phone_number !== ''
+    ) {
+      setIsEmpty(false);
+      return;
+    }
+  }, [newCustomer]);
+
   function handleSubmit(e: FormEvent) {
     e.preventDefault();
     // If one or more fields are empty except remarks, return early
@@ -258,8 +278,12 @@ function InputCustomerPage() {
 
         <div className="flex flex-row-reverse gap-2 justify-start">
           <button
-            disabled={loading}
+            disabled={isEmpty}
             type="submit"
+            style={{
+              backgroundColor: isEmpty ? 'gray' : 'blue',
+              // Add other styles as needed
+            }}
             className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2 focus:outline-none"
             onClick={(e) => {
               handleSubmit(e);

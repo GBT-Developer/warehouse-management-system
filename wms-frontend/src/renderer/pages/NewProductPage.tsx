@@ -93,12 +93,12 @@ export const NewProductPage = () => {
   //check all of the input empty or not
   useEffect(() => {
     if (
-      newProduct.brand === '' &&
-      newProduct.motor_type === '' &&
-      newProduct.part === '' &&
-      newProduct.available_color === '' &&
-      newProduct.count === 0 &&
-      newProduct.purchase_price === 0 &&
+      newProduct.brand === '' ||
+      newProduct.motor_type === '' ||
+      newProduct.part === '' ||
+      newProduct.available_color === '' ||
+      newProduct.count === 0 ||
+      newProduct.purchase_price === 0 ||
       newProduct.sell_price === 0
     ) {
       setIsEmpty(true);

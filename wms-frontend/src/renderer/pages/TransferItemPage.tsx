@@ -47,9 +47,9 @@ export const TransferItemPage = () => {
   useEffect(() => {
     if (dispatchNote.dispatch_items.length === 0) {
       if (
-        dispatchNote.date === '' &&
-        dispatchNote.painter === '' &&
-        dispatchNote.dispatch_items.map((item) => item.color === '') &&
+        dispatchNote.date === '' ||
+        dispatchNote.painter === '' ||
+        dispatchNote.dispatch_items.map((item) => item.color === '') ||
         dispatchNote.dispatch_items.map((item) => item.amount === 0)
       ) {
         setIsEmpty(true);
