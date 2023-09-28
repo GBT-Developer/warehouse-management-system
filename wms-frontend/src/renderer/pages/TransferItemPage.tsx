@@ -45,25 +45,32 @@ export const TransferItemPage = () => {
   const [isEmpty, setIsEmpty] = useState(false);
 
   useEffect(() => {
-    if (
-      dispatchNote.dispatch_items.length === 0 &&
-      dispatchNote.date === '' &&
-      dispatchNote.painter === '' &&
-      dispatchNote.dispatch_items.map((item) => item.color === '').length ===
-        0 &&
-      dispatchNote.dispatch_items.map((item) => item.amount === 0).length != 0
-    ) {
-      setIsEmpty(true);
-      return;
+    if (dispatchNote.dispatch_items.length === 0) {
+      if (
+        dispatchNote.date === '' &&
+        dispatchNote.painter === '' &&
+        dispatchNote.dispatch_items.map((item) => item.color === '') &&
+        dispatchNote.dispatch_items.map((item) => item.amount === 0)
+      ) {
+        setIsEmpty(true);
+        return;
+      }
     } else if (
       dispatchNote.dispatch_items.length != 0 &&
       dispatchNote.date != '' &&
-      dispatchNote.painter != '' &&
-      dispatchNote.dispatch_items.map((item) => item.color != '') &&
-      dispatchNote.dispatch_items.map((item) => item.amount != 0)
+      dispatchNote.painter != ''
     ) {
-      setIsEmpty(false);
+      dispatchNote.dispatch_items.map((item) => {
+        if (item.color != '' && item.amount != 0) {
+          setIsEmpty(false);
+          return;
+        } else {
+          setIsEmpty(true);
+          return;
+        }
+      });
     }
+    console.log('isEmpty', isEmpty);
   }, [dispatchNote]);
 
   async function handleSubmit(e: FormEvent) {
