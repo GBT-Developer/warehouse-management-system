@@ -53,9 +53,17 @@ export const TransferItemPage = () => {
         dispatchNote.dispatch_items.map((item) => item.amount === 0)
       ) {
         setIsEmpty(true);
+        setErrorMessage('Please fill all fields');
+        setTimeout(() => {
+          setErrorMessage(null);
+        }, 3000);
         return;
       } else if (dispatchNote.date != '' && dispatchNote.painter != '') {
         setIsEmpty(true);
+        setErrorMessage('Please fill all fields');
+        setTimeout(() => {
+          setErrorMessage(null);
+        }, 3000);
         return;
       }
     } else if (
@@ -69,6 +77,10 @@ export const TransferItemPage = () => {
           return;
         } else {
           setIsEmpty(true);
+          setErrorMessage('Please fill all fields');
+          setTimeout(() => {
+            setErrorMessage(null);
+          }, 3000);
           return;
         }
       });
@@ -377,7 +389,7 @@ export const TransferItemPage = () => {
               handleSubmit(e).catch((error) => console.error(error));
             }}
           >
-            Submit
+            Transfer Item
           </button>
           <button
             disabled={loading}
