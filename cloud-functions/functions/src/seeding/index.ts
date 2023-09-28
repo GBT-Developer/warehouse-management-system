@@ -25,7 +25,6 @@ export const seedUser = async (num_of_user: number) => {
         .add({
           email: theEmail,
           display_name: theDisplayName,
-          password: thePassword,
           role: roles[faker.number.int({ min: 0, max: roles.length - 1 })],
         });
     }
@@ -51,21 +50,21 @@ const createRootUser = async () => {
           displayName: "Test",
           disabled: false,
         })
-        .then((userRecord) => {
-          // Set custom claims
-          firebaseAdmin
-            .auth()
-            .setCustomUserClaims(userRecord.uid, { role: "owner" });
-          functions.logger.info("Root user created");
+        .then(async (theUser) => {
+          await firebaseAdmin.firestore().runTransaction(async (t) => {
+            t.set(
+              firebaseAdmin.firestore().collection("user").doc(theUser.uid),
+              {
+                email: "test@gmail.com",
+                display_name: "Test",
+                role: "Owner",
+              }
+            );
+          });
         })
         .catch((error) => {
           functions.logger.error(error);
         });
-      await firebaseAdmin.firestore().collection("user").add({
-        email: "test@gmail.com",
-        display_name: "Test",
-        role: "Owner",
-      });
     });
 };
 
