@@ -137,7 +137,8 @@ export const ManageStockPage = () => {
       ((manageStockMode === 'purchase' || manageStockMode === 'force-change') &&
         selectedSupplier === null) ||
       ((manageStockMode === 'purchase' || manageStockMode === 'force-change') &&
-        newPurchase.purchase_price === 0) ||
+        newPurchase.purchase_price === 0 &&
+        !returnedProduct) ||
       (manageStockMode === 'from_other_warehouse' && dispatchNote === '') ||
       (manageStockMode === 'from_other_warehouse' &&
         acceptedProducts.length != products.length) ||
@@ -158,12 +159,11 @@ export const ManageStockPage = () => {
     const currentDateandTime = new Date();
     if (!newPurchase.created_at) return Promise.reject('Date not found');
     let theTime = '';
-    //if invoice date is the same as current date, take the current time
-    if (newPurchase.created_at === format(currentDateandTime, 'yyyy-MM-dd')) {
+    // If invoice date is the same as current date, take the current time
+    if (newPurchase.created_at === format(currentDateandTime, 'yyyy-MM-dd'))
       theTime = format(currentDateandTime, 'HH:mm:ss');
-    } else {
-      theTime = '23:59:59';
-    }
+    else theTime = '23:59:59';
+
     if (manageStockMode === 'purchase' || manageStockMode === 'force-change')
       await runTransaction(db, (transaction) => {
         if (newPurchase.products.length === 0 || selectedSupplier === null)
@@ -340,6 +340,9 @@ export const ManageStockPage = () => {
     setProducts([]);
     setAcceptedProducts([]);
     setDispatchNote('');
+    setReturnedProduct(false);
+    setModalOpen(false);
+    setManageStockMode('');
 
     setLoading(false);
     successNotify();
@@ -428,7 +431,7 @@ export const ManageStockPage = () => {
           </div>
           <div className="w-2/3">
             <select
-              defaultValue={''}
+              value={manageStockMode}
               disabled={loading}
               name="change-of-stock-mode"
               onChange={(e) => {
@@ -472,7 +475,13 @@ export const ManageStockPage = () => {
           </div>
           <div className="w-2/3">
             <select
-              value={selectedWarehouse != '' ? selectedWarehouse : ''}
+              value={
+                manageStockMode === 'from_other_warehouse'
+                  ? 'Gudang Jadi'
+                  : selectedWarehouse != ''
+                  ? selectedWarehouse
+                  : ''
+              }
               disabled={loading}
               name="warehouse-id"
               onChange={(e) => {
@@ -506,7 +515,7 @@ export const ManageStockPage = () => {
                 </>
               ) : manageStockMode === 'from_other_warehouse' ? (
                 <>
-                  <option key={'gudang_jadi'} value="Gudang Jadi" selected>
+                  <option key={'gudang_jadi'} value="Gudang Jadi">
                     Gudang Jadi
                   </option>
                 </>
@@ -751,7 +760,7 @@ export const ManageStockPage = () => {
                 </div>
                 <div className="w-2/3 flex items-center">
                   <input
-                    value={returnedProduct ? 'true' : 'false'}
+                    checked={returnedProduct}
                     disabled={loading}
                     type="checkbox"
                     name="returned-product"
