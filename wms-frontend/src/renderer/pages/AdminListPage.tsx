@@ -1,36 +1,19 @@
-import { db, functions } from 'firebase';
+import { db } from 'firebase';
 import { collection, getDocs, query } from 'firebase/firestore';
-import { httpsCallable } from 'firebase/functions';
 import { useEffect, useState } from 'react';
 import { AiOutlineLoading3Quarters } from 'react-icons/ai';
-import { BiSolidTrash } from 'react-icons/bi';
 import { useNavigate } from 'react-router-dom';
 import { SingleTableItem } from 'renderer/components/TableComponents/SingleTableItem';
 import { TableHeader } from 'renderer/components/TableComponents/TableHeader';
 import { TableTitle } from 'renderer/components/TableComponents/TableTitle';
 import { CustomUser } from 'renderer/interfaces/CustomUser';
 import { PageLayout } from 'renderer/layout/PageLayout';
-import { useAuth } from 'renderer/providers/AuthProvider';
 
 export const AdminListPage = () => {
   const [search, setSearch] = useState('');
   const [adminList, setAdminList] = useState<CustomUser[]>([]);
-  const { user } = useAuth();
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-
-  const handleDelete = (uid: string) => {
-    httpsCallable(
-      functions,
-      'deleteUser'
-    )({ uid })
-      .then(() => {
-        setAdminList(adminList.filter((admin) => admin.id !== uid));
-      })
-      .catch((error) => {
-        console.log(error);
-      });
-  };
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -80,7 +63,6 @@ export const AdminListPage = () => {
                   <th className="py-3">Nama</th>
                   <th className="py-3">Email</th>
                   <th className="py-3">Role</th>
-                  <th className="py-3"></th>
                 </TableHeader>
                 <tbody>
                   {adminList
@@ -107,20 +89,6 @@ export const AdminListPage = () => {
                         <SingleTableItem>{admin.display_name}</SingleTableItem>
                         <SingleTableItem>{admin.email}</SingleTableItem>
                         <SingleTableItem>{admin.role}</SingleTableItem>
-                        {user?.id !== admin.id && (
-                          <SingleTableItem>
-                            <button
-                              type="button"
-                              className="text-red-500 text-lg p-2 hover:text-red-700 cursor-pointer bg-transparent rounded-md"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                if (admin.id) handleDelete(admin.id);
-                              }}
-                            >
-                              <BiSolidTrash />
-                            </button>
-                          </SingleTableItem>
-                        )}
                       </tr>
                     ))}
                 </tbody>
