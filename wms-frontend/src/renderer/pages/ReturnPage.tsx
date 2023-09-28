@@ -132,15 +132,13 @@ export default function ReturnPage() {
       // Decrease the count of the item in the invoice
       // If count is 0, delete the item from the invoice
       selectedItems.forEach((selectedItem) => {
-        const itemInInvoice = newTransaction.items?.find(
+        const itemInInvoice = invoice.items?.find(
           (item) => item.id === selectedItem.id
         );
         if (itemInInvoice?.count === selectedItem.count)
           // Delete the item
-          newTransaction.items?.splice(
-            newTransaction.items.findIndex(
-              (item) => item.id === selectedItem.id
-            ),
+          invoice.items?.splice(
+            invoice.items.findIndex((item) => item.id === selectedItem.id),
             1
           );
         // Decrease the count
@@ -149,9 +147,9 @@ export default function ReturnPage() {
       });
 
       // Reduce the total price
-      if (newTransaction.total_price)
-        newTransaction.total_price =
-          newTransaction.total_price -
+      if (invoice.total_price)
+        invoice.total_price =
+          invoice.total_price -
           selectedItems.reduce(
             (acc, cur) => acc + cur.sell_price * cur.count,
             0
@@ -161,21 +159,23 @@ export default function ReturnPage() {
       // But if the item is already in the invoice, just increase the count
       selectedItems.forEach((selectedItem) => {
         selectedItem.is_returned = true;
-        const itemIndex = newTransaction.items?.findIndex(
+        const itemIndex = invoice.items?.findIndex(
           (item) => item.id === selectedItem.id
         );
         if (itemIndex === -1 || itemIndex === undefined)
-          newTransaction.items?.push(selectedItem);
-        else if (newTransaction.items)
-          newTransaction.items[itemIndex].count =
-            newTransaction.items[itemIndex].count - selectedItem.count;
+          invoice.items?.push(selectedItem);
+        else if (invoice.items)
+          invoice.items[itemIndex].count =
+            invoice.items[itemIndex].count - selectedItem.count;
       });
+
+      console.log(invoice);
 
       // Update the invoice
       await runTransaction(db, (transaction) => {
         transaction.update(doc(db, 'invoice', invoiceNumber), {
-          items: newTransaction.items,
-          total_price: newTransaction.total_price,
+          items: invoice.items,
+          total_price: invoice.total_price,
         });
 
         // Put the returned product to broken product database
@@ -203,7 +203,7 @@ export default function ReturnPage() {
         reduceSalesStats(invoice, false).catch((err) => console.log(err));
         return Promise.all(promises);
       });
-    } else
+    } else {
       await runTransaction(db, (transaction) => {
         // Delete the invoice
         transaction.delete(doc(db, 'invoice', invoiceNumber));
@@ -270,6 +270,7 @@ export default function ReturnPage() {
 
         return Promise.resolve();
       });
+    }
 
     // Clear the form
     setInvoiceNumber('');
