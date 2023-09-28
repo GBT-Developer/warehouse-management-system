@@ -1,11 +1,11 @@
 // Import the functions you need from the SDKs you need
 import { initializeApp } from 'firebase/app';
-import { getFirestore, connectFirestoreEmulator } from 'firebase/firestore';
-import { getAuth, connectAuthEmulator } from 'firebase/auth';
+import { connectAuthEmulator, getAuth } from 'firebase/auth';
+import { connectFirestoreEmulator, getFirestore } from 'firebase/firestore';
 import {
+  connectFunctionsEmulator,
   getFunctions,
   httpsCallable,
-  connectFunctionsEmulator,
 } from 'firebase/functions';
 
 const firebaseConfig = {
@@ -21,6 +21,8 @@ const firebaseConfig = {
 // Initialize Firebase
 export const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
+const secondaryApp = initializeApp(firebaseConfig, 'Secondary');
+export const secondaryAuth = getAuth(secondaryApp);
 export const db = getFirestore(app);
 export const functions = getFunctions(app, 'asia-southeast2');
 export const callable = (name: string) => httpsCallable(functions, name);
@@ -28,17 +30,6 @@ export const callable = (name: string) => httpsCallable(functions, name);
 if (window.process.env.NODE_ENV === 'development') {
   connectFirestoreEmulator(db, 'localhost', 8080);
   connectAuthEmulator(auth, 'http://localhost:9099');
+  connectAuthEmulator(secondaryAuth, 'http://localhost:9099');
   connectFunctionsEmulator(functions, 'localhost', 5001);
-}
-
-export function getFirebaseConfig() {
-  if (!firebaseConfig || !firebaseConfig.apiKey) {
-    throw new Error(
-      'No Firebase configuration object provided.' +
-        '\n' +
-        "Add your web app's configuration object to firebase-config.ts"
-    );
-  } else {
-    return firebaseConfig;
-  }
 }
