@@ -99,7 +99,7 @@ export default function CustomerListPage() {
                         className="border-b hover:shadow-md cursor-pointer hover:underline"
                         onClick={() => {
                           if (!customer.id) return;
-                          navigate('/edit-customer/' + customer.id);
+                          navigate('/customer-list/' + customer.id);
                         }}
                       >
                         <SingleTableItem>{customer.name}</SingleTableItem>
@@ -144,7 +144,7 @@ export default function CustomerListPage() {
                 width: '100px', // Adjust the width as needed
                 height: '40px', // Adjust the height as needed
               }}
-              onClick={() => navigate('/input-customer')}
+              onClick={() => navigate('/customer-list/new')}
             >
               + New
             </button>

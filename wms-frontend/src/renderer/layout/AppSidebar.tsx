@@ -74,8 +74,8 @@ export const AppSidebar = () => {
           <Profile />
         </div>
       </div>
-      <div className="h-full px-3 hover:overflow-y-auto overflow-clip">
-        <div className={'w-full my-2 border-b border-gray-300'} />
+      <div className={'w-full my-2 border-b border-gray-300'} />
+      <div className="h-full px-3 hover:overflow-y-auto overflow-hidden">
         <p className="text-sm font-bold text-gray-500 ">Main Functions</p>
         <ul className="my-3 space-y-2 font-regular">
           <SidebarItem
@@ -90,10 +90,10 @@ export const AppSidebar = () => {
 
           <SidebarItem
             onClick={() => {
-              navigate('/stockhistory');
+              navigate('/stock-history');
             }}
             icon={<MdHistoryEdu />}
-            selected={location.pathname === '/stockhistory'}
+            selected={location.pathname.includes('/stock-history')}
           >
             Stock History
           </SidebarItem>
@@ -103,7 +103,7 @@ export const AppSidebar = () => {
               navigate('/manage-product');
             }}
             icon={<LuPackageOpen />}
-            selected={location.pathname === '/manage-product'}
+            selected={location.pathname.includes('/manage-product')}
           >
             Manage Product
           </SidebarItem>
@@ -130,9 +130,9 @@ export const AppSidebar = () => {
               <SidebarItem
                 icon={<AiOutlineDatabase />}
                 onClick={() => {
-                  navigate('/supplierlist');
+                  navigate('/supplier-list');
                 }}
-                selected={location.pathname === '/supplierlist'}
+                selected={location.pathname.includes('/supplier-list')}
               >
                 Supplier Data
               </SidebarItem>
@@ -142,7 +142,7 @@ export const AppSidebar = () => {
                 onClick={() => {
                   navigate('/manage-stock');
                 }}
-                selected={location.pathname === '/manage-stock'}
+                selected={location.pathname.includes('/manage-stock')}
               >
                 Manage Stock
               </SidebarItem>
@@ -152,7 +152,7 @@ export const AppSidebar = () => {
                 onClick={() => {
                   navigate('/on-dispatch');
                 }}
-                selected={location.pathname === '/on-dispatch'}
+                selected={location.pathname.includes('/on-dispatch')}
               >
                 On Dispatch
               </SidebarItem>
@@ -162,7 +162,7 @@ export const AppSidebar = () => {
                 onClick={() => {
                   navigate('/transfer-item');
                 }}
-                selected={location.pathname === '/transfer-item'}
+                selected={location.pathname.includes('/transfer-item')}
               >
                 Transfer Item
               </SidebarItem>
@@ -172,7 +172,9 @@ export const AppSidebar = () => {
                 onClick={() => {
                   navigate('/broken-product-list-page');
                 }}
-                selected={location.pathname === '/broken-product-list-page'}
+                selected={location.pathname.includes(
+                  '/broken-product-list-page'
+                )}
               >
                 Broken Products
               </SidebarItem>
@@ -181,7 +183,7 @@ export const AppSidebar = () => {
                 onClick={() => {
                   navigate('/void-list');
                 }}
-                selected={location.pathname === '/void-list'}
+                selected={location.pathname.includes('/void-list')}
               >
                 Void List
               </SidebarItem>
@@ -190,50 +192,50 @@ export const AppSidebar = () => {
 
           <SidebarItem
             onClick={() => {
-              navigate('/transactionpage');
+              navigate('/transaction-page');
             }}
             icon={<LiaMoneyBillWaveSolid />}
-            selected={location.pathname === '/transactionpage'}
+            selected={location.pathname.includes('/transaction-page')}
           >
             Transaction
           </SidebarItem>
 
           <SidebarItem
             onClick={() => {
-              navigate('/transactionhistory');
+              navigate('/transaction-history');
             }}
             icon={<LuHistory />}
-            selected={location.pathname === '/transactionhistory'}
+            selected={location.pathname.includes('/transaction-history')}
           >
             Transaction History
           </SidebarItem>
 
           <SidebarItem
             onClick={() => {
-              navigate('/returnpage');
+              navigate('/return-page');
             }}
             icon={<TbTruckReturn />}
-            selected={location.pathname === '/returnpage'}
+            selected={location.pathname.includes('/return-page')}
           >
             Return
           </SidebarItem>
 
           <SidebarItem
             onClick={() => {
-              navigate('/returnedproducts');
+              navigate('/returned-products');
             }}
             icon={<MdOutlineAssignmentReturn />}
-            selected={location.pathname === '/returnedproducts'}
+            selected={location.pathname.includes('/returned-products')}
           >
             Returned Products
           </SidebarItem>
 
           <SidebarItem
             onClick={() => {
-              navigate('/opnamepage');
+              navigate('/opname-page');
             }}
             icon={<BsBoxSeam />}
-            selected={location.pathname === '/'}
+            selected={location.pathname.includes('/opname-page')}
           >
             Opname
           </SidebarItem>
@@ -243,7 +245,7 @@ export const AppSidebar = () => {
               navigate('/customer-list');
             }}
             icon={<MdOutlinePeopleAlt />}
-            selected={location.pathname === '/customer-list'}
+            selected={location.pathname.includes('/customer-list')}
           >
             Customer
           </SidebarItem>
@@ -256,7 +258,7 @@ export const AppSidebar = () => {
             onClick={() => {
               navigate('/adminlistpage');
             }}
-            selected={location.pathname === '/adminlistpage'}
+            selected={location.pathname.includes('/adminlistpage')}
           >
             Admin List
           </SidebarItem>
@@ -265,7 +267,7 @@ export const AppSidebar = () => {
             onClick={() => {
               navigate('/changepassword');
             }}
-            selected={location.pathname === '/changepassword'}
+            selected={location.pathname.includes('/changepassword')}
           >
             Change Password
           </SidebarItem>

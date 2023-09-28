@@ -98,7 +98,7 @@ export default function SupplierList() {
                         className="border-b hover:shadow-md cursor-pointer"
                         onClick={() =>
                           supplier.id &&
-                          navigate('/supplier-detail/' + supplier.id)
+                          navigate('/supplier-list/detail/' + supplier.id)
                         }
                       >
                         <SingleTableItem>
@@ -132,7 +132,9 @@ export default function SupplierList() {
                             onClick={(e) => {
                               e.stopPropagation();
                               supplier.id &&
-                                navigate('/purchase-report/' + supplier.id);
+                                navigate(
+                                  '/supplier-list/report/' + supplier.id
+                                );
                             }}
                           >
                             Purchase History
@@ -148,7 +150,7 @@ export default function SupplierList() {
             <button
               type="submit"
               className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 focus:outline-none hover:-translate-y-1 "
-              onClick={() => navigate('/inputsupplier')}
+              onClick={() => navigate('/supplier-list/new')}
             >
               + New
             </button>
