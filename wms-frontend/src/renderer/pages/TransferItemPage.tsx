@@ -54,6 +54,9 @@ export const TransferItemPage = () => {
       ) {
         setIsEmpty(true);
         return;
+      } else if (dispatchNote.date != '' && dispatchNote.painter != '') {
+        setIsEmpty(true);
+        return;
       }
     } else if (
       dispatchNote.dispatch_items.length != 0 &&
