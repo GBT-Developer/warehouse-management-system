@@ -36,6 +36,8 @@ export const CreateAdminPage = () => {
           register({
             email: newAdmin.email,
             password: password,
+            display_name: newAdmin.display_name,
+            role: newAdmin.role,
           }).catch((err) => {
             const errMessage = err as string;
             setErrorMessage(errMessage);
@@ -73,11 +75,10 @@ export const CreateAdminPage = () => {
           label="Password"
           labelFor="password"
           value={password}
-          placeholder="• • • • • • • •"
+          placeholder="••••••"
           onChange={(e) => setPassword(e.target.value)}
         />
 
-        {/* Role radio */}
         <div className="flex flex-row items-center py-1">
           <label htmlFor="role" className="text-md w-1/3">
             Role
@@ -87,36 +88,36 @@ export const CreateAdminPage = () => {
               <input
                 type="radio"
                 name="role"
-                id="admin"
-                value="admin"
+                id="gudang-bahan"
+                value="Gudang Bahan"
                 className="focus:ring-blue-500 h-4 w-4 text-blue-600 border-gray-300 cursor-pointer"
                 onChange={(e) => {
                   setNewAdmin({ ...newAdmin, role: e.target.value });
                 }}
               />
               <label
-                htmlFor="admin"
+                htmlFor="gudang-bahan"
                 className="text-sm font-medium cursor-pointer"
               >
-                Admin
+                Gudang Bahan
               </label>
             </div>
             <div className="flex flex-row items-center gap-1">
               <input
                 type="radio"
                 name="role"
-                id="superadmin"
-                value="superadmin"
+                id="gudang-jadi"
+                value="Gudang Jadi"
                 className="focus:ring-blue-500 h-4 w-4 text-blue-600 border-gray-300 cursor-pointer"
                 onChange={(e) => {
                   setNewAdmin({ ...newAdmin, role: e.target.value });
                 }}
               />
               <label
-                htmlFor="superadmin"
+                htmlFor="gudang-jadi"
                 className="text-sm font-medium cursor-pointer"
               >
-                Super Admin
+                Gudang Jadi
               </label>
             </div>
           </div>
@@ -127,12 +128,6 @@ export const CreateAdminPage = () => {
             disabled={loading}
             type="submit"
             className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2 focus:outline-none"
-            onClick={() => {
-              register({
-                email: newAdmin.email,
-                password: password,
-              }).catch((err) => console.log(err));
-            }}
           >
             Submit
           </button>
