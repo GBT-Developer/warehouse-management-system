@@ -1,5 +1,6 @@
-import { auth } from 'firebase';
+import { auth, secondaryAuth } from 'firebase';
 import {
+  createUserWithEmailAndPassword,
   onAuthStateChanged,
   signInWithEmailAndPassword,
   signOut,
@@ -8,7 +9,7 @@ import React, { useContext, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { CustomUser } from 'renderer/interfaces/CustomUser';
 
-export interface LoginData {
+export interface AuthData {
   password: string;
   email: string;
 }
@@ -18,8 +19,9 @@ export interface AuthContext {
   user: CustomUser | null;
   isLoggedIn: boolean;
   actions: {
-    login: (loginData: LoginData) => Promise<CustomUser | void>;
+    login: (loginData: AuthData) => Promise<CustomUser | undefined>;
     logout: () => void;
+    register: (registerData: AuthData) => Promise<CustomUser | undefined>;
   };
 }
 
@@ -28,8 +30,9 @@ export const initialAuthContext = {
   user: null,
   isLoggedIn: false,
   actions: {
-    login: () => Promise.resolve(),
+    login: () => Promise.resolve(undefined),
     logout: () => undefined,
+    register: () => Promise.resolve(undefined),
   },
 };
 
@@ -79,7 +82,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     });
   }, []);
 
-  const onLogin = React.useCallback(async (loginData: LoginData) => {
+  const onLogin = React.useCallback(async (loginData: AuthData) => {
     if (!loginData.email || !loginData.password) return;
 
     try {
@@ -94,6 +97,29 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     }
   }, []);
 
+  const onRegister = React.useCallback(async (registerData: AuthData) => {
+    console.log(user?.role);
+    if (
+      !registerData.email ||
+      !registerData.password ||
+      !user ||
+      user.role !== 'owner'
+    )
+      return;
+
+    try {
+      const userCredential = await createUserWithEmailAndPassword(
+        secondaryAuth,
+        registerData.email,
+        registerData.password
+      );
+
+      return userCredential.user as CustomUser;
+    } catch (error) {
+      console.log(error);
+    }
+  }, []);
+
   const authValue = useMemo(
     () => ({
       accessToken,
@@ -102,6 +128,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       actions: {
         login: onLogin,
         logout: onLogout,
+        register: onRegister,
       },
     }),
     [accessToken, user, onLogin, onLogout]
