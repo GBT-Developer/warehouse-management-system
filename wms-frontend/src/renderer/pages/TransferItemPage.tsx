@@ -10,7 +10,7 @@ import {
   runTransaction,
   where,
 } from 'firebase/firestore';
-import React, { FormEvent, useState } from 'react';
+import React, { FormEvent, useEffect, useState } from 'react';
 import { AiOutlineLoading3Quarters } from 'react-icons/ai';
 import { BiSolidTrash } from 'react-icons/bi';
 import { useNavigate } from 'react-router-dom';
@@ -42,6 +42,29 @@ export const TransferItemPage = () => {
   const successNotify = () => toast.success('Item successfully transferred');
   const failNotify = (e?: string) =>
     toast.error(e ?? 'Failed to transfer item');
+  const [isEmpty, setIsEmpty] = useState(false);
+
+  useEffect(() => {
+    if (
+      dispatchNote.dispatch_items.length === 0 &&
+      dispatchNote.date === '' &&
+      dispatchNote.painter === '' &&
+      dispatchNote.dispatch_items.map((item) => item.color === '') &&
+      dispatchNote.dispatch_items.map((item) => item.amount === 0)
+    ) {
+      setIsEmpty(true);
+      return;
+    } else if (
+      dispatchNote.dispatch_items.length != 0 &&
+      dispatchNote.date != '' &&
+      dispatchNote.painter != '' &&
+      dispatchNote.dispatch_items.map((item) => item.color != '') &&
+      dispatchNote.dispatch_items.map((item) => item.amount != 0)
+    ) {
+      setIsEmpty(false);
+    }
+  }, [dispatchNote]);
+
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
 
@@ -332,8 +355,12 @@ export const TransferItemPage = () => {
 
         <div className="flex flex-row-reverse gap-2 justify-start">
           <button
-            disabled={loading}
+            disabled={isEmpty}
             type="submit"
+            style={{
+              backgroundColor: isEmpty ? 'gray' : 'blue',
+              // Add other styles as needed
+            }}
             className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2 focus:outline-none"
             onClick={(e) => {
               handleSubmit(e).catch((error) => console.error(error));

@@ -1,6 +1,6 @@
 import { db } from 'firebase';
 import { addDoc, collection } from 'firebase/firestore';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { AiOutlineLoading3Quarters } from 'react-icons/ai';
 import { useNavigate } from 'react-router-dom';
 import { ToastContainer, toast } from 'react-toastify';
@@ -29,6 +29,34 @@ function InputSupplier() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const successNotify = () => toast.success('Supplier Successfully Added');
   const failNotify = (e?: string) => toast.error(e ?? 'Supplier Failed to Add');
+  const [isEmpty, setIsEmpty] = useState(false);
+
+  //check all of the input empty or not
+  useEffect(() => {
+    if (
+      newSupplier.company_name === '' &&
+      newSupplier.address === '' &&
+      newSupplier.city === '' &&
+      newSupplier.phone_number === '' &&
+      newSupplier.contact_person === '' &&
+      newSupplier.bank_owner === '' &&
+      newSupplier.bank_number === ''
+    ) {
+      setIsEmpty(true);
+      return;
+    } else if (
+      newSupplier.company_name != '' &&
+      newSupplier.address != '' &&
+      newSupplier.city != '' &&
+      newSupplier.phone_number != '' &&
+      newSupplier.contact_person != '' &&
+      newSupplier.bank_owner != '' &&
+      newSupplier.bank_number != ''
+    ) {
+      setIsEmpty(false);
+      return;
+    }
+  }, [newSupplier]);
 
   function handleSubmit(e: { preventDefault: () => void }) {
     e.preventDefault();
@@ -38,7 +66,8 @@ function InputSupplier() {
       !newSupplier.address ||
       !newSupplier.city ||
       !newSupplier.phone_number ||
-      !newSupplier.bank_number
+      !newSupplier.bank_number ||
+      !newSupplier.contact_person
     ) {
       setErrorMessage('Please fill all the fields');
       setTimeout(() => {
@@ -46,7 +75,7 @@ function InputSupplier() {
       }, 3000);
       return;
     }
-
+    setIsEmpty(false);
     // Check data type
     if (
       Number.isNaN(Number(newSupplier.bank_number)) ||
@@ -175,16 +204,21 @@ function InputSupplier() {
         />
         <div className="flex flex-row-reverse gap-2 justify-start">
           <button
-            disabled={loading}
+            disabled={isEmpty}
             type="submit"
+            style={{
+              backgroundColor: isEmpty ? 'gray' : 'blue',
+              // Add other styles as needed
+            }}
             className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2 focus:outline-none"
           >
-            Submit
+            Add New
           </button>
+
           <button
             disabled={loading}
             type="button"
-            className="py-2 px-5 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-200"
+            className="py-2 px-5 text-sm font-medium text-gray-500 focus:outline-none bg-gray-300 rounded-lg border border-gray-200 hover:bg-gray-200  focus:z-10 focus:ring-4 focus:ring-gray-300"
             onClick={() => navigate(-1)}
           >
             Cancel

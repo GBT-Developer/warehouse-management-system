@@ -136,14 +136,10 @@ export default function CustomerListPage() {
               </tbody>
             </table>
           </div>
-          <div className="flex flex-row-reverse gap-2 w-full justify-start">
+          <div className=" absolute bottom-[2.5rem] right-[2.5rem]">
             <button
               type="submit"
-              className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 focus:outline-none hover:-translate-y-1 "
-              style={{
-                width: '100px', // Adjust the width as needed
-                height: '40px', // Adjust the height as needed
-              }}
+              className=" text-blue-700 bg-white hover:bg-white  focus:ring-4 focus:ring-white font-medium rounded-lg text-lg px-10 py-3 focus:outline-none hover:-translate-y-1 shadow-md  sh"
               onClick={() => navigate('/input-customer')}
             >
               + New

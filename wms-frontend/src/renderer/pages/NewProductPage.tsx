@@ -64,6 +64,7 @@ export const NewProductPage = () => {
   );
   const successNotify = () => toast.success('Product Successfully Added');
   const failNotify = (e?: string) => toast.error(e ?? 'Failed to Add Product');
+  const [isEmpty, setIsEmpty] = useState(false);
   // Take product from firebase
   useEffect(() => {
     const fetchData = async () => {
@@ -89,6 +90,37 @@ export const NewProductPage = () => {
     });
   }, []);
 
+  //check all of the input empty or not
+  useEffect(() => {
+    if (
+      newProduct.brand === '' &&
+      newProduct.motor_type === '' &&
+      newProduct.part === '' &&
+      newProduct.available_color === '' &&
+      newProduct.count === 0 &&
+      newProduct.purchase_price === 0 &&
+      newProduct.sell_price === 0
+    ) {
+      setIsEmpty(true);
+      return;
+    } else if (
+      newProduct.available_color != '' &&
+      newProduct.brand != '' &&
+      newProduct.count != 0 &&
+      newProduct.motor_type != '' &&
+      newProduct.part != '' &&
+      newProduct.purchase_price != 0 &&
+      newProduct.sell_price != 0 &&
+      newProduct.warehouse_position != '' &&
+      newPurchase.created_at != '' &&
+      newProduct.supplier != null
+    ) {
+      setIsEmpty(false);
+      return;
+    }
+    console.log('isEmpty', isEmpty);
+  }, [newProduct, newPurchase]);
+
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     // If one or more fields are empty, return early
@@ -104,7 +136,6 @@ export const NewProductPage = () => {
       }, 3000);
       return;
     }
-
     if (
       Number.isNaN(Number(newProduct.sell_price)) ||
       Number.isNaN(Number(newProduct.purchase_price)) ||
@@ -119,10 +150,10 @@ export const NewProductPage = () => {
       }, 3000);
       return;
     }
-
-    setLoading(true);
+    setIsEmpty(false);
 
     await runTransaction(db, (transaction) => {
+      setLoading(true);
       let newSupplierRef = null;
 
       if (showSupplierForm) {
@@ -165,14 +196,13 @@ export const NewProductPage = () => {
       successNotify();
       setNewProduct(newProductInitialState);
       setNewSupplier(newSupplierInitialState);
+      setNewPurchase(newPurchaseInitialState);
       return Promise.resolve(newProductRef);
     }).catch((error) => {
       setLoading(false);
       const errorMessage = error as unknown as string;
       failNotify(errorMessage);
     });
-
-    setLoading(false);
   }
 
   return (
@@ -451,11 +481,15 @@ export const NewProductPage = () => {
         )}
         <div className="flex flex-row-reverse gap-2 justify-start">
           <button
-            disabled={loading}
+            disabled={isEmpty}
             type="submit"
+            style={{
+              backgroundColor: isEmpty ? 'gray' : 'blue',
+              // Add other styles as needed
+            }}
             className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5"
           >
-            Submit
+            Add New
           </button>
           <button
             disabled={loading}

@@ -50,6 +50,7 @@ export const TransactionPage = () => {
   const successNotify = () => toast.success('Transaction successfully added');
   const failNotify = (e?: string) =>
     toast.error(e ?? 'Failed to add transaction');
+  const [isEmpty, setIsEmpty] = useState(false);
   useEffect(() => {
     const fetchCustomer = async () => {
       try {
@@ -82,7 +83,25 @@ export const TransactionPage = () => {
       console.log(error);
     });
   }, []);
-
+  //check all of the input empty or not
+  useEffect(() => {
+    if (
+      invoice.date === '' &&
+      invoice.payment_method === '' &&
+      invoice.items?.length === 0
+    ) {
+      setIsEmpty(true);
+      return;
+    } else if (
+      invoice.date != '' &&
+      invoice.payment_method != '' &&
+      invoice.items?.length != 0
+    ) {
+      setIsEmpty(false);
+      return;
+    }
+    console.log('isEmpty', isEmpty);
+  }, [invoice]);
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
 
@@ -98,6 +117,7 @@ export const TransactionPage = () => {
       return;
     }
     console.log(invoice);
+
     try {
       setLoading(true);
       // Update product count
@@ -493,8 +513,12 @@ export const TransactionPage = () => {
         </div>
         <div className="flex flex-row-reverse gap-2 justify-start">
           <button
-            disabled={loading}
+            disabled={isEmpty}
             type="submit"
+            style={{
+              backgroundColor: isEmpty ? 'gray' : 'blue',
+              // Add other styles as needed
+            }}
             className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5"
           >
             Submit

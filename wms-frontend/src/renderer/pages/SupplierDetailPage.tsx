@@ -3,6 +3,7 @@ import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import { useEffect, useState } from 'react';
 import { AiFillEdit, AiOutlineLoading3Quarters } from 'react-icons/ai';
 import { GiCancel } from 'react-icons/gi';
+import { IoChevronBackOutline } from 'react-icons/io5';
 import { useNavigate, useParams } from 'react-router-dom';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -99,13 +100,22 @@ export default function SupplierDetailPage() {
   }
   return (
     <PageLayout>
-      <div className="flex justify-between w-2/3">
-        <h1 className="mb-[4rem] text-4xl font-extrabold tracking-tight text-gray-900 md:text-5xl">
-          Supplier Detail
-        </h1>
+      <div className="flex w-2/3 flex-col md:flex-row items-center justify-between space-y-3 md:space-y-0 md:space-x-4 py-4 mb-[2rem]">
+        <div className="flex w-2/3 flex-col md:flex-row">
+          <button
+            type="button"
+            className="pr-6 font-2xl  text-gray-600 focus:ring-4 focus:ring-gray-300 rounded-lg text-sm w-[max-content] flex justify-center gap-2 text-center items-center"
+            onClick={() => navigate(-1)}
+          >
+            <IoChevronBackOutline size={40} /> {/* Icon */}
+          </button>
+          <h1 className="text-4xl font-extrabold tracking-tight text-gray-900 md:text-5xl">
+            Supplier Detail
+          </h1>
+        </div>
         <button
           type="button"
-          className="px-4 py-2 font-medium text-white bg-gray-600  focus:ring-4 focus:ring-gray-300 rounded-lg text-sm h-[max-content] w-[max-content] flex justify-center gap-2 text-center items-center"
+          className="px-4 py-2 font-medium text-black bg-white border border-gray-300 rounded-lg text-sm h-[max-content] w-[max-content] flex justify-center gap-2 text-center items-center"
           onClick={() => setEditToggle(!editToggle)}
         >
           {editToggle ? (
@@ -241,21 +251,14 @@ export default function SupplierDetailPage() {
                 editToggle ? '' : 'border-none outline-none bg-inherit'
               }`}
             />
-            <div className="flex gap-2 w-full justify-between">
-              <button
-                type="button"
-                className="px-4 py-2 font-medium text-white bg-gray-600  focus:ring-4 focus:ring-gray-300 rounded-lg text-sm h-[max-content] w-[max-content] flex justify-center gap-2 text-center items-center"
-                onClick={() => navigate(-1)}
-              >
-                Back
-              </button>
+            <div className="flex gap-2 w-full justify-end mt-4">
               {editToggle && (
                 <button
                   disabled={loading}
                   type="submit"
                   className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2 focus:outline-none"
                 >
-                  Submit
+                  Save Changes
                 </button>
               )}
             </div>

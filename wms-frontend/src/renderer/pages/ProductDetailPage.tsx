@@ -13,7 +13,10 @@ import { useEffect, useRef, useState } from 'react';
 import { AiFillEdit, AiOutlineLoading3Quarters } from 'react-icons/ai';
 import { GiCancel } from 'react-icons/gi';
 import { GoTriangleDown, GoTriangleUp } from 'react-icons/go';
+import { IoChevronBackOutline } from 'react-icons/io5';
 import { useNavigate, useParams } from 'react-router-dom';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import { InputField } from 'renderer/components/InputField';
 import { SingleTableItem } from 'renderer/components/TableComponents/SingleTableItem';
 import { TableHeader } from 'renderer/components/TableComponents/TableHeader';
@@ -32,7 +35,10 @@ export default function ProductDetailPage() {
   const [suppliers, setSupplier] = useState<Supplier[]>([]);
   const [stockHistory, setStockHistory] = useState<StockHistory[]>([]);
   const navigate = useNavigate();
-
+  const successNotify = () =>
+    toast.success('Product data successfully updated');
+  const failNotify = (e?: string) =>
+    toast.error(e ?? 'Failed to update product data');
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -142,22 +148,33 @@ export default function ProductDetailPage() {
     setLoading(true);
 
     updateDoc(productRef, updatedProduct).catch((error) => {
-      console.error('Error updating document: ', error);
+      console.log(error);
+      failNotify();
     });
 
     setLoading(false);
+    successNotify();
     setEditToggle(false);
   }
 
   return (
     <PageLayout>
       <div className="flex w-2/3 flex-col md:flex-row items-center justify-between space-y-3 md:space-y-0 md:space-x-4 py-4 mb-[2rem]">
-        <h1 className="text-4xl font-extrabold tracking-tight text-gray-900 md:text-5xl">
-          Product Detail
-        </h1>
+        <div className="flex w-2/3 flex-col md:flex-row">
+          <button
+            type="button"
+            className="pr-6 font-2xl  text-gray-600 focus:ring-4 focus:ring-gray-300 rounded-lg text-sm w-[max-content] flex justify-center gap-2 text-center items-center"
+            onClick={() => navigate(-1)}
+          >
+            <IoChevronBackOutline size={40} /> {/* Icon */}
+          </button>
+          <h1 className="text-4xl font-extrabold tracking-tight text-gray-900 md:text-5xl">
+            Product Detail
+          </h1>
+        </div>
         <button
           type="button"
-          className="px-4 py-2 font-medium text-white bg-gray-600  focus:ring-4 focus:ring-gray-300 rounded-lg text-sm h-[max-content] w-[max-content] flex justify-center gap-2 text-center items-center"
+          className="px-4 py-2 font-medium text-black bg-white border border-gray-300 rounded-lg text-sm h-[max-content] w-[max-content] flex justify-center gap-2 text-center items-center"
           onClick={() => setEditToggle(!editToggle)}
         >
           {editToggle ? (
@@ -349,21 +366,14 @@ export default function ProductDetailPage() {
                 )}
               </div>
             </div>
-            <div className="flex gap-2 w-full justify-between mt-4">
-              <button
-                type="button"
-                className="px-4 py-2 font-medium text-white bg-gray-600  focus:ring-4 focus:ring-gray-300 rounded-lg text-sm h-[max-content] w-[max-content] flex justify-center gap-2 text-center items-center"
-                onClick={() => navigate(-1)}
-              >
-                Back
-              </button>
+            <div className="flex gap-2 w-full justify-end mt-4">
               {editToggle && (
                 <button
                   disabled={loading}
                   type="submit"
                   className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2 focus:outline-none"
                 >
-                  Submit
+                  Save Changes
                 </button>
               )}
             </div>
@@ -409,6 +419,18 @@ export default function ProductDetailPage() {
           <p className="text-red-500 text-sm ">{errorMessage}</p>
         )}
       </div>
+      <ToastContainer
+        position="top-right"
+        autoClose={2000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="light"
+      />
     </PageLayout>
   );
 }

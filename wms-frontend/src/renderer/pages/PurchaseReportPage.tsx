@@ -11,6 +11,7 @@ import {
 import React, { useEffect, useState } from 'react';
 import { AiOutlineLoading3Quarters } from 'react-icons/ai';
 import { BiSolidTrash } from 'react-icons/bi';
+import { IoChevronBackOutline } from 'react-icons/io5';
 import { useNavigate, useParams } from 'react-router-dom';
 import { SingleTableItem } from 'renderer/components/TableComponents/SingleTableItem';
 import { TableHeader } from 'renderer/components/TableComponents/TableHeader';
@@ -72,9 +73,18 @@ export default function PurchaseHistoryPage() {
       <div className="w-full h-full bg-transparent overflow-hidden">
         <div className="relative shadow-md sm:rounded-lg overflow-auto h-full flex flex-col justify-between">
           <TableTitle setSearch={setSearch}>
-            <h1 className="text-4xl font-extrabold tracking-tight text-gray-900 md:text-5xl">
-              Purchase Report
-            </h1>
+            <div className="flex w-2/3 flex-col md:flex-row">
+              <button
+                type="button"
+                className="pr-6 font-2xl  text-gray-600 focus:ring-4 focus:ring-gray-300 rounded-lg text-sm w-[max-content] flex justify-center gap-2 text-center items-center"
+                onClick={() => navigate(-1)}
+              >
+                <IoChevronBackOutline size={40} /> {/* Icon */}
+              </button>
+              <h1 className="text-4xl font-extrabold tracking-tight text-gray-900 md:text-5xl">
+                Purchase Report
+              </h1>
+            </div>
           </TableTitle>
           <div className="overflow-y-auto h-full relative">
             {loading && (
@@ -221,13 +231,6 @@ export default function PurchaseHistoryPage() {
               </tbody>
             </table>
           </div>
-          <button
-            type="button"
-            className="px-4 py-2 font-medium text-white bg-gray-600  focus:ring-4 focus:ring-gray-300 rounded-lg text-sm h-[max-content] w-[max-content] flex justify-center gap-2 text-center items-center"
-            onClick={() => navigate(-1)}
-          >
-            Back
-          </button>
         </div>
       </div>
     </PageLayout>
