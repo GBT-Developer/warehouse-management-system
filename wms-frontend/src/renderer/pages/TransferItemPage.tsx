@@ -46,46 +46,27 @@ export const TransferItemPage = () => {
 
   useEffect(() => {
     if (dispatchNote.dispatch_items.length === 0) {
-      if (
-        dispatchNote.date === '' ||
-        dispatchNote.painter === '' ||
-        dispatchNote.dispatch_items.map((item) => item.color === '') ||
-        dispatchNote.dispatch_items.map((item) => item.amount === 0)
-      ) {
+      if (dispatchNote.date === '' || dispatchNote.painter === '') {
         setIsEmpty(true);
-        setErrorMessage('Please fill all fields');
-        setTimeout(() => {
-          setErrorMessage(null);
-        }, 3000);
         return;
       } else if (dispatchNote.date != '' && dispatchNote.painter != '') {
         setIsEmpty(true);
-        setErrorMessage('Please fill all fields');
-        setTimeout(() => {
-          setErrorMessage(null);
-        }, 3000);
         return;
       }
     } else if (
       dispatchNote.dispatch_items.length != 0 &&
       dispatchNote.date != '' &&
       dispatchNote.painter != ''
-    ) {
+    )
       dispatchNote.dispatch_items.map((item) => {
         if (item.color != '' && item.amount != 0) {
           setIsEmpty(false);
           return;
         } else {
           setIsEmpty(true);
-          setErrorMessage('Please fill all fields');
-          setTimeout(() => {
-            setErrorMessage(null);
-          }, 3000);
           return;
         }
       });
-    }
-    console.log('isEmpty', isEmpty);
   }, [dispatchNote]);
 
   async function handleSubmit(e: FormEvent) {
