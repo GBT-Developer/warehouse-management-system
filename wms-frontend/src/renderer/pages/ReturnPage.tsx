@@ -13,7 +13,7 @@ import {
   runTransaction,
   where,
 } from 'firebase/firestore';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { AiOutlineLoading3Quarters, AiOutlineReload } from 'react-icons/ai';
 import { BiSolidTrash } from 'react-icons/bi';
 import { useNavigate } from 'react-router-dom';
@@ -72,6 +72,38 @@ export default function ReturnPage() {
     );
     return specialPrice ? specialPrice.price : null;
   };
+  const [isEmpty, setIsEmpty] = useState(false);
+
+  //check input Field
+  useEffect(() => {
+    if (mode === 'return' || mode === 'exchange') {
+      if (invoiceNumber === '' || selectedItems.length === 0) {
+        setIsEmpty(true);
+        return;
+      } else {
+        setIsEmpty(false);
+        return;
+      }
+    } else if (mode === 'void') {
+      if (
+        invoiceNumber === '' ||
+        selectedNewItems.length === 0 ||
+        newTransaction.payment_method === '' ||
+        dateInputRef.current?.value === ''
+      ) {
+        setIsEmpty(true);
+        return;
+      } else if (
+        invoiceNumber != '' &&
+        selectedNewItems.length > 0 &&
+        newTransaction.payment_method != '' &&
+        dateInputRef.current?.value != ''
+      ) {
+        setIsEmpty(false);
+        return;
+      }
+    }
+  }, [invoiceNumber, selectedItems, mode, newTransaction, selectedNewItems]);
 
   const handleSubmit = async () => {
     // Check whether all inputs are filled
@@ -863,9 +895,13 @@ export default function ReturnPage() {
           )}
           <div className="flex flex-row-reverse gap-2 justify-start">
             <button
-              disabled={loading}
+              disabled={isEmpty}
               type="submit"
-              className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5"
+              style={{
+                backgroundColor: isEmpty ? 'gray' : 'blue',
+                // Add other styles as needed
+              }}
+              className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2 focus:outline-none"
             >
               Submit
             </button>

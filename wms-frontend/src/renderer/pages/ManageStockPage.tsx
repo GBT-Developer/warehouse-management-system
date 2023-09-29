@@ -68,6 +68,95 @@ export const ManageStockPage = () => {
   const successNotify = () => toast.success('Stock data successfully updated');
   const failNotify = (e?: string) =>
     toast.error(e ?? 'Failed to update stock data');
+  //if the input Field is Empty
+  const [isEmpty, setIsEmpty] = useState(false);
+
+  //check input Field
+  useEffect(() => {
+    if (manageStockMode === '') {
+      setIsEmpty(true);
+      return;
+    } else if (manageStockMode === 'purchase') {
+      if (
+        selectedSupplier === null ||
+        newPurchase.products.length === 0 ||
+        newPurchase.purchase_price === 0 ||
+        !selectedWarehouse ||
+        dateInputRef.current?.value === ''
+      ) {
+        setIsEmpty(true);
+        return;
+      } else if (
+        selectedSupplier &&
+        newPurchase.products.length > 0 &&
+        newPurchase.purchase_price > 0 &&
+        selectedWarehouse &&
+        dateInputRef.current?.value !== ''
+      ) {
+        newPurchase.products.map((product) => {
+          if (product.quantity === 0 || !product.quantity) {
+            setIsEmpty(true);
+            return;
+          } else {
+            setIsEmpty(false);
+            return;
+          }
+        });
+      }
+    } else if (manageStockMode === 'from_other_warehouse') {
+      if (dispatchNote === '' || dateInputRef.current?.value === '') {
+        setIsEmpty(true);
+        return;
+      } else if (
+        dispatchNote &&
+        dateInputRef.current?.value !== '' &&
+        acceptedProducts.length != 0
+      ) {
+        acceptedProducts.map((product) => {
+          if (!product.count || product.count === 0) {
+            setIsEmpty(true);
+            return;
+          } else {
+            setIsEmpty(false);
+            return;
+          }
+        });
+      }
+    } else if (manageStockMode === 'force-change') {
+      if (
+        selectedSupplier === null ||
+        newPurchase.products.length === 0 ||
+        !selectedWarehouse ||
+        dateInputRef.current?.value === ''
+      ) {
+        setIsEmpty(true);
+        return;
+      } else if (
+        selectedSupplier &&
+        newPurchase.products.length > 0 &&
+        selectedWarehouse &&
+        dateInputRef.current?.value !== ''
+      ) {
+        newPurchase.products.map((product) => {
+          if (product.quantity === 0 || !product.quantity.toString()) {
+            setIsEmpty(true);
+            return;
+          } else {
+            setIsEmpty(false);
+            return;
+          }
+        });
+      }
+    }
+    console.log('isEmpty', isEmpty);
+  }, [
+    newPurchase,
+    manageStockMode,
+    selectedWarehouse,
+    dispatchNote,
+    acceptedProducts,
+  ]);
+
   useEffect(() => {
     setLoading(true);
 
@@ -94,7 +183,6 @@ export const ManageStockPage = () => {
         setErrorMessage('An error occured while fetching supplier data');
       });
     }
-
     const fetchProductList = async (
       supplier_id: string,
       the_warehouse: string
@@ -815,9 +903,13 @@ export const ManageStockPage = () => {
         </div>
         <div className="flex flex-row-reverse gap-2 justify-start">
           <button
-            disabled={loading}
+            disabled={isEmpty}
             type="submit"
-            className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5"
+            style={{
+              backgroundColor: isEmpty ? 'gray' : 'blue',
+              // Add other styles as needed
+            }}
+            className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2 focus:outline-none"
           >
             Submit
           </button>
