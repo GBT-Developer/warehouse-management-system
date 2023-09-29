@@ -7,13 +7,26 @@ export const seedUser = async (num_of_user: number) => {
   const users = await firebaseAdmin.auth().listUsers();
   if (users.users.length < num_of_user) {
     for (let i = 0; i < num_of_user; i++) {
+      const theEmail = faker.internet.email();
+      const thePassword = faker.internet.password();
+      const theDisplayName = faker.person.fullName();
       await firebaseAdmin.auth().createUser({
-        email: faker.internet.email(),
+        email: theEmail,
         emailVerified: false,
-        password: faker.internet.password(),
-        displayName: faker.person.fullName(),
+        password: thePassword,
+        displayName: theDisplayName,
         disabled: false,
       });
+
+      const roles = ["Gudang Jadi", "Gudang Bahan"];
+      await firebaseAdmin
+        .firestore()
+        .collection("user")
+        .add({
+          email: theEmail,
+          display_name: theDisplayName,
+          role: roles[faker.number.int({ min: 0, max: roles.length - 1 })],
+        });
     }
   } else {
     functions.logger.info("Enough user already");
@@ -21,14 +34,14 @@ export const seedUser = async (num_of_user: number) => {
 };
 
 const createRootUser = async () => {
-  firebaseAdmin
+  await firebaseAdmin
     .auth()
     .getUserByEmail("test@gmail.com")
     .then(() => {
       functions.logger.info("Root user already exists");
     })
-    .catch(() => {
-      firebaseAdmin
+    .catch(async () => {
+      await firebaseAdmin
         .auth()
         .createUser({
           email: "test@gmail.com",
@@ -37,12 +50,17 @@ const createRootUser = async () => {
           displayName: "Test",
           disabled: false,
         })
-        .then((userRecord) => {
-          // Set custom claims
-          firebaseAdmin
-            .auth()
-            .setCustomUserClaims(userRecord.uid, { role: "owner" });
-          functions.logger.info("Root user created");
+        .then(async (theUser) => {
+          await firebaseAdmin.firestore().runTransaction(async (t) => {
+            t.set(
+              firebaseAdmin.firestore().collection("user").doc(theUser.uid),
+              {
+                email: "test@gmail.com",
+                display_name: "Test",
+                role: "Owner",
+              }
+            );
+          });
         })
         .catch((error) => {
           functions.logger.error(error);
@@ -209,7 +227,7 @@ export const seedBrokenProduct = async (
         .catch((error) => console.log(error));
     }
   } else {
-    functions.logger.info("Enough product already");
+    functions.logger.info("Enough broken product already");
   }
 };
 const productPicker = async (num_of_products: number) => {

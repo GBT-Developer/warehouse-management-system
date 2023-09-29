@@ -559,7 +559,7 @@ export const ManageStockPage = () => {
               <option value="from_other_warehouse">
                 From raw material warehouse
               </option>
-              {user?.role === 'owner' && (
+              {user?.role.toLowerCase() === 'owner' && (
                 <option value="force-change">Force change</option>
               )}
             </select>

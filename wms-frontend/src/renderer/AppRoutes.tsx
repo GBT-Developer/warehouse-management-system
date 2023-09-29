@@ -57,25 +57,88 @@ export const routes: RouteConfig[] = [
     element: <ProfilePage />,
   },
   {
+    path: '/stock-history',
+    element: <StockHistoryPage />,
+  },
+  {
     path: '/manage-product',
     element: <ManageProductPage />,
   },
   {
-    path: '/broken-product-list-page',
-    element: <BrokenProductListPage />,
+    path: '/manage-product/new',
+    element: <NewProductPage />,
+  },
+  {
+    path: '/manage-product/:id/',
+    element: <ProductDetailPage />,
+  },
+  {
+    path: '/supplier-list',
+    element: <SupplierList />,
+  },
+  {
+    path: '/supplier-list/new',
+    element: <InputSupplier />,
+  },
+  {
+    path: '/supplier-list/detail/:id',
+    element: <SupplierDetailPage />,
+  },
+  {
+    path: '/supplier-list/report/:id',
+    element: <PurchaseReportPage />,
   },
   {
     path: '/manage-stock',
     element: <ManageStockPage />,
   },
   {
-    path: '/new-product-page',
-    element: <NewProductPage />,
+    path: 'on-dispatch',
+    element: <OnDispatchListPage />,
   },
-
   {
-    path: '/inputsupplier',
-    element: <InputSupplier />,
+    path: '/transfer-item',
+    element: <TransferItemPage />,
+  },
+  {
+    path: '/broken-product-list-page',
+    element: <BrokenProductListPage />,
+  },
+  {
+    path: 'void-list',
+    element: <VoidListPage />,
+  },
+  {
+    path: '/transaction-page',
+    element: <TransactionPage />,
+  },
+  {
+    path: '/transaction-history',
+    element: <TransactionHistory />,
+  },
+  {
+    path: '/return-page',
+    element: <ReturnPage />,
+  },
+  {
+    path: '/returned-products',
+    element: <ReturnedProductListPage />,
+  },
+  {
+    path: '/opname-page',
+    element: <OpnamePage />,
+  },
+  {
+    path: '/customer-list',
+    element: <CustomerListPage />,
+  },
+  {
+    path: '/customer-list/:id',
+    element: <EditCustomerPage />,
+  },
+  {
+    path: '/customer-list/new',
+    element: <InputCustomerPage />,
   },
   {
     path: '/createadminpage',
@@ -88,70 +151,6 @@ export const routes: RouteConfig[] = [
   {
     path: '/changepassword',
     element: <ChangePasswordPage />,
-  },
-  {
-    path: '/stockhistory',
-    element: <StockHistoryPage />,
-  },
-  {
-    path: '/supplierlist',
-    element: <SupplierList />,
-  },
-  {
-    path: '/transactionhistory',
-    element: <TransactionHistory />,
-  },
-  {
-    path: '/manage-product/:id/',
-    element: <ProductDetailPage />,
-  },
-  {
-    path: '/purchase-report/:id/',
-    element: <PurchaseReportPage />,
-  },
-  {
-    path: '/supplier-detail/:id',
-    element: <SupplierDetailPage />,
-  },
-  {
-    path: '/returnpage',
-    element: <ReturnPage />,
-  },
-  {
-    path: '/transfer-item',
-    element: <TransferItemPage />,
-  },
-  {
-    path: '/customer-list',
-    element: <CustomerListPage />,
-  },
-  {
-    path: '/input-customer',
-    element: <InputCustomerPage />,
-  },
-  {
-    path: '/opnamepage',
-    element: <OpnamePage />,
-  },
-  {
-    path: '/edit-customer/:id',
-    element: <EditCustomerPage />,
-  },
-  {
-    path: '/transactionpage',
-    element: <TransactionPage />,
-  },
-  {
-    path: '/returnedproducts',
-    element: <ReturnedProductListPage />,
-  },
-  {
-    path: 'on-dispatch',
-    element: <OnDispatchListPage />,
-  },
-  {
-    path: 'void-list',
-    element: <VoidListPage />,
   },
 ];
 

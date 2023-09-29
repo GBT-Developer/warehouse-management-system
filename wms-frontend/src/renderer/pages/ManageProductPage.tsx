@@ -94,29 +94,15 @@ export const ManageProductPage = () => {
                         return product;
                     })
                     .sort((a, b) => {
-                      if (
-                        a.available_color === undefined ||
-                        b.available_color === undefined
-                      )
-                        return 0;
                       return a.available_color.localeCompare(b.available_color);
                     })
                     .sort((a, b) => {
-                      if (a.part === undefined || b.part === undefined)
-                        return 0;
                       return a.part.localeCompare(b.part);
                     })
                     .sort((a, b) => {
-                      if (
-                        a.motor_type === undefined ||
-                        b.motor_type === undefined
-                      )
-                        return 0;
                       return a.motor_type.localeCompare(b.motor_type);
                     })
                     .sort((a, b) => {
-                      if (a.brand === undefined || b.brand === undefined)
-                        return 0;
                       return a.brand.localeCompare(b.brand);
                     })
                     .map((product) => (
@@ -163,7 +149,7 @@ export const ManageProductPage = () => {
             <button
               type="submit"
               className=" text-blue-700 bg-white hover:bg-white  focus:ring-4 focus:ring-white font-medium rounded-lg text-lg px-10 py-3 focus:outline-none hover:-translate-y-1 shadow-md"
-              onClick={() => navigate('/new-product-page')}
+              onClick={() => navigate('/manage-product/new')}
             >
               + New
             </button>

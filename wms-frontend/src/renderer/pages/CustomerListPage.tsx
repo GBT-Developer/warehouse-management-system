@@ -89,8 +89,6 @@ export default function CustomerListPage() {
                         return customer;
                     })
                     .sort((a, b) => {
-                      if (a.name === undefined || b.name === undefined)
-                        return 0;
                       return a.name.localeCompare(b.name);
                     })
                     .map((customer, index) => (
@@ -99,7 +97,7 @@ export default function CustomerListPage() {
                         className="border-b hover:shadow-md cursor-pointer hover:underline"
                         onClick={() => {
                           if (!customer.id) return;
-                          navigate('/edit-customer/' + customer.id);
+                          navigate('/customer-list/' + customer.id);
                         }}
                       >
                         <SingleTableItem>{customer.name}</SingleTableItem>
@@ -140,7 +138,7 @@ export default function CustomerListPage() {
             <button
               type="submit"
               className=" text-blue-700 bg-white hover:bg-white  focus:ring-4 focus:ring-white font-medium rounded-lg text-lg px-10 py-3 focus:outline-none hover:-translate-y-1 shadow-md  sh"
-              onClick={() => navigate('/input-customer')}
+              onClick={() => navigate('/customer-list/new')}
             >
               + New
             </button>
