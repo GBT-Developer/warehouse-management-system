@@ -68,10 +68,10 @@ export const ManageStockPage = () => {
   const successNotify = () => toast.success('Stock data successfully updated');
   const failNotify = (e?: string) =>
     toast.error(e ?? 'Failed to update stock data');
-  //if the input Field is Empty
+  // If the input Field is Empty
   const [isEmpty, setIsEmpty] = useState(false);
 
-  //check input Field
+  // Check input Field
   useEffect(() => {
     if (manageStockMode === '') {
       setIsEmpty(true);
@@ -80,19 +80,25 @@ export const ManageStockPage = () => {
       if (
         selectedSupplier === null ||
         newPurchase.products.length === 0 ||
-        newPurchase.purchase_price === 0 ||
+        (newPurchase.purchase_price === 0 && !returnedProduct) ||
         !selectedWarehouse ||
         dateInputRef.current?.value === ''
       ) {
+        console.log('selectedSupplier', selectedSupplier);
+        console.log('newPurchase.products.length', newPurchase.products.length);
+        console.log('newPurchase.purchase_price');
+        console.log('selectedWarehouse', selectedWarehouse);
+        console.log('dateInputRef.current?.value', dateInputRef.current?.value);
+        console.log('returnedProduct', returnedProduct);
         setIsEmpty(true);
         return;
       } else if (
-        selectedSupplier &&
-        newPurchase.products.length > 0 &&
-        newPurchase.purchase_price > 0 &&
-        selectedWarehouse &&
-        dateInputRef.current?.value !== ''
-      ) {
+        (newPurchase.products.length > 0 &&
+          dateInputRef.current?.value !== '' &&
+          !returnedProduct &&
+          newPurchase.purchase_price > 0) ||
+        returnedProduct
+      )
         newPurchase.products.map((product) => {
           if (product.quantity === 0 || !product.quantity) {
             setIsEmpty(true);
@@ -102,7 +108,6 @@ export const ManageStockPage = () => {
             return;
           }
         });
-      }
     } else if (manageStockMode === 'from_other_warehouse') {
       if (dispatchNote === '' || dateInputRef.current?.value === '') {
         setIsEmpty(true);
@@ -111,7 +116,7 @@ export const ManageStockPage = () => {
         dispatchNote &&
         dateInputRef.current?.value !== '' &&
         acceptedProducts.length != 0
-      ) {
+      )
         acceptedProducts.map((product) => {
           if (!product.count || product.count === 0) {
             setIsEmpty(true);
@@ -121,40 +126,34 @@ export const ManageStockPage = () => {
             return;
           }
         });
-      }
-    } else if (manageStockMode === 'force-change') {
-      if (
-        selectedSupplier === null ||
-        newPurchase.products.length === 0 ||
-        !selectedWarehouse ||
-        dateInputRef.current?.value === ''
-      ) {
-        setIsEmpty(true);
-        return;
-      } else if (
-        selectedSupplier &&
-        newPurchase.products.length > 0 &&
-        selectedWarehouse &&
-        dateInputRef.current?.value !== ''
-      ) {
-        newPurchase.products.map((product) => {
-          if (product.quantity === 0 || !product.quantity.toString()) {
-            setIsEmpty(true);
-            return;
-          } else {
-            setIsEmpty(false);
-            return;
-          }
-        });
-      }
-    }
-    console.log('isEmpty', isEmpty);
+    } else if (
+      selectedSupplier === null ||
+      newPurchase.products.length === 0 ||
+      !selectedWarehouse ||
+      dateInputRef.current?.value === ''
+    ) {
+      setIsEmpty(true);
+      return;
+    } else if (
+      newPurchase.products.length > 0 &&
+      dateInputRef.current?.value !== ''
+    )
+      newPurchase.products.map((product) => {
+        if (product.quantity === 0 || !product.quantity.toString()) {
+          setIsEmpty(true);
+          return;
+        } else {
+          setIsEmpty(false);
+          return;
+        }
+      });
   }, [
     newPurchase,
     manageStockMode,
     selectedWarehouse,
     dispatchNote,
     acceptedProducts,
+    returnedProduct,
   ]);
 
   useEffect(() => {
@@ -236,6 +235,17 @@ export const ManageStockPage = () => {
         )) ||
       newPurchase.created_at === ''
     ) {
+      console.log('selectedSupplier', selectedSupplier);
+      console.log('newPurchase.products.length', newPurchase.products.length);
+      console.log('newPurchase.purchase_price');
+      console.log('selectedWarehouse', selectedWarehouse);
+      console.log('dateInputRef.current?.value', dateInputRef.current?.value);
+      console.log('returnedProduct', returnedProduct);
+      console.log('dispatchNote', dispatchNote);
+      console.log('acceptedProducts', acceptedProducts);
+      console.log('products', products);
+      console.log('newPurchase.created_at', newPurchase.created_at);
+
       setErrorMessage('Please fill all the required fields');
       setTimeout(() => {
         setErrorMessage(null);
@@ -563,13 +573,7 @@ export const ManageStockPage = () => {
           </div>
           <div className="w-2/3">
             <select
-              value={
-                manageStockMode === 'from_other_warehouse'
-                  ? 'Gudang Jadi'
-                  : selectedWarehouse != ''
-                  ? selectedWarehouse
-                  : ''
-              }
+              value={selectedWarehouse}
               disabled={loading}
               name="warehouse-id"
               onChange={(e) => {
