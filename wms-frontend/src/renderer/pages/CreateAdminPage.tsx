@@ -1,25 +1,53 @@
 import { useState } from 'react';
 import { AiOutlineLoading3Quarters } from 'react-icons/ai';
 import { useNavigate } from 'react-router-dom';
-import { ToastContainer } from 'react-toastify';
+import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { InputField } from 'renderer/components/InputField';
 import { CustomUser } from 'renderer/interfaces/CustomUser';
 import { PageLayout } from 'renderer/layout/PageLayout';
 import { useAuth } from 'renderer/providers/AuthProvider';
 
+const initNewAdmin: CustomUser = {
+  display_name: '',
+  email: '',
+  role: '',
+};
+
 export const CreateAdminPage = () => {
   const navigate = useNavigate();
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const [newAdmin, setNewAdmin] = useState<CustomUser>({
-    display_name: '',
-    email: '',
-    role: '',
-  });
+  const [newAdmin, setNewAdmin] = useState<CustomUser>(initNewAdmin);
   const [errorMessage, setErrorMessage] = useState('');
-
+  const successNotify = () => toast.success('Admin successfully created');
   const { register } = useAuth().actions;
+
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setLoading(true);
+    register({
+      email: newAdmin.email,
+      password: password,
+      display_name: newAdmin.display_name,
+      role: newAdmin.role,
+    })
+      .then((res) => {
+        if (res) {
+          successNotify();
+          setNewAdmin(initNewAdmin);
+          setPassword('');
+        }
+      })
+      .catch((err) => {
+        const errMessage = err as string;
+        setErrorMessage(errMessage);
+        setTimeout(() => {
+          setErrorMessage('');
+        }, 3000);
+      });
+    setLoading(false);
+  };
 
   return (
     <PageLayout>
@@ -30,20 +58,7 @@ export const CreateAdminPage = () => {
         className={`w-2/3 py-14 my-10 flex flex-col gap-3 relative ${
           loading ? 'p-2' : ''
         }`}
-        onSubmit={(e) => {
-          e.preventDefault();
-          setLoading(true);
-          register({
-            email: newAdmin.email,
-            password: password,
-            display_name: newAdmin.display_name,
-            role: newAdmin.role,
-          }).catch((err) => {
-            const errMessage = err as string;
-            setErrorMessage(errMessage);
-          });
-          setLoading(false);
-        }}
+        onSubmit={(e) => handleSubmit(e)}
       >
         {loading && (
           <div className="absolute flex justify-center items-center py-2 px-3 top-0 left-0 w-full h-full bg-gray-50 rounded-lg z-0">
@@ -71,6 +86,7 @@ export const CreateAdminPage = () => {
           }}
         />
         <InputField
+          type="password"
           loading={loading}
           label="Password"
           labelFor="password"
