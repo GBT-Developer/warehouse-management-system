@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { AiOutlineLoading3Quarters } from 'react-icons/ai';
 import { useNavigate } from 'react-router-dom';
 import { ToastContainer, toast } from 'react-toastify';
@@ -22,6 +22,23 @@ export const CreateAdminPage = () => {
   const [errorMessage, setErrorMessage] = useState('');
   const successNotify = () => toast.success('Admin successfully created');
   const { register } = useAuth().actions;
+  const [isEmpty, setIsEmpty] = useState(false);
+
+  //check input field
+  useEffect(() => {
+    if (
+      newAdmin.display_name === '' ||
+      newAdmin.email === '' ||
+      newAdmin.role === '' ||
+      password === ''
+    ) {
+      setIsEmpty(true);
+      return;
+    } else {
+      setIsEmpty(false);
+      return;
+    }
+  }, [newAdmin, password]);
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -141,9 +158,13 @@ export const CreateAdminPage = () => {
 
         <div className="flex flex-row-reverse gap-2 justify-start">
           <button
-            disabled={loading}
+            disabled={isEmpty}
             type="submit"
-            className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2 focus:outline-none"
+            style={{
+              backgroundColor: isEmpty ? 'gray' : 'blue',
+              // Add other styles as needed
+            }}
+            className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5"
           >
             Submit
           </button>
