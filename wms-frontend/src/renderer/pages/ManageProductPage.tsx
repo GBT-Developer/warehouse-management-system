@@ -20,9 +20,6 @@ export const ManageProductPage = () => {
   const { warehousePosition } = useAuth();
 
   useEffect(() => {
-    console.log('warehouse changed', warehousePosition);
-  }, [warehousePosition]);
-  useEffect(() => {
     const fetchData = async () => {
       try {
         const productsQuery = query(

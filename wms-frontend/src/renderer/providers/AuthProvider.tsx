@@ -82,13 +82,12 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
             const userRef = doc(db, 'user', user_id);
             const userSnapshot = await getDoc(userRef);
             const userData = userSnapshot.data() as CustomUser;
-            console.log(userData);
-            console.log('onAuthStateChanged', userData);
+            userData.id = userSnapshot.id;
 
             const theUser = {
               display_name: userData.display_name,
               email: userData.email,
-              id: userSnapshot.id,
+              id: userData.id,
               role: userData.role,
             } as CustomUser;
 
@@ -216,7 +215,6 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
   const onChangeWarehouse = React.useCallback(
     (newWarehousePosition: string) => {
-      console.log('change warehouse', newWarehousePosition);
       setWarehouse(() => newWarehousePosition);
     },
     []
