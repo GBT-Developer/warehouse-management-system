@@ -55,7 +55,6 @@ const createRootUser = async () => {
             t.set(
               firebaseAdmin.firestore().collection("user").doc(theUser.uid),
               {
-                id: theUser.uid,
                 email: "test@gmail.com",
                 display_name: "Test",
                 role: "Owner",
