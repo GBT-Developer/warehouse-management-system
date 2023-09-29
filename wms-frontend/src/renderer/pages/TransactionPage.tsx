@@ -25,8 +25,10 @@ import { Customer } from 'renderer/interfaces/Customer';
 import { Invoice } from 'renderer/interfaces/Invoice';
 import { Product } from 'renderer/interfaces/Product';
 import { PageLayout } from 'renderer/layout/PageLayout';
+import { useAuth } from 'renderer/providers/AuthProvider';
 export const TransactionPage = () => {
   const navigate = useNavigate();
+  const { warehousePosition } = useAuth();
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [customerList, setCustomerList] = useState<Customer[]>([]);
@@ -82,8 +84,8 @@ export const TransactionPage = () => {
     fetchCustomer().catch((error) => {
       console.log(error);
     });
-  }, []);
-  //check all of the input empty or not
+  }, [warehousePosition]);
+  // Check all of the input empty or not
   useEffect(() => {
     if (invoice.items?.length === 0) {
       if (invoice.date === '' && invoice.payment_method === '') {
@@ -97,7 +99,7 @@ export const TransactionPage = () => {
       invoice.date != '' &&
       invoice.payment_method != '' &&
       invoice.items?.length != 0
-    ) {
+    )
       invoice.items?.map((item) => {
         if (item.count === 0) {
           setIsEmpty(true);
@@ -107,9 +109,10 @@ export const TransactionPage = () => {
           return;
         }
       });
-    }
+
     console.log('isEmpty', isEmpty);
   }, [invoice]);
+
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
 
@@ -183,12 +186,11 @@ export const TransactionPage = () => {
         const currentDateandTime = new Date();
         if (!invoice.date) return Promise.reject('Date not found');
         let theTime = '';
-        //if invoice date is the same as current date, take the current time
-        if (invoice.date === format(currentDateandTime, 'yyyy-MM-dd')) {
+        // If invoice date is the same as current date, take the current time
+        if (invoice.date === format(currentDateandTime, 'yyyy-MM-dd'))
           theTime = format(currentDateandTime, 'HH:mm:ss');
-        } else {
-          theTime = '23:59:59';
-        }
+        else theTime = '23:59:59';
+
         transaction.set(newInvoiceRef, {
           customer_id: selectedCustomer?.id ?? '',
           customer_name: selectedCustomer?.name ?? invoice.customer_name,
@@ -196,6 +198,7 @@ export const TransactionPage = () => {
           date: invoice.date + ' ' + theTime,
           total_price: totalPrice,
           payment_method: invoice.payment_method,
+          warehouse_position: invoice.items[0].warehouse_position,
           items: invoice.items,
         });
         setLoading(false);
@@ -229,30 +232,35 @@ export const TransactionPage = () => {
   const handleSearch = async (search: string) => {
     const productsQuery = query(
       collection(db, 'product'),
-      or(
-        // Query as-is:
-        and(
-          where('brand', '>=', search),
-          where('brand', '<=', search + '\uf8ff')
-        ),
-        // Capitalize first letter:
-        and(
-          where(
-            'brand',
-            '>=',
-            search.charAt(0).toUpperCase() + search.slice(1)
+      and(
+        or(
+          // Query as-is:
+          and(
+            where('brand', '>=', search),
+            where('brand', '<=', search + '\uf8ff')
           ),
-          where(
-            'brand',
-            '<=',
-            search.charAt(0).toUpperCase() + search.slice(1) + '\uf8ff'
+          // Capitalize first letter:
+          and(
+            where(
+              'brand',
+              '>=',
+              search.charAt(0).toUpperCase() + search.slice(1)
+            ),
+            where(
+              'brand',
+              '<=',
+              search.charAt(0).toUpperCase() + search.slice(1) + '\uf8ff'
+            )
+          ),
+          // Lowercase:
+          and(
+            where('brand', '>=', search.toLowerCase()),
+            where('brand', '<=', search.toLowerCase() + '\uf8ff')
           )
         ),
-        // Lowercase:
-        and(
-          where('brand', '>=', search.toLowerCase()),
-          where('brand', '<=', search.toLowerCase() + '\uf8ff')
-        )
+        warehousePosition !== 'Both'
+          ? where('warehouse_position', '==', warehousePosition)
+          : where('warehouse_position', 'in', ['Gudang Bahan', 'Gudang Jadi'])
       )
     );
     const querySnapshot = await getDocs(productsQuery);

@@ -5,6 +5,7 @@ import {
   doc,
   getDocs,
   query,
+  where,
 } from 'firebase/firestore';
 import React, { useEffect, useState } from 'react';
 import { AiOutlineLoading3Quarters } from 'react-icons/ai';
@@ -16,9 +17,11 @@ import { TableHeader } from 'renderer/components/TableComponents/TableHeader';
 import { TableTitle } from 'renderer/components/TableComponents/TableTitle';
 import { Invoice } from 'renderer/interfaces/Invoice';
 import { PageLayout } from 'renderer/layout/PageLayout';
+import { useAuth } from 'renderer/providers/AuthProvider';
 export default function TransactionHistory() {
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(false);
+  const { warehousePosition } = useAuth();
   const [invoiceHistory, setInvoiceHistory] = useState<Invoice[]>([]);
   const [showProductsMap, setShowProductsMap] = useState<
     Record<string, boolean>
@@ -29,7 +32,12 @@ export default function TransactionHistory() {
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
-      const q = query(collectionGroup(db, 'invoice'));
+      const q = query(
+        collectionGroup(db, 'invoice'),
+        warehousePosition !== 'Both'
+          ? where('warehouse_position', '==', warehousePosition)
+          : where('warehouse_position', 'in', ['Gudang Bahan', 'Gudang Jadi'])
+      );
 
       const querySnapshot = await getDocs(q);
 
@@ -54,7 +62,7 @@ export default function TransactionHistory() {
     fetchData().catch((error) => {
       console.log(error);
     });
-  }, []);
+  }, [warehousePosition]);
   // Show product
   const toggleShowProducts = (purchaseId: string) => {
     setShowProductsMap((prevState) => ({

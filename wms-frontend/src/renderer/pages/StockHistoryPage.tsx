@@ -1,5 +1,5 @@
 import { db } from 'firebase';
-import { collectionGroup, getDocs, query } from 'firebase/firestore';
+import { collectionGroup, getDocs, query, where } from 'firebase/firestore';
 import { useEffect, useState } from 'react';
 import { AiOutlineLoading3Quarters } from 'react-icons/ai';
 import { GoTriangleDown, GoTriangleUp } from 'react-icons/go';
@@ -8,15 +8,22 @@ import { TableHeader } from 'renderer/components/TableComponents/TableHeader';
 import { TableTitle } from 'renderer/components/TableComponents/TableTitle';
 import { StockHistory } from 'renderer/interfaces/StockHistory';
 import { PageLayout } from 'renderer/layout/PageLayout';
+import { useAuth } from 'renderer/providers/AuthProvider';
 
 function StockHistoryPage() {
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
+  const { warehousePosition } = useAuth();
   const [stockHistory, setStockHistory] = useState<StockHistory[]>([]);
 
   useEffect(() => {
     const fetchData = async () => {
-      const q = query(collectionGroup(db, 'stock_history'));
+      const q = query(
+        collectionGroup(db, 'stock_history'),
+        warehousePosition !== 'Both'
+          ? where('warehouse_position', '==', warehousePosition)
+          : where('warehouse_position', 'in', ['Gudang Bahan', 'Gudang Jadi'])
+      );
 
       const querySnapshot = await getDocs(q);
 
@@ -57,7 +64,7 @@ function StockHistoryPage() {
     fetchData().catch((error) => {
       console.log(error);
     });
-  }, []);
+  }, [warehousePosition]);
 
   return (
     <PageLayout>

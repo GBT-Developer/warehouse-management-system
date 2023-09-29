@@ -24,7 +24,7 @@ export const CreateAdminPage = () => {
   const { register } = useAuth().actions;
   const [isEmpty, setIsEmpty] = useState(false);
 
-  //check input field
+  // Check input field
   useEffect(() => {
     if (
       newAdmin.display_name === '' ||
