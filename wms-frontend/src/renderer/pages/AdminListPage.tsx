@@ -1,8 +1,12 @@
 import { db } from 'firebase';
-import { collection, getDocs, query } from 'firebase/firestore';
+import { FirebaseError } from 'firebase/app';
+import { collection, deleteDoc, doc, getDocs, query } from 'firebase/firestore';
 import { useEffect, useState } from 'react';
 import { AiOutlineLoading3Quarters } from 'react-icons/ai';
+import { BiSolidTrash } from 'react-icons/bi';
 import { useNavigate } from 'react-router-dom';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import { SingleTableItem } from 'renderer/components/TableComponents/SingleTableItem';
 import { TableHeader } from 'renderer/components/TableComponents/TableHeader';
 import { TableTitle } from 'renderer/components/TableComponents/TableTitle';
@@ -14,6 +18,11 @@ export const AdminListPage = () => {
   const [adminList, setAdminList] = useState<CustomUser[]>([]);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const successNotify = () => toast.success('Admin successfully deleted');
+  const failNotify = (e?: string) => toast.error(e ?? 'Failed to delete admin');
+  const [modalOpen, setModalOpen] = useState(false);
+  const [activeAdmin, setActiveAdmin] = useState<CustomUser | null>(null);
+  const [confirmed, setConfirmed] = useState(false);
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -41,6 +50,27 @@ export const AdminListPage = () => {
     setLoading(false);
   }, []);
 
+  const handleDelete = (
+    e: React.MouseEvent<HTMLButtonElement>,
+    adminId: string | undefined
+  ) => {
+    e.stopPropagation();
+    if (!adminId) return;
+    setLoading(true);
+    if (!adminId) return;
+    const purchaseRef = doc(db, 'user', adminId);
+    deleteDoc(purchaseRef)
+      .then(() => {
+        setAdminList(adminList.filter((adminList) => adminList.id !== adminId));
+        successNotify();
+      })
+      .catch((error: FirebaseError) => {
+        failNotify(error.message);
+      });
+    setConfirmed(false);
+    setLoading(false);
+  };
+
   return (
     <PageLayout>
       <div className="w-full h-full bg-transparent overflow-hidden">
@@ -60,9 +90,10 @@ export const AdminListPage = () => {
             <div className="overflow-y-auto h-full">
               <table className="w-full text-sm text-left text-gray-500">
                 <TableHeader>
-                  <th className="py-3">Nama</th>
+                  <th className="py-3">Name</th>
                   <th className="py-3">Email</th>
                   <th className="py-3">Role</th>
+                  <th className="py-3"></th>
                 </TableHeader>
                 <tbody>
                   {adminList
@@ -77,8 +108,16 @@ export const AdminListPage = () => {
                         return admin;
                     })
                     .sort((a, b) => {
-                      if (a.display_name < b.display_name) return -1;
-                      if (a.display_name > b.display_name) return 1;
+                      if (
+                        a.display_name.toLowerCase() <
+                        b.display_name.toLowerCase()
+                      )
+                        return -1;
+                      if (
+                        a.display_name.toLowerCase() >
+                        b.display_name.toLowerCase()
+                      )
+                        return 1;
                       return 0;
                     })
                     .map((admin) => (
@@ -89,10 +128,101 @@ export const AdminListPage = () => {
                         <SingleTableItem>{admin.display_name}</SingleTableItem>
                         <SingleTableItem>{admin.email}</SingleTableItem>
                         <SingleTableItem>{admin.role}</SingleTableItem>
+                        <SingleTableItem>
+                          <button
+                            type="button"
+                            className="text-red-500 text-lg p-2 hover:text-red-700 cursor-pointer bg-transparent rounded-md"
+                            onClick={() => {
+                              setActiveAdmin(() => admin);
+                              setModalOpen(true);
+                            }}
+                          >
+                            <BiSolidTrash />
+                          </button>
+                        </SingleTableItem>
                       </tr>
                     ))}
                 </tbody>
               </table>
+              <div
+                className={`fixed top-0 left-0 right-0 z-50 ${
+                  modalOpen ? 'block' : 'hidden'
+                } w-full p-4 overflow-x-hidden overflow-y-auto h-full bg-black bg-opacity-50 flex justify-center items-center backdrop-filter backdrop-blur-sm`}
+                onClick={() => setModalOpen(false)}
+              >
+                <div
+                  className="relative bg-white rounded-lg shadow w-2/5 p-6 overflow-hidden"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                  }}
+                >
+                  <div className="w-full h-full bg-transparent rounded-lg overflow-hidden">
+                    <div className="relative shadow-md sm:rounded-lg overflow-auto h-full flex flex-col justify-between">
+                      <div className="overflow-y-auto h-full relative">
+                        {loading && (
+                          <div className="absolute flex justify-center items-center py-2 px-3 top-0 left-0 w-full h-full bg-gray-50 rounded-lg z-0 bg-opacity-50">
+                            <AiOutlineLoading3Quarters className="animate-spin flex justify-center text-4xl" />
+                          </div>
+                        )}
+                        <div className="flex flex-col gap-2">
+                          <div
+                            className="mt-2 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4"
+                            role="alert"
+                          >
+                            <p className="text-center text-2xl font-bold">
+                              Are you sure you want to delete this admin?
+                            </p>
+                          </div>
+                          <div className="flex">
+                            <p className="w-2/5 font-bold">Name:</p>
+                            <p className="w-3/5">{activeAdmin?.display_name}</p>
+                          </div>
+                          <div className="flex">
+                            <p className="w-2/5 font-bold">Email:</p>
+                            <p className="w-3/5">{activeAdmin?.email}</p>
+                          </div>
+                          <div className="flex">
+                            <p className="w-2/5 font-bold">Role:</p>
+                            <p className="w-3/5">{activeAdmin?.role}</p>
+                          </div>
+                          {confirmed && (
+                            <div className="my-2 text-red-600 font-bold">
+                              <p>
+                                Don't forget to remove the admin in the Firebase
+                                console!
+                              </p>
+                            </div>
+                          )}
+                          <div className="flex flex-row-reverse justify-start gap-2 mt-3">
+                            <button
+                              className="bg-blue-700 hover:bg-blue-800 text-white font-bold py-2 px-4 rounded"
+                              onClick={(e) => {
+                                if (!activeAdmin?.id) return;
+
+                                if (confirmed) {
+                                  handleDelete(e, activeAdmin.id);
+                                  setModalOpen(false);
+                                } else setConfirmed(true);
+                              }}
+                            >
+                              {<span>{confirmed ? 'Confirm' : 'Delete'}</span>}
+                            </button>
+                            <button
+                              className="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded"
+                              onClick={() => {
+                                setModalOpen(false);
+                                setConfirmed(false);
+                              }}
+                            >
+                              Cancel
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
               <div className="flex flex-row-reverse gap-2 w-full justify-start">
                 <button
                   type="submit"
@@ -106,6 +236,18 @@ export const AdminListPage = () => {
           </div>
         </div>
       </div>
+      <ToastContainer
+        position="top-right"
+        autoClose={2000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="light"
+      />
     </PageLayout>
   );
 };
