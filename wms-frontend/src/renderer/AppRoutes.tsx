@@ -34,7 +34,6 @@ import TransactionHistory from './pages/TransactionHistory';
 import { TransactionPage } from './pages/TransactionPage';
 import { TransferItemPage } from './pages/TransferItemPage';
 import VoidListPage from './pages/VoidListPage';
-import { useAuth } from './providers/AuthProvider';
 
 type RouteConfig = RouteProps & {
   isPrivate?: boolean;
@@ -163,8 +162,8 @@ export const AuthRequired = ({
   children,
   to = '/auth/login',
 }: AuthRequiredProps) => {
-  const { isLoggedIn } = useAuth();
   const { search } = useLocation();
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   // Add a loading state to handle initial Firebase authentication
   const [isLoading, setIsLoading] = useState(true);
@@ -173,6 +172,8 @@ export const AuthRequired = ({
     // Set isLoading to false when Firebase authentication is done
     const unsubscribe = onAuthStateChanged(auth, () => {
       setIsLoading(false);
+      if (auth.currentUser) setIsLoggedIn(true);
+      else setIsLoggedIn(false);
     });
 
     return unsubscribe;
@@ -182,8 +183,11 @@ export const AuthRequired = ({
 
   return (
     <>
-      {isLoggedIn && children}
-      {!isLoggedIn && <Navigate to={to} state={{ from: search }} replace />}
+      {isLoggedIn ? (
+        children
+      ) : (
+        <Navigate to={`${to}?redirect=${search}`} replace />
+      )}
     </>
   );
 };
