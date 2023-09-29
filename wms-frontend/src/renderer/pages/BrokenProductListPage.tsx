@@ -6,6 +6,7 @@ import {
   increment,
   query,
   runTransaction,
+  where,
 } from 'firebase/firestore';
 import { useEffect, useState } from 'react';
 import { AiOutlineLoading3Quarters } from 'react-icons/ai';
@@ -17,6 +18,7 @@ import { TableHeader } from 'renderer/components/TableComponents/TableHeader';
 import { TableTitle } from 'renderer/components/TableComponents/TableTitle';
 import { Product } from 'renderer/interfaces/Product';
 import { PageLayout } from 'renderer/layout/PageLayout';
+import { useAuth } from 'renderer/providers/AuthProvider';
 
 export const BrokenProductListPage = () => {
   const [search, setSearch] = useState('');
@@ -26,6 +28,7 @@ export const BrokenProductListPage = () => {
   const [activeProduct, setActiveProduct] = useState<Product | null>(null);
   const [reason, setReason] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
+  const { warehousePosition } = useAuth();
   const [painterName, setPainterName] = useState('');
   const successNotify = () =>
     toast.success('Product status successfully updated');
@@ -35,7 +38,12 @@ export const BrokenProductListPage = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const productsQuery = query(collection(db, 'broken_product'));
+        const productsQuery = query(
+          collection(db, 'broken_product'),
+          warehousePosition !== 'Both'
+            ? where('warehouse_position', '==', warehousePosition)
+            : where('warehouse_position', 'in', ['Gudang Bahan', 'Gudang Jadi'])
+        );
         setLoading(true);
         const querySnapshot = await getDocs(productsQuery);
 
@@ -56,7 +64,7 @@ export const BrokenProductListPage = () => {
     fetchData().catch((error) => {
       console.log(error);
     });
-  }, []);
+  }, [warehousePosition]);
 
   const returnHandler = async () => {
     await runTransaction(db, async (transaction) => {

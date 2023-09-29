@@ -51,17 +51,24 @@ const SidebarItem = ({
 };
 
 const Profile = () => {
-  const { user } = useAuth();
+  const { user, warehousePosition } = useAuth();
+  const { setCurrentWarehouse } = useAuth().actions;
   const [isWarehouseDropdownOpen, setIsWarehouseDropdownOpen] = useState(false);
-  const [warehouse, setWarehouse] = useState<
+  const [dataWarehouse, setDataWarehouse] = useState<
     'Raw Material Warehouse' | 'Finished Goods Warehouse' | 'Both'
-  >('Raw Material Warehouse');
+  >(
+    warehousePosition === 'Both'
+      ? 'Both'
+      : warehousePosition === 'Gudang Bahan'
+      ? 'Raw Material Warehouse'
+      : 'Finished Goods Warehouse'
+  );
 
   const warehouseOptions = [
     'Raw Material Warehouse',
     'Finished Goods Warehouse',
     'Both',
-  ].filter((option) => option !== warehouse);
+  ].filter((option) => option !== dataWarehouse);
 
   return (
     <div>
@@ -70,6 +77,7 @@ const Profile = () => {
         <li>
           <button
             type="button"
+            disabled={user?.role !== 'Owner'}
             className={`flex gap-2 w-full items-center p-2 text-black rounded-lg group hover:bg-gray-300
             `}
             onClick={() => {
@@ -77,7 +85,7 @@ const Profile = () => {
             }}
           >
             <span className="flex-1 text-start overflow-hidden whitespace-nowrap overflow-ellipsis">
-              {warehouse}
+              {dataWarehouse}
             </span>
             <div className="flex justify-end">
               {isWarehouseDropdownOpen ? <BsChevronUp /> : <BsChevronDown />}
@@ -86,23 +94,42 @@ const Profile = () => {
           <ul
             className={`${isWarehouseDropdownOpen ? '' : 'hidden'} space-y-2`}
           >
-            {warehouseOptions.map((option) => (
-              <SidebarItem
-                key={option}
-                onClick={() => {
-                  setWarehouse(
-                    option as
-                      | 'Raw Material Warehouse'
-                      | 'Finished Goods Warehouse'
-                      | 'Both'
-                  );
-                  setIsWarehouseDropdownOpen(false);
-                }}
-                selected={false}
-              >
-                {option}
-              </SidebarItem>
-            ))}
+            {warehouseOptions
+              .filter((option) => {
+                if (user?.role === 'Owner') {
+                  return true;
+                } else if (user?.role === 'Gudang Bahan') {
+                  return option === 'Raw Material Warehouse';
+                } else if (user?.role === 'Gudang Jadi') {
+                  return option === 'Finished Goods Warehouse';
+                }
+              })
+              .map((option) => (
+                <SidebarItem
+                  key={option}
+                  onClick={() => {
+                    setDataWarehouse(
+                      option as
+                        | 'Raw Material Warehouse'
+                        | 'Finished Goods Warehouse'
+                        | 'Both'
+                    );
+                    let chosenWarehouse = '';
+                    if (option === 'Raw Material Warehouse') {
+                      chosenWarehouse = 'Gudang Bahan';
+                    } else if (option === 'Finished Goods Warehouse') {
+                      chosenWarehouse = 'Gudang Jadi';
+                    } else {
+                      chosenWarehouse = 'Both';
+                    }
+                    setCurrentWarehouse(chosenWarehouse);
+                    setIsWarehouseDropdownOpen(false);
+                  }}
+                  selected={false}
+                >
+                  {option}
+                </SidebarItem>
+              ))}
           </ul>
         </li>
       </ul>

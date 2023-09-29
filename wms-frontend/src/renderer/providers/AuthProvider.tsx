@@ -33,7 +33,9 @@ export interface AuthContext {
     login: (loginData: LoginData) => Promise<CustomUser | undefined>;
     logout: () => void;
     register: (registerData: RegisterData) => Promise<CustomUser | undefined>;
+    setCurrentWarehouse: (newWarehousePosition: string) => void;
   };
+  warehousePosition: string;
 }
 
 export const initialAuthContext = {
@@ -44,7 +46,9 @@ export const initialAuthContext = {
     login: () => Promise.resolve(undefined),
     logout: () => undefined,
     register: () => Promise.resolve(undefined),
+    setCurrentWarehouse: () => undefined,
   },
+  warehousePosition: '',
 };
 
 export const authContext = React.createContext<AuthContext | null>(
@@ -59,6 +63,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
   const [accessToken, setAccessToken] = useState<string | null>(null); // Store token in memory
   const [user, setUser] = useState<CustomUser | null>(null);
+  const [warehouse, setWarehouse] = useState<string>('');
   const failNotify = (e?: string) => toast.error(e ?? 'Failed to add customer');
 
   useEffect(() => {
@@ -77,7 +82,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
             const userRef = doc(db, 'user', user_id);
             const userSnapshot = await getDoc(userRef);
             const userData = userSnapshot.data() as CustomUser;
-            console.log(userData);
+            console.log('onAuthStateChanged', userData);
 
             const theUser = {
               display_name: userData.display_name,
@@ -86,7 +91,8 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
               role: userData.role,
             } as CustomUser;
 
-            setUser(theUser);
+            setUser(() => theUser);
+            setWarehouse(theUser.role === 'Owner' ? 'Both' : theUser.role);
           })
           .catch(() => {
             setAccessToken(null);
@@ -207,6 +213,14 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     }
   }, []);
 
+  const onChangeWarehouse = React.useCallback(
+    (newWarehousePosition: string) => {
+      console.log('change warehouse', newWarehousePosition);
+      setWarehouse(() => newWarehousePosition);
+    },
+    []
+  );
+
   const authValue = useMemo(
     () => ({
       accessToken,
@@ -216,9 +230,19 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         login: onLogin,
         logout: onLogout,
         register: onRegister,
+        setCurrentWarehouse: onChangeWarehouse,
       },
+      warehousePosition: warehouse,
     }),
-    [accessToken, user, onLogin, onLogout]
+    [
+      accessToken,
+      user,
+      onLogin,
+      onLogout,
+      onRegister,
+      onChangeWarehouse,
+      warehouse,
+    ]
   );
 
   return (

@@ -25,8 +25,10 @@ import { Customer } from 'renderer/interfaces/Customer';
 import { Invoice } from 'renderer/interfaces/Invoice';
 import { Product } from 'renderer/interfaces/Product';
 import { PageLayout } from 'renderer/layout/PageLayout';
+import { useAuth } from 'renderer/providers/AuthProvider';
 export const TransactionPage = () => {
   const navigate = useNavigate();
+  const { warehousePosition } = useAuth();
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [customerList, setCustomerList] = useState<Customer[]>([]);
@@ -81,7 +83,7 @@ export const TransactionPage = () => {
     fetchCustomer().catch((error) => {
       console.log(error);
     });
-  }, []);
+  }, [warehousePosition]);
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
@@ -168,6 +170,7 @@ export const TransactionPage = () => {
           date: invoice.date + ' ' + theTime,
           total_price: totalPrice,
           payment_method: invoice.payment_method,
+          warehouse_position: invoice.items[0].warehouse_position,
           items: invoice.items,
         });
         setLoading(false);
@@ -201,30 +204,35 @@ export const TransactionPage = () => {
   const handleSearch = async (search: string) => {
     const productsQuery = query(
       collection(db, 'product'),
-      or(
-        // Query as-is:
-        and(
-          where('brand', '>=', search),
-          where('brand', '<=', search + '\uf8ff')
-        ),
-        // Capitalize first letter:
-        and(
-          where(
-            'brand',
-            '>=',
-            search.charAt(0).toUpperCase() + search.slice(1)
+      and(
+        or(
+          // Query as-is:
+          and(
+            where('brand', '>=', search),
+            where('brand', '<=', search + '\uf8ff')
           ),
-          where(
-            'brand',
-            '<=',
-            search.charAt(0).toUpperCase() + search.slice(1) + '\uf8ff'
+          // Capitalize first letter:
+          and(
+            where(
+              'brand',
+              '>=',
+              search.charAt(0).toUpperCase() + search.slice(1)
+            ),
+            where(
+              'brand',
+              '<=',
+              search.charAt(0).toUpperCase() + search.slice(1) + '\uf8ff'
+            )
+          ),
+          // Lowercase:
+          and(
+            where('brand', '>=', search.toLowerCase()),
+            where('brand', '<=', search.toLowerCase() + '\uf8ff')
           )
         ),
-        // Lowercase:
-        and(
-          where('brand', '>=', search.toLowerCase()),
-          where('brand', '<=', search.toLowerCase() + '\uf8ff')
-        )
+        warehousePosition !== 'Both'
+          ? where('warehouse_position', '==', warehousePosition)
+          : where('warehouse_position', 'in', ['Gudang Bahan', 'Gudang Jadi'])
       )
     );
     const querySnapshot = await getDocs(productsQuery);
