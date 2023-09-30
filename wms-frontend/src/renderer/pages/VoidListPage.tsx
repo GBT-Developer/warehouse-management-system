@@ -83,7 +83,11 @@ export default function VoidListPage() {
   // Fetch next posts
   const fetchNextPosts = async () => {
     try {
-      if (nextQuery === null) return;
+      if (nextQuery === null) {
+        setNextPostsEmpty(true);
+        setNextPostsLoading(false);
+        return;
+      }
       setNextPostsLoading(true);
       const q = query(
         collection(db, 'void_invoice'),

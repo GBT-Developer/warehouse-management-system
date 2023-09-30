@@ -79,7 +79,11 @@ export const ManageProductPage = () => {
 
   const fetchMoreData = async () => {
     try {
-      if (nextQuery === null) return;
+      if (nextQuery === null) {
+        setNextPostsEmpty(true);
+        setNextPostsLoading(false);
+        return;
+      }
       setNextPostsLoading(true);
       const productsQuery = query(
         collection(db, 'product'),
