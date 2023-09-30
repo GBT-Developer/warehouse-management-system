@@ -6,6 +6,7 @@ export interface StockHistory {
   old_count: number;
   difference: number;
   created_at?: string;
+  time?: string;
   product: Product;
   product_name: string;
   warehouse_position: string;
