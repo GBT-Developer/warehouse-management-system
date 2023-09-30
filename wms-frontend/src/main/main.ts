@@ -15,6 +15,7 @@
  * `./src/main.js` using webpack. This gives us some performance wins.
  */
 import dotenv from 'dotenv';
+import dotenvExpand from 'dotenv-expand';
 import { BrowserWindow, app, shell } from 'electron';
 import log from 'electron-log';
 import { autoUpdater } from 'electron-updater';
@@ -22,6 +23,11 @@ import path from 'path';
 import { resolveHtmlPath } from './util';
 
 dotenv.config();
+
+if (process.resourcesPath)
+  dotenvExpand.expand(
+    dotenv.config({ path: path.join(process.resourcesPath, '.env') })
+  );
 
 class AppUpdater {
   constructor() {
