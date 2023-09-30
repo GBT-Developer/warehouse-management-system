@@ -1,11 +1,15 @@
 import { format } from 'date-fns';
 import { db } from 'firebase';
 import {
+  QueryStartAtConstraint,
   collection,
   doc,
   getDoc,
   getDocs,
+  limit,
+  orderBy,
   query,
+  startAfter,
   where,
 } from 'firebase/firestore';
 import { useEffect, useState } from 'react';
@@ -43,6 +47,11 @@ export default function OpnamePage() {
       'yyyy-MM-dd'
     )
   );
+  const [nextPosts_loading, setNextPostsLoading] = useState(false);
+  const [nextPosts_empty, setNextPostsEmpty] = useState(false);
+  const [nextQuery, setNextQuery] = useState<QueryStartAtConstraint | null>(
+    null
+  );
 
   useEffect(() => {
     if (startDate === endDate) return;
@@ -56,9 +65,18 @@ export default function OpnamePage() {
           where('date', '<=', endDate),
           warehousePosition !== 'Both'
             ? where('warehouse_position', '==', warehousePosition)
-            : where('warehouse_position', 'in', ['Gudang Bahan', 'Gudang Jadi'])
+            : where('warehouse_position', 'in', [
+                'Gudang Bahan',
+                'Gudang Jadi',
+              ]),
+          orderBy('date', 'desc'),
+          limit(50)
         );
         const invoiceListDoc = await getDocs(q);
+
+        setNextQuery(() =>
+          startAfter(invoiceListDoc.docs[invoiceListDoc.size - 1])
+        );
 
         const invoices: Invoice[] = [];
         let totalPurchasePrice = 0;
@@ -92,6 +110,7 @@ export default function OpnamePage() {
           total_sales: number;
           transaction_count: number;
           daily_sales: Record<string, number>;
+          month: number;
         } | null;
 
         if (!statsDocData) {
@@ -123,6 +142,50 @@ export default function OpnamePage() {
       .then(() => fetchInvoiceList())
       .catch(() => console.log('error'));
   }, [startDate, endDate, warehousePosition]);
+
+  const fetchMoreData = async () => {
+    try {
+      if (nextQuery === null) return;
+      setNextPostsLoading(true);
+      const q = query(
+        collection(db, 'invoice'),
+        where('date', '>=', startDate),
+        where('date', '<=', endDate),
+        warehousePosition !== 'Both'
+          ? where('warehouse_position', '==', warehousePosition)
+          : where('warehouse_position', 'in', ['Gudang Bahan', 'Gudang Jadi']),
+        orderBy('date', 'desc'),
+        nextQuery,
+        limit(50)
+      );
+
+      const querySnapshot = await getDocs(q);
+
+      if (querySnapshot.empty) {
+        console.log('empty');
+        // Disable load more button
+        setNextPostsEmpty(true);
+        setNextQuery(null);
+        return;
+      }
+
+      setNextQuery(() =>
+        startAfter(querySnapshot.docs[querySnapshot.docs.length - 1])
+      );
+
+      const invoiceData: Invoice[] = [];
+      querySnapshot.forEach((theInvoice) => {
+        const data = theInvoice.data() as Invoice;
+        data.id = theInvoice.id;
+        invoiceData.push(data);
+      });
+
+      setInvoiceList((prev) => [...prev, ...invoiceData]);
+      setNextPostsLoading(false);
+    } catch (error) {
+      console.error('Error fetching data:', error);
+    }
+  };
 
   return (
     <PageLayout>
@@ -252,6 +315,20 @@ export default function OpnamePage() {
                 )}
               </tbody>
             </table>
+            <div className="flex justify-center w-full pt-5">
+              <button
+                className={
+                  'bg-gray-300 hover:bg-gray-400 text-white px-6 py-1 rounded text-sm'
+                }
+                hidden={nextPosts_empty}
+                disabled={nextPosts_loading}
+                onClick={() => {
+                  fetchMoreData().catch(() => console.log('error'));
+                }}
+              >
+                {nextPosts_loading ? 'Loading...' : 'Load More'}
+              </button>
+            </div>
           </div>
         </div>
       </div>
