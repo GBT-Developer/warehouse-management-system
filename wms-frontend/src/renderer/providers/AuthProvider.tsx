@@ -67,6 +67,41 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const failNotify = (e?: string) => toast.error(e ?? 'Failed to add customer');
 
   useEffect(() => {
+    const invoiceStasRef = doc(db, 'invoice', '--stats--');
+    const invoiceStatsSnapshot = getDoc(invoiceStasRef);
+    invoiceStatsSnapshot
+      .then(async (snapshot) => {
+        const data = snapshot.data() as {
+          total_sales: number;
+          transaction_count: number;
+          daily_sales: Record<string, number>;
+          month: number;
+        } | null;
+        if (data) {
+          const currentMonth = parseInt(
+            new Date().toLocaleDateString('en-US', {
+              month: 'numeric',
+            })
+          );
+
+          // If month from invoice stats is not the same as current month, reset the stats
+          if (data.month !== currentMonth)
+            await runTransaction(db, (transaction) => {
+              transaction.update(invoiceStasRef, {
+                total_sales: 0,
+                transaction_count: 0,
+                daily_sales: {},
+                month: currentMonth,
+              });
+              return Promise.resolve();
+            });
+        }
+      })
+      .catch(() => {
+        failNotify();
+      });
+
+    // Firebase auth state change listener
     const unsubscribe = onAuthStateChanged(auth, (newUser) => {
       if (newUser)
         newUser
@@ -82,7 +117,6 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
             const userRef = doc(db, 'user', user_id);
             const userSnapshot = await getDoc(userRef);
             const userData = userSnapshot.data() as CustomUser;
-            console.log('onAuthStateChanged', userData);
 
             const theUser = {
               display_name: userData.display_name,
