@@ -30,10 +30,9 @@ export const BrokenProductListPage = () => {
   const [errorMessage, setErrorMessage] = useState('');
   const { warehousePosition } = useAuth();
   const [painterName, setPainterName] = useState('');
-  const successNotify = () =>
-    toast.success('Product status successfully updated');
+  const successNotify = () => toast.success('Product returned successfully');
   const failNotify = (e?: string) =>
-    toast.error(e ?? 'Failed to update product status');
+    toast.error(e ?? 'Failed to return product');
 
   useEffect(() => {
     const fetchData = async () => {
@@ -156,13 +155,12 @@ export const BrokenProductListPage = () => {
       });
       setReason('');
       setModalOpen(false);
+      successNotify();
       return Promise.resolve();
-    })
-      .then(() => successNotify())
-      .catch((error) => {
-        const errorMessage = error as string;
-        failNotify(errorMessage);
-      });
+    }).catch((error) => {
+      const errorMessage = error as string;
+      failNotify(errorMessage);
+    });
   };
 
   return (

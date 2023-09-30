@@ -121,7 +121,7 @@ export const ManageStockPage = () => {
         acceptedProducts.length != 0
       )
         acceptedProducts.map((product) => {
-          if (!product.count || product.count === 0) {
+          if (product.count === null) {
             setIsEmpty(true);
             return;
           } else {
@@ -239,10 +239,6 @@ export const ManageStockPage = () => {
       (manageStockMode === 'from_other_warehouse' && dispatchNote === '') ||
       (manageStockMode === 'from_other_warehouse' &&
         acceptedProducts.length != products.length) ||
-      (manageStockMode === 'from_other_warehouse' &&
-        acceptedProducts.some(
-          (acceptedProduct) => acceptedProduct.count === 0
-        )) ||
       newPurchase.created_at === ''
     ) {
       setErrorMessage('Please fill all the required fields');
