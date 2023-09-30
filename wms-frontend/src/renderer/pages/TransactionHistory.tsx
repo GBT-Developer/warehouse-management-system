@@ -41,6 +41,12 @@ export default function TransactionHistory() {
 
       const querySnapshot = await getDocs(q);
 
+      if (querySnapshot.empty) {
+        setInvoiceHistory([]);
+        setLoading(false);
+        return;
+      }
+
       const stockHistoryData: Invoice[] = [];
       querySnapshot.forEach((theStockHistory) => {
         const data = theStockHistory.data() as Invoice;

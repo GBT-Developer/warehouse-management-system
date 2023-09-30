@@ -47,6 +47,12 @@ export const BrokenProductListPage = () => {
         setLoading(true);
         const querySnapshot = await getDocs(productsQuery);
 
+        if (querySnapshot.empty) {
+          setProducts([]);
+          setLoading(false);
+          return;
+        }
+
         const productData: Product[] = [];
         querySnapshot.forEach((theProduct) => {
           const data = theProduct.data() as Product;
@@ -101,6 +107,7 @@ export const BrokenProductListPage = () => {
             motor_type: activeProduct.motor_type,
             part: activeProduct.part,
             supplier: activeProduct.supplier,
+            warehouse_position: activeProduct.warehouse_position,
           },
           {
             merge: true,

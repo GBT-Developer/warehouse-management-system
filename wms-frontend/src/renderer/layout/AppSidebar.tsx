@@ -139,6 +139,7 @@ const Profile = () => {
 
 export const AppSidebar = () => {
   const { logout } = useAuth().actions;
+  const { warehousePosition } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const [isInventDropdownOpen, setIsInventDropdownOpen] = React.useState(false);
@@ -242,15 +243,17 @@ export const AppSidebar = () => {
                 On Dispatch
               </SidebarItem>
 
-              <SidebarItem
-                icon={<TbPackageExport />}
-                onClick={() => {
-                  navigate('/transfer-item');
-                }}
-                selected={location.pathname.includes('/transfer-item')}
-              >
-                Transfer Item
-              </SidebarItem>
+              {warehousePosition !== 'Gudang Jadi' && (
+                <SidebarItem
+                  icon={<TbPackageExport />}
+                  onClick={() => {
+                    navigate('/transfer-item');
+                  }}
+                  selected={location.pathname.includes('/transfer-item')}
+                >
+                  Transfer Item
+                </SidebarItem>
+              )}
 
               <SidebarItem
                 icon={<GiBrokenPottery />}

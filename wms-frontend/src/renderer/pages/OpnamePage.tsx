@@ -16,6 +16,7 @@ import { SingleTableItem } from 'renderer/components/TableComponents/SingleTable
 import { TableHeader } from 'renderer/components/TableComponents/TableHeader';
 import { Invoice } from 'renderer/interfaces/Invoice';
 import { PageLayout } from 'renderer/layout/PageLayout';
+import { useAuth } from 'renderer/providers/AuthProvider';
 
 export default function OpnamePage() {
   const [salesStats, setSalesStats] = useState<{
@@ -24,6 +25,7 @@ export default function OpnamePage() {
     daily_sales: Record<string, number>;
   }>();
   const [tax, setTax] = useState(10);
+  const { warehousePosition } = useAuth();
   const [purchasePrice, setPurchasePrice] = useState(0);
   const [loading, setLoading] = useState(false);
   const [invoiceList, setInvoiceList] = useState<Invoice[]>([]);
@@ -51,7 +53,10 @@ export default function OpnamePage() {
         const q = query(
           collection(db, 'invoice'),
           where('date', '>=', startDate),
-          where('date', '<=', endDate)
+          where('date', '<=', endDate),
+          warehousePosition !== 'Both'
+            ? where('warehouse_position', '==', warehousePosition)
+            : where('warehouse_position', 'in', ['Gudang Bahan', 'Gudang Jadi'])
         );
         const invoiceListDoc = await getDocs(q);
 
@@ -117,7 +122,7 @@ export default function OpnamePage() {
     fetchInvoiceStats()
       .then(() => fetchInvoiceList())
       .catch(() => console.log('error'));
-  }, [startDate, endDate]);
+  }, [startDate, endDate, warehousePosition]);
 
   return (
     <PageLayout>

@@ -1,5 +1,5 @@
 import { db } from 'firebase';
-import { collection, getDocs, query } from 'firebase/firestore';
+import { collection, getDocs, query, where } from 'firebase/firestore';
 import React, { useEffect, useState } from 'react';
 import { AiOutlineLoading3Quarters } from 'react-icons/ai';
 import { SingleTableItem } from 'renderer/components/TableComponents/SingleTableItem';
@@ -7,6 +7,7 @@ import { TableHeader } from 'renderer/components/TableComponents/TableHeader';
 import { TableTitle } from 'renderer/components/TableComponents/TableTitle';
 import { Invoice } from 'renderer/interfaces/Invoice';
 import { PageLayout } from 'renderer/layout/PageLayout';
+import { useAuth } from 'renderer/providers/AuthProvider';
 
 export default function VoidListPage() {
   const [search, setSearch] = useState('');
@@ -15,12 +16,18 @@ export default function VoidListPage() {
   const [showProductsMap, setShowProductsMap] = useState<
     Record<string, boolean>
   >({});
+  const { warehousePosition } = useAuth();
   // Take void list from firebase
   useEffect(() => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        const q = query(collection(db, 'void_invoice'));
+        const q = query(
+          collection(db, 'void_invoice'),
+          warehousePosition !== 'Both'
+            ? where('warehouse_position', '==', warehousePosition)
+            : where('warehouse_position', 'in', ['Gudang Bahan', 'Gudang Jadi'])
+        );
         const querySnapshot = await getDocs(q);
 
         const voidData: Invoice[] = [];
@@ -39,7 +46,7 @@ export default function VoidListPage() {
     fetchData().catch((error) => {
       console.log(error);
     });
-  }, []);
+  }, [warehousePosition]);
 
   // Create a function to format the currency
   function formatCurrency(amount: number | undefined) {

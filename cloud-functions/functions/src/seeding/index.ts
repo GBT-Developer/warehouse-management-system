@@ -117,6 +117,7 @@ export const seedProduct = async (
         name: string;
         quantity: number;
         sell_price: string;
+        warehouse_pos: string;
       }[]
     >();
 
@@ -130,6 +131,10 @@ export const seedProduct = async (
       const productBrand = faker.commerce.productName();
       const productMotorType = faker.vehicle.type();
       const productPart = faker.vehicle.model();
+      const warehouse =
+        warehouse_positions[
+          faker.number.int({ min: 0, max: warehouse_positions.length - 1 })
+        ];
       const sell_price = faker.commerce.price({
         min: 50000,
         max: 1000000,
@@ -145,16 +150,14 @@ export const seedProduct = async (
           count: the_count,
           sell_price: parseInt(sell_price),
           purchase_price: parseFloat(sell_price) * 0.8,
-          warehouse_position:
-            warehouse_positions[
-              faker.number.int({ min: 0, max: warehouse_positions.length - 1 })
-            ],
+          warehouse_position: warehouse,
           supplier: Array.from(suppliers.keys())[the_supplier_id],
         })
         .then(async (product) => {
           const id = product.id;
           const name = `${productBrand} ${productMotorType} ${productPart} ${productColor}`;
           const quantity = the_count;
+          const warehouse_pos = warehouse;
           const supplier_id = Array.from(suppliers.keys())[the_supplier_id];
 
           let product_supplier_list = productSupplierList.get(supplier_id);
@@ -168,6 +171,7 @@ export const seedProduct = async (
             name,
             quantity,
             sell_price,
+            warehouse_pos,
           });
 
           productSupplierList.set(supplier_id, product_supplier_list);
@@ -182,6 +186,7 @@ export const seedProduct = async (
           .reduce((acc, curr) => acc + parseInt(curr.sell_price), 0)
           .toString(),
         payment_status: "Paid",
+        warehouse_position: product_supplier_list[0].warehouse_pos,
         products: product_supplier_list,
       });
     });
@@ -367,6 +372,7 @@ export const seedTransaction = async (num_of_transaction: number) => {
         customer_name: faker.person.fullName(),
         date: purchaseDate.split("T")[0] + " " + time,
         payment_method: "Cash",
+        warehouse_position: products[0].warehouse_position,
         total_price: totalPrice,
         items: products.map((product) => {
           return {
