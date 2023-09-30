@@ -53,27 +53,29 @@ function HomePage() {
               supplierMap.push(purchase.supplier);
         });
 
-        // Fetch the supplier data
-        const q2 = query(
-          collection(db, 'supplier'),
-          where(documentId(), 'in', supplierMap)
-        );
-        const supplierDoc = await getDocs(q2);
+        if (supplierMap.length > 0) {
+          // Fetch the supplier data
+          const q2 = query(
+            collection(db, 'supplier'),
+            where(documentId(), 'in', supplierMap)
+          );
+          const supplierDoc = await getDocs(q2);
 
-        const supplierData: Supplier[] = [];
-        supplierDoc.forEach((supplier) => {
-          const data = supplier.data() as Supplier;
-          data.id = supplier.id;
-          supplierData.push(data);
-        });
-
-        // Replace the supplier data in purchase history
-        purchaseHistoryData.forEach((purchase) => {
-          supplierData.forEach((supplier) => {
-            const supplierId = purchase.supplier as unknown as string;
-            if (supplierId === supplier.id) purchase.supplier = supplier;
+          const supplierData: Supplier[] = [];
+          supplierDoc.forEach((supplier) => {
+            const data = supplier.data() as Supplier;
+            data.id = supplier.id;
+            supplierData.push(data);
           });
-        });
+
+          // Replace the supplier data in purchase history
+          purchaseHistoryData.forEach((purchase) => {
+            supplierData.forEach((supplier) => {
+              const supplierId = purchase.supplier as unknown as string;
+              if (supplierId === supplier.id) purchase.supplier = supplier;
+            });
+          });
+        }
 
         setPurchaseHistory(purchaseHistoryData);
       } catch (error) {

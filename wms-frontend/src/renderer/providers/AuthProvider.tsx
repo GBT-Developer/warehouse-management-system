@@ -64,11 +64,11 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [accessToken, setAccessToken] = useState<string | null>(null); // Store token in memory
   const [user, setUser] = useState<CustomUser | null>(null);
   const [warehouse, setWarehouse] = useState<string>('');
-  const failNotify = (e?: string) => toast.error(e ?? 'Failed to add customer');
 
   useEffect(() => {
+    // Firebase auth state change listener
     const unsubscribe = onAuthStateChanged(auth, (newUser) => {
-      if (newUser)
+      if (newUser) {
         newUser
           .getIdToken()
           .then(async (newToken) => {
@@ -99,7 +99,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
             setUser(null);
             navigate('/');
           });
-      else {
+      } else {
         setAccessToken(null);
         setUser(null);
         navigate('/');
@@ -111,7 +111,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
   const onLogout = React.useCallback(() => {
     signOut(auth).catch(() => {
-      failNotify();
+      toast.error('Error logging out');
     });
   }, []);
 

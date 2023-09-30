@@ -1,9 +1,13 @@
 import {
+  QueryStartAtConstraint,
   collection,
   deleteDoc,
   doc,
   getDocs,
+  limit,
+  orderBy,
   query,
+  startAfter,
   where,
 } from 'firebase/firestore';
 import React, { useEffect, useState } from 'react';
@@ -29,6 +33,12 @@ export default function TransactionHistory() {
   const successNotify = () => toast.success('Transaction deleted successfully');
   const failNotify = (e?: string) =>
     toast.error(e ?? 'Failed to delete transaction');
+  const [nextPosts_loading, setNextPostsLoading] = useState(false);
+  const [nextPosts_empty, setNextPostsEmpty] = useState(false);
+  const [nextQuery, setNextQuery] = useState<QueryStartAtConstraint | null>(
+    null
+  );
+
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
@@ -36,7 +46,9 @@ export default function TransactionHistory() {
         collection(db, 'invoice'),
         warehousePosition !== 'Both'
           ? where('warehouse_position', '==', warehousePosition)
-          : where('warehouse_position', 'in', ['Gudang Bahan', 'Gudang Jadi'])
+          : where('warehouse_position', 'in', ['Gudang Bahan', 'Gudang Jadi']),
+        orderBy('date', 'desc'),
+        limit(50)
       );
 
       const querySnapshot = await getDocs(q);
@@ -44,8 +56,15 @@ export default function TransactionHistory() {
       if (querySnapshot.empty) {
         setInvoiceHistory([]);
         setLoading(false);
+        setNextQuery(null);
+        setNextPostsEmpty(true);
+        setNextPostsLoading(false);
         return;
       }
+
+      setNextQuery(
+        startAfter(querySnapshot.docs[querySnapshot.docs.length - 1])
+      );
 
       const stockHistoryData: Invoice[] = [];
       querySnapshot.forEach((theStockHistory) => {
@@ -63,6 +82,48 @@ export default function TransactionHistory() {
       console.log(error);
     });
   }, [warehousePosition]);
+
+  const fetchMoreData = async () => {
+    try {
+      if (nextQuery === null) return;
+      setNextPostsLoading(true);
+      const q = query(
+        collection(db, 'invoice'),
+        warehousePosition !== 'Both'
+          ? where('warehouse_position', '==', warehousePosition)
+          : where('warehouse_position', 'in', ['Gudang Bahan', 'Gudang Jadi']),
+        orderBy('date', 'desc'),
+        nextQuery,
+        limit(50)
+      );
+
+      const querySnapshot = await getDocs(q);
+
+      if (querySnapshot.empty) {
+        setNextPostsEmpty(true);
+        setNextQuery(null);
+        setNextPostsLoading(false);
+        return;
+      }
+
+      setNextQuery(() =>
+        startAfter(querySnapshot.docs[querySnapshot.docs.length - 1])
+      );
+
+      const invoiceData: Invoice[] = [];
+      querySnapshot.forEach((theInvoice) => {
+        const data = theInvoice.data() as Invoice;
+        data.id = theInvoice.id;
+        invoiceData.push(data);
+      });
+
+      setInvoiceHistory((prev) => [...prev, ...invoiceData]);
+      setNextPostsLoading(false);
+    } catch (error) {
+      console.error('Error fetching data:', error);
+    }
+  };
+
   // Show product
   const toggleShowProducts = (purchaseId: string) => {
     setShowProductsMap((prevState) => ({
@@ -207,6 +268,20 @@ export default function TransactionHistory() {
                   ))}
               </tbody>
             </table>
+            <div className="flex justify-center w-full pt-5">
+              <button
+                className={
+                  'bg-gray-300 hover:bg-gray-400 text-white px-6 py-1 rounded text-sm'
+                }
+                hidden={nextPosts_empty}
+                disabled={nextPosts_loading}
+                onClick={() => {
+                  fetchMoreData().catch(() => console.log('error'));
+                }}
+              >
+                {nextPosts_loading ? 'Loading...' : 'Load More'}
+              </button>
+            </div>
           </div>
         </div>
       </div>

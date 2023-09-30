@@ -1,8 +1,12 @@
 import {
+  QueryStartAtConstraint,
   collection,
   documentId,
   getDocs,
+  limit,
+  orderBy,
   query,
+  startAfter,
   where,
 } from 'firebase/firestore';
 import { useEffect, useState } from 'react';
@@ -21,6 +25,11 @@ export const ReturnedProductListPage = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(false);
   const { warehousePosition } = useAuth();
+  const [nextPosts_loading, setNextPostsLoading] = useState(false);
+  const [nextPosts_empty, setNextPostsEmpty] = useState(false);
+  const [nextQuery, setNextQuery] = useState<QueryStartAtConstraint | null>(
+    null
+  );
 
   useEffect(() => {
     const fetchData = async () => {
@@ -29,10 +38,21 @@ export const ReturnedProductListPage = () => {
           collection(db, 'returned_product'),
           warehousePosition !== 'Both'
             ? where('warehouse_position', '==', warehousePosition)
-            : where('warehouse_position', 'in', ['Gudang Bahan', 'Gudang Jadi'])
+            : where('warehouse_position', 'in', [
+                'Gudang Bahan',
+                'Gudang Jadi',
+              ]),
+          orderBy('brand', 'asc'),
+          limit(50)
         );
         setLoading(true);
         const querySnapshot = await getDocs(productsQuery);
+
+        if (querySnapshot.docs.length === 0) {
+          setProducts([]);
+          setLoading(false);
+          return;
+        }
 
         const suppliersMap = new Map<string, Supplier | undefined>();
 
@@ -81,6 +101,11 @@ export const ReturnedProductListPage = () => {
           productData.push(data);
         });
 
+        const nextQ = startAfter(
+          querySnapshot.docs[querySnapshot.docs.length - 1]
+        );
+
+        setNextQuery(nextQ);
         setProducts(productData);
         setLoading(false);
       } catch (error) {
@@ -92,6 +117,91 @@ export const ReturnedProductListPage = () => {
       console.log(error);
     });
   }, [warehousePosition]);
+
+  // Fetch next posts
+  const fetchNextPosts = async () => {
+    try {
+      if (nextQuery === null) {
+        setNextPostsEmpty(true);
+        setNextPostsLoading(false);
+        return;
+      }
+      setNextPostsLoading(true);
+      const q = query(
+        collection(db, 'returned_product'),
+        warehousePosition !== 'Both'
+          ? where('warehouse_position', '==', warehousePosition)
+          : where('warehouse_position', 'in', ['Gudang Bahan', 'Gudang Jadi']),
+        orderBy('brand', 'asc'),
+        limit(50),
+        nextQuery
+      );
+      const querySnapshot = await getDocs(q);
+
+      if (querySnapshot.docs.length === 0) {
+        setNextPostsEmpty(true);
+        setNextPostsLoading(false);
+        return;
+      }
+
+      const suppliersMap = new Map<string, Supplier | undefined>();
+
+      // Get suppliers needed for the products
+      querySnapshot.forEach((product) => {
+        const data = product.data() as {
+          available_color: string;
+          brand: string;
+          count: string;
+          motor_type: string;
+          part: string;
+          warehouse_position: string;
+          supplier: string;
+        };
+        // Check if the supplier is already in the map
+        if (!suppliersMap.has(data.supplier))
+          suppliersMap.set(data.supplier, undefined);
+      });
+
+      if (suppliersMap.size === 0) {
+        setNextPostsEmpty(true);
+        setNextPostsLoading(false);
+        return;
+      }
+
+      // Get the suppliers' names
+      const suppliersQuery = query(
+        collection(db, 'supplier'),
+        where(documentId(), 'in', Array.from(suppliersMap.keys()))
+      );
+
+      const suppliersQuerySnapshot = await getDocs(suppliersQuery);
+
+      suppliersQuerySnapshot.forEach((supplier) => {
+        const data = supplier.data() as Supplier;
+        data.id = supplier.id;
+        if (data.id) suppliersMap.set(data.id, data);
+      });
+
+      const productData: Product[] = [];
+      querySnapshot.forEach((theProduct) => {
+        const data = theProduct.data() as Product;
+        data.id = theProduct.id;
+        const supplierId = data.supplier as unknown as string;
+        data.supplier = suppliersMap.get(supplierId);
+        productData.push(data);
+      });
+
+      const nextQ = startAfter(
+        querySnapshot.docs[querySnapshot.docs.length - 1]
+      );
+
+      setNextQuery(nextQ);
+      setProducts((prev) => [...prev, ...productData]);
+      setNextPostsLoading(false);
+    } catch (error) {
+      console.error('Error fetching data:', error);
+    }
+  };
 
   return (
     <PageLayout>
@@ -165,6 +275,25 @@ export const ReturnedProductListPage = () => {
                 )}
               </tbody>
             </table>
+            {nextPosts_empty ? (
+              <div className="flex justify-center items-center py-6 px-3 w-full">
+                <p className="text-gray-500 text-sm">No more data</p>
+              </div>
+            ) : (
+              <div className="flex justify-center items-center py-6 px-3 w-full">
+                <button
+                  className="text-gray-500 text-sm hover:underline"
+                  onClick={fetchNextPosts}
+                  disabled={nextPosts_loading}
+                >
+                  {nextPosts_loading ? (
+                    <AiOutlineLoading3Quarters className="animate-spin flex justify-center text-4xl" />
+                  ) : (
+                    'Load more'
+                  )}
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </div>

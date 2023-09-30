@@ -1,5 +1,10 @@
-import { collection, getDocs, query } from '@firebase/firestore';
-import { where } from 'firebase/firestore';
+import { collection, getDocs, orderBy, query } from '@firebase/firestore';
+import {
+  QueryStartAtConstraint,
+  limit,
+  startAfter,
+  where,
+} from 'firebase/firestore';
 import { useEffect, useState } from 'react';
 import { AiOutlineLoading3Quarters } from 'react-icons/ai';
 import { IoInformationCircleSharp } from 'react-icons/io5';
@@ -18,6 +23,11 @@ export const ManageProductPage = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(false);
   const { warehousePosition } = useAuth();
+  const [nextPosts_loading, setNextPostsLoading] = useState(false);
+  const [nextPosts_empty, setNextPostsEmpty] = useState(false);
+  const [nextQuery, setNextQuery] = useState<QueryStartAtConstraint | null>(
+    null
+  );
 
   useEffect(() => {
     const fetchData = async () => {
@@ -26,7 +36,12 @@ export const ManageProductPage = () => {
           collection(db, 'product'),
           warehousePosition !== 'Both'
             ? where('warehouse_position', '==', warehousePosition)
-            : where('warehouse_position', 'in', ['Gudang Bahan', 'Gudang Jadi'])
+            : where('warehouse_position', 'in', [
+                'Gudang Bahan',
+                'Gudang Jadi',
+              ]),
+          orderBy('brand', 'asc'),
+          limit(50)
         );
         setLoading(true);
         const querySnapshot = await getDocs(productsQuery);
@@ -44,6 +59,12 @@ export const ManageProductPage = () => {
           productData.push(data);
         });
 
+        const nextQ = startAfter(
+          querySnapshot.docs[querySnapshot.docs.length - 1]
+        );
+
+        setNextQuery(nextQ);
+
         setProducts(productData);
         setLoading(false);
       } catch (error) {
@@ -55,6 +76,50 @@ export const ManageProductPage = () => {
       console.log(error);
     });
   }, [warehousePosition]);
+
+  const fetchMoreData = async () => {
+    try {
+      if (nextQuery === null) {
+        setNextPostsEmpty(true);
+        setNextPostsLoading(false);
+        return;
+      }
+      setNextPostsLoading(true);
+      const productsQuery = query(
+        collection(db, 'product'),
+        warehousePosition !== 'Both'
+          ? where('warehouse_position', '==', warehousePosition)
+          : where('warehouse_position', 'in', ['Gudang Bahan', 'Gudang Jadi']),
+        orderBy('brand', 'asc'),
+        nextQuery,
+        limit(50)
+      );
+
+      const querySnapshot = await getDocs(productsQuery);
+
+      setNextQuery(
+        startAfter(querySnapshot.docs[querySnapshot.docs.length - 1])
+      );
+
+      if (querySnapshot.empty) {
+        //disable load more button
+        setNextPostsEmpty(true);
+        return;
+      }
+
+      const productData: Product[] = [];
+      querySnapshot.forEach((theProduct) => {
+        const data = theProduct.data() as Product;
+        data.id = theProduct.id;
+        productData.push(data);
+      });
+
+      setProducts((prev) => [...prev, ...productData]);
+      setNextPostsLoading(false);
+    } catch (error) {
+      console.error('Error fetching data:', error);
+    }
+  };
 
   return (
     <PageLayout>
@@ -158,6 +223,25 @@ export const ManageProductPage = () => {
                 )}
               </tbody>
             </table>
+            {nextPosts_empty ? (
+              <div className="flex justify-center items-center py-6 px-3 w-full">
+                <p className="text-gray-500 text-sm">No more data</p>
+              </div>
+            ) : (
+              <div className="flex justify-center items-center py-6 px-3 w-full">
+                <button
+                  className="text-gray-500 text-sm hover:underline"
+                  onClick={fetchMoreData}
+                  disabled={nextPosts_loading}
+                >
+                  {nextPosts_loading ? (
+                    <AiOutlineLoading3Quarters className="animate-spin flex justify-center text-4xl" />
+                  ) : (
+                    'Load more'
+                  )}
+                </button>
+              </div>
+            )}
           </div>
           <div className=" absolute bottom-[2.5rem] right-[2.5rem]">
             <button

@@ -1,4 +1,13 @@
-import { collection, getDocs, query, where } from 'firebase/firestore';
+import {
+  QueryStartAtConstraint,
+  collection,
+  getDocs,
+  limit,
+  orderBy,
+  query,
+  startAfter,
+  where,
+} from 'firebase/firestore';
 import React, { useEffect, useState } from 'react';
 import { AiOutlineLoading3Quarters } from 'react-icons/ai';
 import { SingleTableItem } from 'renderer/components/TableComponents/SingleTableItem';
@@ -17,6 +26,11 @@ export default function VoidListPage() {
     Record<string, boolean>
   >({});
   const { warehousePosition } = useAuth();
+  const [nextPosts_loading, setNextPostsLoading] = useState(false);
+  const [nextPosts_empty, setNextPostsEmpty] = useState(false);
+  const [nextQuery, setNextQuery] = useState<QueryStartAtConstraint | null>(
+    null
+  );
   // Take void list from firebase
   useEffect(() => {
     const fetchData = async () => {
@@ -26,9 +40,20 @@ export default function VoidListPage() {
           collection(db, 'void_invoice'),
           warehousePosition !== 'Both'
             ? where('warehouse_position', '==', warehousePosition)
-            : where('warehouse_position', 'in', ['Gudang Bahan', 'Gudang Jadi'])
+            : where('warehouse_position', 'in', [
+                'Gudang Bahan',
+                'Gudang Jadi',
+              ]),
+          orderBy('date', 'desc'),
+          limit(50)
         );
         const querySnapshot = await getDocs(q);
+
+        if (querySnapshot.docs.length === 0) {
+          setVoidList([]);
+          setLoading(false);
+          return;
+        }
 
         const voidData: Invoice[] = [];
         querySnapshot.forEach((doc) => {
@@ -36,6 +61,13 @@ export default function VoidListPage() {
           data.id = doc.id;
           voidData.push(data);
         });
+
+        const nextQ = startAfter(
+          querySnapshot.docs[querySnapshot.docs.length - 1]
+        );
+
+        setNextQuery(nextQ);
+
         setVoidList(voidData);
         setLoading(false);
       } catch (error) {
@@ -47,6 +79,52 @@ export default function VoidListPage() {
       console.log(error);
     });
   }, [warehousePosition]);
+
+  // Fetch next posts
+  const fetchNextPosts = async () => {
+    try {
+      if (nextQuery === null) {
+        setNextPostsEmpty(true);
+        setNextPostsLoading(false);
+        return;
+      }
+      setNextPostsLoading(true);
+      const q = query(
+        collection(db, 'void_invoice'),
+        warehousePosition !== 'Both'
+          ? where('warehouse_position', '==', warehousePosition)
+          : where('warehouse_position', 'in', ['Gudang Bahan', 'Gudang Jadi']),
+        orderBy('date', 'desc'),
+        limit(50),
+        nextQuery
+      );
+      const querySnapshot = await getDocs(q);
+
+      if (querySnapshot.docs.length === 0) {
+        setNextPostsEmpty(true);
+        setNextPostsLoading(false);
+        return;
+      }
+
+      const voidData: Invoice[] = [];
+      querySnapshot.forEach((doc) => {
+        const data = doc.data() as Invoice;
+        data.id = doc.id;
+        voidData.push(data);
+      });
+
+      const nextQ = startAfter(
+        querySnapshot.docs[querySnapshot.docs.length - 1]
+      );
+
+      setNextQuery(nextQ);
+
+      setVoidList((prevState) => [...prevState, ...voidData]);
+      setNextPostsLoading(false);
+    } catch (error) {
+      console.error('Error fetching data:', error);
+    }
+  };
 
   // Create a function to format the currency
   function formatCurrency(amount: number | undefined) {
@@ -162,6 +240,25 @@ export default function VoidListPage() {
                 )}
               </tbody>
             </table>
+            {nextPosts_empty ? (
+              <div className="flex justify-center items-center py-6 px-3 w-full">
+                <p className="text-gray-500 text-sm">No more data</p>
+              </div>
+            ) : (
+              <div className="flex justify-center items-center py-6 px-3 w-full">
+                <button
+                  className="text-gray-500 text-sm hover:underline"
+                  onClick={fetchNextPosts}
+                  disabled={nextPosts_loading}
+                >
+                  {nextPosts_loading ? (
+                    <AiOutlineLoading3Quarters className="animate-spin flex justify-center text-4xl" />
+                  ) : (
+                    'Load more'
+                  )}
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </div>
