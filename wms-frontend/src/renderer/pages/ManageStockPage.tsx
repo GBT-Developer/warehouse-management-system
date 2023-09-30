@@ -329,23 +329,27 @@ export const ManageStockPage = () => {
         }
         if (returnedProduct && manageStockMode === 'purchase') {
           // Construct a query to find matching returned products
-          const queryRef = query(
-            collection(db, 'returned_product'),
-            where(documentId(), '==', products[0].id),
-            where('count', '==', newPurchase.products[0].quantity)
-          );
+          products.map(async (product) => {
+            newPurchase.products.map(async (newProduct) => {
+              const queryRef = query(
+                collection(db, 'returned_product'),
+                where(documentId(), '==', product.id),
+                where('count', '==', newProduct.quantity)
+              );
 
-          // Execute the query to find matching documents
-          const querySnapshot = await getDocs(queryRef);
+              // Execute the query to find matching documents
+              const querySnapshot = await getDocs(queryRef);
 
-          // Loop through the matching documents and delete them
-          querySnapshot.forEach(async (docSnapshot) => {
-            const returnedProductRef = doc(
-              db,
-              'returned_product',
-              docSnapshot.id
-            );
-            await deleteDoc(returnedProductRef);
+              // Loop through the matching documents and delete them
+              querySnapshot.forEach(async (docSnapshot) => {
+                const returnedProductRef = doc(
+                  db,
+                  'returned_product',
+                  docSnapshot.id
+                );
+                await deleteDoc(returnedProductRef);
+              });
+            });
           });
         }
         // Wait for all promises in the map to resolve
