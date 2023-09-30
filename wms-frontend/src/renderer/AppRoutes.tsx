@@ -14,6 +14,7 @@ import { ChangePasswordPage } from './pages/ChangePasswordPage';
 import { CreateAdminPage } from './pages/CreateAdminPage';
 import CustomerListPage from './pages/CustomerListPage';
 import EditCustomerPage from './pages/EditCustomerPage';
+import HomePage from './pages/HomePage';
 import InputCustomerPage from './pages/InputCustomer';
 import InputSupplier from './pages/InputSupplier';
 import { AuthPage } from './pages/LoginPage';
@@ -23,7 +24,6 @@ import { NewProductPage } from './pages/NewProductPage';
 import { OnDispatchListPage } from './pages/OnDispatchListPage';
 import OpnamePage from './pages/OpnamePage';
 import ProductDetailPage from './pages/ProductDetailPage';
-import ProfilePage from './pages/ProfilePage';
 import PurchaseReportPage from './pages/PurchaseReportPage';
 import ReturnPage from './pages/ReturnPage';
 import { ReturnedProductListPage } from './pages/ReturnedProductListPage';
@@ -53,7 +53,7 @@ export const routes: RouteConfig[] = [
   },
   {
     path: '/profile',
-    element: <ProfilePage />,
+    element: <HomePage />,
   },
   {
     path: '/stock-history',
