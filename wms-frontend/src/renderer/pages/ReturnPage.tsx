@@ -1,5 +1,4 @@
 import { format } from 'date-fns';
-import { db } from 'firebase';
 import {
   FieldValue,
   and,
@@ -23,6 +22,7 @@ import 'react-toastify/dist/ReactToastify.css';
 import { InputField } from 'renderer/components/InputField';
 import { SingleTableItem } from 'renderer/components/TableComponents/SingleTableItem';
 import { TableModal } from 'renderer/components/TableComponents/TableModal';
+import { db } from 'renderer/firebase';
 import { Customer } from 'renderer/interfaces/Customer';
 import { Invoice } from 'renderer/interfaces/Invoice';
 import { Product } from 'renderer/interfaces/Product';
@@ -112,9 +112,8 @@ export default function ReturnPage() {
   }, [invoiceNumber, selectedItems, mode, newTransaction, selectedNewItems]);
 
   useEffect(() => {
-    if (!initialLoad) {
-      navigate('/');
-    }
+    if (!initialLoad) navigate('/');
+
     setInitialLoad(false);
   }, [warehousePosition]);
 
@@ -214,8 +213,6 @@ export default function ReturnPage() {
             invoice.items[itemIndex].count - selectedItem.count;
       });
 
-      console.log(invoice);
-
       // Update the invoice
       await runTransaction(db, (transaction) => {
         transaction.update(doc(db, 'invoice', invoiceNumber), {
@@ -284,7 +281,7 @@ export default function ReturnPage() {
           customer_id: selectedCustomer?.id ?? '',
           customer_name: selectedCustomer?.name ?? invoice.customer_name ?? '',
           total_price: total_price,
-          warehousePosition: selectedNewItems[0].warehouse_position,
+          warehouse_position: selectedNewItems[0].warehouse_position,
           items: selectedNewItems.map((selectedNewItem) => {
             return {
               ...selectedNewItem,
@@ -354,7 +351,6 @@ export default function ReturnPage() {
           : where('warehouse_position', 'in', ['Gudang Bahan', 'Gudang Jadi'])
       );
       const invoiceSnap = await getDocs(invoiceQuery);
-      console.log(invoiceSnap.docs[0].data());
 
       if (invoiceSnap.empty) {
         setErrorMessage('Invoice not found');
@@ -364,7 +360,6 @@ export default function ReturnPage() {
         setLoading(false);
         return;
       }
-      console.log(invoiceSnap.docs[0].data());
 
       const invoiceData = invoiceSnap.docs[0].data() as Invoice;
       setInvoice(() => invoiceData);

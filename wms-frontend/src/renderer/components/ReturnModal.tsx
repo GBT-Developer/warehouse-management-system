@@ -1,7 +1,7 @@
-import { db } from 'firebase';
 import { doc, getDoc } from 'firebase/firestore';
 import { useEffect, useState } from 'react';
 import { AiOutlineLoading3Quarters } from 'react-icons/ai';
+import { db } from 'renderer/firebase';
 import { Product } from 'renderer/interfaces/Product';
 
 interface ReturnModalProps {

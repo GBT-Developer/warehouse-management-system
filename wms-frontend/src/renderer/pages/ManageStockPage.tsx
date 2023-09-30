@@ -1,5 +1,4 @@
 import { format } from 'date-fns';
-import { db } from 'firebase';
 import {
   collection,
   deleteDoc,
@@ -22,6 +21,7 @@ import 'react-toastify/dist/ReactToastify.css';
 import { InputField } from 'renderer/components/InputField';
 import { SingleTableItem } from 'renderer/components/TableComponents/SingleTableItem';
 import { TableModal } from 'renderer/components/TableComponents/TableModal';
+import { db } from 'renderer/firebase';
 import { Product } from 'renderer/interfaces/Product';
 import { PurchaseHistory } from 'renderer/interfaces/PurchaseHistory';
 import { Supplier } from 'renderer/interfaces/Supplier';
@@ -87,12 +87,6 @@ export const ManageStockPage = () => {
         !selectedWarehouse ||
         dateInputRef.current?.value === ''
       ) {
-        console.log('selectedSupplier', selectedSupplier);
-        console.log('newPurchase.products.length', newPurchase.products.length);
-        console.log('newPurchase.purchase_price');
-        console.log('selectedWarehouse', selectedWarehouse);
-        console.log('dateInputRef.current?.value', dateInputRef.current?.value);
-        console.log('returnedProduct', returnedProduct);
         setIsEmpty(true);
         return;
       } else if (

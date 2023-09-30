@@ -1,7 +1,5 @@
-import { db } from 'firebase';
 import {
   collection,
-  collectionGroup,
   doc,
   getDoc,
   getDocs,
@@ -20,6 +18,7 @@ import 'react-toastify/dist/ReactToastify.css';
 import { InputField } from 'renderer/components/InputField';
 import { SingleTableItem } from 'renderer/components/TableComponents/SingleTableItem';
 import { TableHeader } from 'renderer/components/TableComponents/TableHeader';
+import { db } from 'renderer/firebase';
 import { Product } from 'renderer/interfaces/Product';
 import { StockHistory } from 'renderer/interfaces/StockHistory';
 import { Supplier } from 'renderer/interfaces/Supplier';
@@ -78,7 +77,7 @@ export default function ProductDetailPage() {
 
         // Fetch stock history
         const stockHistoryQuery = query(
-          collectionGroup(db, 'stock_history'),
+          collection(db, 'stock_history'),
           where('product', '==', productRef.id)
         );
         const stockHistoryQuerySnapshot = await getDocs(stockHistoryQuery);

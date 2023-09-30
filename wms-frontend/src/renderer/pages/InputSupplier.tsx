@@ -1,4 +1,3 @@
-import { db } from 'firebase';
 import { addDoc, collection } from 'firebase/firestore';
 import { useEffect, useState } from 'react';
 import { AiOutlineLoading3Quarters } from 'react-icons/ai';
@@ -7,6 +6,7 @@ import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { AreaField } from 'renderer/components/AreaField';
 import { InputField } from 'renderer/components/InputField';
+import { db } from 'renderer/firebase';
 import { Supplier } from 'renderer/interfaces/Supplier';
 import { PageLayout } from 'renderer/layout/PageLayout';
 const newSupplierInitialState = {
@@ -31,7 +31,7 @@ function InputSupplier() {
   const failNotify = (e?: string) => toast.error(e ?? 'Supplier Failed to Add');
   const [isEmpty, setIsEmpty] = useState(false);
 
-  //check all of the input empty or not
+  // Check all of the input empty or not
   useEffect(() => {
     if (
       newSupplier.company_name === '' &&

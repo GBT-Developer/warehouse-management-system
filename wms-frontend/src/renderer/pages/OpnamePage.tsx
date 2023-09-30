@@ -1,5 +1,4 @@
 import { format } from 'date-fns';
-import { db } from 'firebase';
 import {
   collection,
   doc,
@@ -14,6 +13,7 @@ import { BarChart } from 'renderer/components/BarChart';
 import DateRangeComp from 'renderer/components/DateRangeComp';
 import { SingleTableItem } from 'renderer/components/TableComponents/SingleTableItem';
 import { TableHeader } from 'renderer/components/TableComponents/TableHeader';
+import { db } from 'renderer/firebase';
 import { Invoice } from 'renderer/interfaces/Invoice';
 import { PageLayout } from 'renderer/layout/PageLayout';
 import { useAuth } from 'renderer/providers/AuthProvider';

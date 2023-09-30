@@ -1,11 +1,11 @@
-import { db } from 'firebase';
-import { collectionGroup, getDocs, query, where } from 'firebase/firestore';
+import { collection, getDocs, query, where } from 'firebase/firestore';
 import { useEffect, useState } from 'react';
 import { AiOutlineLoading3Quarters } from 'react-icons/ai';
 import { GoTriangleDown, GoTriangleUp } from 'react-icons/go';
 import { SingleTableItem } from 'renderer/components/TableComponents/SingleTableItem';
 import { TableHeader } from 'renderer/components/TableComponents/TableHeader';
 import { TableTitle } from 'renderer/components/TableComponents/TableTitle';
+import { db } from 'renderer/firebase';
 import { StockHistory } from 'renderer/interfaces/StockHistory';
 import { PageLayout } from 'renderer/layout/PageLayout';
 import { useAuth } from 'renderer/providers/AuthProvider';
@@ -19,7 +19,7 @@ function StockHistoryPage() {
   useEffect(() => {
     const fetchData = async () => {
       const q = query(
-        collectionGroup(db, 'stock_history'),
+        collection(db, 'stock_history'),
         warehousePosition !== 'Both'
           ? where('warehouse_position', '==', warehousePosition)
           : where('warehouse_position', 'in', ['Gudang Bahan', 'Gudang Jadi'])

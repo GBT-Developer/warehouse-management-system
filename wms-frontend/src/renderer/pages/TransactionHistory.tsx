@@ -1,6 +1,5 @@
-import { db } from 'firebase';
 import {
-  collectionGroup,
+  collection,
   deleteDoc,
   doc,
   getDocs,
@@ -15,6 +14,7 @@ import 'react-toastify/dist/ReactToastify.css';
 import { SingleTableItem } from 'renderer/components/TableComponents/SingleTableItem';
 import { TableHeader } from 'renderer/components/TableComponents/TableHeader';
 import { TableTitle } from 'renderer/components/TableComponents/TableTitle';
+import { db } from 'renderer/firebase';
 import { Invoice } from 'renderer/interfaces/Invoice';
 import { PageLayout } from 'renderer/layout/PageLayout';
 import { useAuth } from 'renderer/providers/AuthProvider';
@@ -33,7 +33,7 @@ export default function TransactionHistory() {
     const fetchData = async () => {
       setLoading(true);
       const q = query(
-        collectionGroup(db, 'invoice'),
+        collection(db, 'invoice'),
         warehousePosition !== 'Both'
           ? where('warehouse_position', '==', warehousePosition)
           : where('warehouse_position', 'in', ['Gudang Bahan', 'Gudang Jadi'])
@@ -169,7 +169,7 @@ export default function TransactionHistory() {
                                   newInvoiceHistroy.splice(index, 1);
                                   setInvoiceHistory(newInvoiceHistroy);
                                 })
-                                .catch((error) => failNotify(error));
+                                .catch(() => failNotify());
                               setLoading(false);
                               successNotify();
                             }}
@@ -189,7 +189,13 @@ export default function TransactionHistory() {
                                     className="py-[0.75rem]"
                                   >
                                     <div>
-                                      {product.brand}: {product.count}x
+                                      <span>{product.brand + ' '}</span>
+                                      <span>{product.motor_type + ' '}</span>
+                                      <span>{product.part + ' '}</span>
+                                      <span>
+                                        {product.available_color}:
+                                      </span>{' '}
+                                      <span>{product.count}x</span>
                                     </div>
                                   </div>
                                 )

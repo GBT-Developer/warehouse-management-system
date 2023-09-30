@@ -1,4 +1,3 @@
-import { db } from 'firebase';
 import {
   collection,
   documentId,
@@ -11,6 +10,7 @@ import { AiOutlineLoading3Quarters } from 'react-icons/ai';
 import { SingleTableItem } from 'renderer/components/TableComponents/SingleTableItem';
 import { TableHeader } from 'renderer/components/TableComponents/TableHeader';
 import { TableTitle } from 'renderer/components/TableComponents/TableTitle';
+import { db } from 'renderer/firebase';
 import { Product } from 'renderer/interfaces/Product';
 import { Supplier } from 'renderer/interfaces/Supplier';
 import { PageLayout } from 'renderer/layout/PageLayout';

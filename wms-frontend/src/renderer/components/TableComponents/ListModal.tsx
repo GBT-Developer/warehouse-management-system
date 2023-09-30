@@ -1,7 +1,7 @@
 import { collection, getDocs, query } from '@firebase/firestore';
-import { db } from 'firebase';
 import React, { useEffect, useState } from 'react';
 import { AiOutlineLoading3Quarters } from 'react-icons/ai';
+import { db } from 'renderer/firebase';
 import { Product } from 'renderer/interfaces/Product';
 import { SingleTableItem } from './SingleTableItem';
 import { TableHeader } from './TableHeader';

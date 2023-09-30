@@ -1,4 +1,3 @@
-import { db } from 'firebase';
 import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import { useEffect, useState } from 'react';
 import { AiFillEdit, AiOutlineLoading3Quarters } from 'react-icons/ai';
@@ -9,6 +8,7 @@ import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { AreaField } from 'renderer/components/AreaField';
 import { InputField } from 'renderer/components/InputField';
+import { db } from 'renderer/firebase';
 import { Supplier } from 'renderer/interfaces/Supplier';
 import { PageLayout } from 'renderer/layout/PageLayout';
 export default function SupplierDetailPage() {

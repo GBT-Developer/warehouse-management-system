@@ -1,4 +1,3 @@
-import { db } from 'firebase';
 import { FirebaseError } from 'firebase/app';
 import { collection, deleteDoc, doc, getDocs, query } from 'firebase/firestore';
 import { useEffect, useState } from 'react';
@@ -10,6 +9,7 @@ import 'react-toastify/dist/ReactToastify.css';
 import { SingleTableItem } from 'renderer/components/TableComponents/SingleTableItem';
 import { TableHeader } from 'renderer/components/TableComponents/TableHeader';
 import { TableTitle } from 'renderer/components/TableComponents/TableTitle';
+import { db } from 'renderer/firebase';
 import { CustomUser } from 'renderer/interfaces/CustomUser';
 import { PageLayout } from 'renderer/layout/PageLayout';
 

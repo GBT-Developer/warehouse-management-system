@@ -1,5 +1,4 @@
 import { format } from 'date-fns';
-import { db } from 'firebase';
 import {
   collection,
   documentId,
@@ -12,6 +11,7 @@ import { useEffect, useState } from 'react';
 import { AiOutlineLoading3Quarters } from 'react-icons/ai';
 import { FcComboChart } from 'react-icons/fc';
 import { GiMoneyStack } from 'react-icons/gi';
+import { db } from 'renderer/firebase';
 import { Invoice } from 'renderer/interfaces/Invoice';
 import { PurchaseHistory } from 'renderer/interfaces/PurchaseHistory';
 import { Supplier } from 'renderer/interfaces/Supplier';
@@ -27,6 +27,7 @@ function HomePage() {
 
   useEffect(() => {
     const fetchSupplierPurchase = async () => {
+      setLoading(true);
       try {
         const q = query(
           collection(db, 'purchase_history'),
@@ -78,6 +79,7 @@ function HomePage() {
       } catch (error) {
         console.error('Error fetching data:', error);
       }
+      setLoading(false);
     };
 
     const fetchTodaysInvoice = async () => {
@@ -97,11 +99,9 @@ function HomePage() {
           invoices.push(data);
         });
 
-        console.log(invoices);
-
         invoices.forEach((invoice) => {
           invoice.items?.forEach((item) => {
-            totalPurchasePrice += item.purchase_price * item.count;
+            totalPurchasePrice += item.sell_price * item.count;
           });
         });
 

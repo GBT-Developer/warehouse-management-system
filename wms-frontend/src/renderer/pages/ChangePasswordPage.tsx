@@ -1,4 +1,3 @@
-import { auth } from 'firebase';
 import {
   EmailAuthProvider,
   reauthenticateWithCredential,
@@ -6,6 +5,7 @@ import {
 } from 'firebase/auth';
 import { FormEvent, useState } from 'react';
 import { AuthCard } from 'renderer/components/AuthCard';
+import { auth } from 'renderer/firebase';
 import { PageLayout } from 'renderer/layout/PageLayout';
 
 export const ChangePasswordPage = () => {
@@ -18,25 +18,23 @@ export const ChangePasswordPage = () => {
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const user = auth.currentUser;
-    if (!user) {
-      return;
-    }
+    if (!user) return;
+
     try {
       await reauthenticateWithCredential(
         user,
         EmailAuthProvider.credential(user.email!, password)
       );
-      if (newPassword === confirmNewPassword) {
+      if (newPassword === confirmNewPassword)
         await updatePassword(user, newPassword);
-      } else {
-        throw new Error('Passwords do not match');
-      }
+      else throw new Error('Passwords do not match');
+
       setSuccess(true);
       setPassword('');
       setNewPassword('');
       setConfirmNewPassword('');
     } catch (err) {
-      const errString = (err as Error).message as string;
+      const errString = (err as Error).message;
       setError(errString.replace('Firebase:', '').replace('auth/', ''));
       setTimeout(() => {
         setError('');

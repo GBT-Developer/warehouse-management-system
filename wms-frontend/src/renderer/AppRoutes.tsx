@@ -1,4 +1,3 @@
-import { auth } from 'firebase';
 import { onAuthStateChanged } from 'firebase/auth';
 import React, { useEffect, useState } from 'react';
 import {
@@ -8,6 +7,7 @@ import {
   Routes,
   useLocation,
 } from 'react-router-dom';
+import { auth } from 'renderer/firebase';
 import { AdminListPage } from './pages/AdminListPage';
 import { BrokenProductListPage } from './pages/BrokenProductListPage';
 import { ChangePasswordPage } from './pages/ChangePasswordPage';
