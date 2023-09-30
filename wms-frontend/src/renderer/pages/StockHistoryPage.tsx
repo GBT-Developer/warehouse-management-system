@@ -35,14 +35,6 @@ function StockHistoryPage() {
         stockHistoryData.push(data);
       });
 
-      // Set stock history sorted by date
-      stockHistoryData.sort((a, b) => {
-        if (a.created_at === undefined || b.created_at === undefined) return 0;
-        return (
-          new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-        );
-      });
-
       // Sort based the new count and old count of the same product on the same date
       for (let i = 0; i < stockHistoryData.length; i++)
         for (let j = i + 1; j < stockHistoryData.length; j++)
@@ -111,6 +103,22 @@ function StockHistoryPage() {
                         stockHistory.created_at?.toLowerCase().includes(search)
                       )
                         return stockHistory;
+                    })
+                    .sort((a, b) => {
+                      if (a.time === undefined || b.time === undefined)
+                        return 0;
+                      return a.time > b.time ? -1 : 1;
+                    })
+                    .sort((a, b) => {
+                      if (
+                        a.created_at === undefined ||
+                        b.created_at === undefined
+                      )
+                        return 0;
+                      return (
+                        new Date(b.created_at).getTime() -
+                        new Date(a.created_at).getTime()
+                      );
                     })
                     .map((stock_history: StockHistory, index) => (
                       <tr key={index} className="border-b">

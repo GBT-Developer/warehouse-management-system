@@ -49,12 +49,6 @@ export default function TransactionHistory() {
         stockHistoryData.push(data);
       });
 
-      // Set stock history sorted by date
-      stockHistoryData.sort((a, b) => {
-        if (a.date === undefined || b.date === undefined) return 0;
-        return new Date(b.date).getTime() - new Date(a.date).getTime();
-      });
-
       setInvoiceHistory(stockHistoryData);
       setLoading(false);
     };
@@ -106,6 +100,9 @@ export default function TransactionHistory() {
                         .includes(search.toLowerCase())
                     )
                       return invoiceHistory;
+                  })
+                  .sort((a, b) => {
+                    return a.time > b.time ? -1 : 1;
                   })
                   .sort((a, b) => {
                     if (a.date === undefined || b.date === undefined) return 0;

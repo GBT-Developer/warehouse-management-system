@@ -103,6 +103,9 @@ export default function VoidListPage() {
                       );
                     })
                     .sort((a, b) => {
+                      return a.time > b.time ? -1 : 1;
+                    })
+                    .sort((a, b) => {
                       if (a.date === undefined || b.date === undefined)
                         return 0;
                       return (

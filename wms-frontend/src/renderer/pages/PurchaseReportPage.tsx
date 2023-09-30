@@ -110,11 +110,9 @@ export default function PurchaseHistoryPage() {
                       .includes(search.toLowerCase());
                   })
                   .sort((a, b) => {
-                    if (
-                      a.created_at === undefined ||
-                      b.created_at === undefined
-                    )
-                      return 0;
+                    return a.time > b.time ? -1 : 1;
+                  })
+                  .sort((a, b) => {
                     return (
                       new Date(b.created_at).getTime() -
                       new Date(a.created_at).getTime()
