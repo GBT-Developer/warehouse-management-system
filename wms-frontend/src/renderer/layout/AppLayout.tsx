@@ -1,7 +1,7 @@
 import React from 'react';
-import { NavItem } from './Nav';
-import { BaseLayout, BaseLayoutProps } from './BaseLayout';
 import { useAuth } from '../providers/AuthProvider';
+import { BaseLayout, BaseLayoutProps } from './BaseLayout';
+import { NavItem } from './Nav';
 
 export type AppLayoutProps = Partial<BaseLayoutProps>;
 
@@ -26,7 +26,7 @@ export const AppLayout = ({ children }: AppLayoutProps) => {
     window.scrollTo(0, 0);
   }, []);
 
-  // check whether user is logged in or not, since navbar buttons are different for logged in user
+  // Check whether user is logged in or not, since navbar buttons are different for logged in user
   const { isLoggedIn } = useAuth();
 
   return (
