@@ -158,60 +158,63 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     }
   }, []);
 
-  const onRegister = React.useCallback(async (registerData: RegisterData) => {
-    if (!registerData.email || !registerData.password)
-      return Promise.reject('Please fill all fields');
+  const onRegister = React.useCallback(
+    async (registerData: RegisterData) => {
+      if (!registerData.email || !registerData.password)
+        return Promise.reject('Please fill all fields');
 
-    if (!user || user.role.toLocaleLowerCase() !== 'owner')
-      return Promise.reject('Only owner can create admin');
+      if (!user || user.role.toLocaleLowerCase() !== 'owner')
+        return Promise.reject('Only owner can create admin');
 
-    try {
-      const userCredential = await createUserWithEmailAndPassword(
-        secondaryAuth,
-        registerData.email,
-        registerData.password
-      ).catch((error: FirebaseError) => {
-        let errMessage = '';
-        switch (error.code) {
-          case 'auth/email-already-in-use':
-            errMessage = 'Email already in use';
-            break;
-          case 'auth/invalid-email':
-            errMessage = 'Invalid email';
-            break;
-          case 'auth/weak-password':
-            errMessage = 'Weak password';
-            break;
-          default:
-            errMessage = 'Something went wrong';
-            break;
-        }
-        return Promise.reject(errMessage);
-      });
+      try {
+        const userCredential = await createUserWithEmailAndPassword(
+          secondaryAuth,
+          registerData.email,
+          registerData.password
+        ).catch((error: FirebaseError) => {
+          let errMessage = '';
+          switch (error.code) {
+            case 'auth/email-already-in-use':
+              errMessage = 'Email already in use';
+              break;
+            case 'auth/invalid-email':
+              errMessage = 'Invalid email';
+              break;
+            case 'auth/weak-password':
+              errMessage = 'Weak password';
+              break;
+            default:
+              errMessage = 'Something went wrong';
+              break;
+          }
+          return Promise.reject(errMessage);
+        });
 
-      await runTransaction(db, (transaction) => {
-        transaction.set(doc(db, 'user', userCredential.user.uid), {
+        await runTransaction(db, (transaction) => {
+          transaction.set(doc(db, 'user', userCredential.user.uid), {
+            display_name: registerData.display_name,
+            email: registerData.email,
+            role: registerData.role,
+          });
+
+          return Promise.resolve();
+        });
+
+        const theUser = {
           display_name: registerData.display_name,
           email: registerData.email,
           role: registerData.role,
-        });
+          id: userCredential.user.uid,
+        } as CustomUser;
 
-        return Promise.resolve();
-      });
-
-      const theUser = {
-        display_name: registerData.display_name,
-        email: registerData.email,
-        role: registerData.role,
-        id: userCredential.user.uid,
-      } as CustomUser;
-
-      return theUser;
-    } catch (error) {
-      const errorMessage = error as string;
-      return Promise.reject(errorMessage);
-    }
-  }, []);
+        return theUser;
+      } catch (error) {
+        const errorMessage = error as string;
+        return Promise.reject(errorMessage);
+      }
+    },
+    [user]
+  );
 
   const onChangeWarehouse = React.useCallback(
     (newWarehousePosition: string) => {
