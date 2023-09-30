@@ -23,8 +23,6 @@ export const ManageProductPage = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(false);
   const { warehousePosition } = useAuth();
-  const [page, setPage] = useState(1);
-  const [lastBrandKey, setLastBrandKey] = useState(null);
   const [nextPosts_loading, setNextPostsLoading] = useState(false);
   const [nextPosts_empty, setNextPostsEmpty] = useState(false);
   const [nextQuery, setNextQuery] = useState<QueryStartAtConstraint | null>(
@@ -59,7 +57,6 @@ export const ManageProductPage = () => {
           const data = theProduct.data() as Product;
           data.id = theProduct.id;
           productData.push(data);
-          setLastBrandKey(theProduct.data().brand);
         });
 
         const nextQ = startAfter(
@@ -90,7 +87,6 @@ export const ManageProductPage = () => {
           ? where('warehouse_position', '==', warehousePosition)
           : where('warehouse_position', 'in', ['Gudang Bahan', 'Gudang Jadi']),
         orderBy('brand', 'asc'),
-        startAfter(lastBrandKey),
         nextQuery,
         limit(50)
       );
@@ -112,13 +108,10 @@ export const ManageProductPage = () => {
         const data = theProduct.data() as Product;
         data.id = theProduct.id;
         productData.push(data);
-        setLastBrandKey(theProduct.data().brand);
       });
 
       setProducts((prev) => [...prev, ...productData]);
       setNextPostsLoading(false);
-
-      setPage(page + 1);
     } catch (error) {
       console.error('Error fetching data:', error);
     }
@@ -240,16 +233,25 @@ export const ManageProductPage = () => {
                 )}
               </tbody>
             </table>
-            <div className="flex justify-center w-full pt-5">
-              <button
-                className={`bg-gray-300 hover:bg-gray-400 text-white px-6 py-1 rounded text-sm`}
-                hidden={nextPosts_empty}
-                disabled={nextPosts_loading}
-                onClick={fetchMoreData}
-              >
-                {nextPosts_loading ? 'Loading...' : 'Load More'}
-              </button>
-            </div>
+            {nextPosts_empty ? (
+              <div className="flex justify-center items-center py-6 px-3 w-full">
+                <p className="text-gray-500 text-sm">No more data</p>
+              </div>
+            ) : (
+              <div className="flex justify-center items-center py-6 px-3 w-full">
+                <button
+                  className="text-gray-500 text-sm hover:underline"
+                  onClick={fetchMoreData}
+                  disabled={nextPosts_loading}
+                >
+                  {nextPosts_loading ? (
+                    <AiOutlineLoading3Quarters className="animate-spin flex justify-center text-4xl" />
+                  ) : (
+                    'Load more'
+                  )}
+                </button>
+              </div>
+            )}
           </div>
           <div className="flex flex-row-reverse gap-2 w-full justify-start">
             <button
