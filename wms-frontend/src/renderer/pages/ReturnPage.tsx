@@ -284,7 +284,7 @@ export default function ReturnPage() {
           customer_id: selectedCustomer?.id ?? '',
           customer_name: selectedCustomer?.name ?? invoice.customer_name ?? '',
           total_price: total_price,
-          warehousePosition: selectedNewItems[0].warehouse_position,
+          warehouse_position: selectedNewItems[0].warehouse_position,
           items: selectedNewItems.map((selectedNewItem) => {
             return {
               ...selectedNewItem,
