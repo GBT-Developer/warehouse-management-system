@@ -18,10 +18,12 @@ import { TableHeader } from 'renderer/components/TableComponents/TableHeader';
 import { TableTitle } from 'renderer/components/TableComponents/TableTitle';
 import { PurchaseHistory } from 'renderer/interfaces/PurchaseHistory';
 import { PageLayout } from 'renderer/layout/PageLayout';
+import { useAuth } from 'renderer/providers/AuthProvider';
 
 export default function PurchaseHistoryPage() {
   const [loading, setLoading] = useState(false);
   const param = useParams();
+  const { warehousePosition } = useAuth();
   const [purchaseList, setPurchaseList] = useState<PurchaseHistory[]>([]);
   const [search, setSearch] = useState('');
   const [showProductsMap, setShowProductsMap] = useState<
@@ -45,9 +47,18 @@ export default function PurchaseHistoryPage() {
 
         const q = query(
           collection(db, 'purchase_history'),
-          where('supplier', '==', param.id)
+          where('supplier', '==', param.id),
+          warehousePosition !== 'Both'
+            ? where('warehouse_position', '==', warehousePosition)
+            : where('warehouse_position', 'in', ['Gudang Bahan', 'Gudang Jadi'])
         );
         const querySnapshot = await getDocs(q);
+
+        if (querySnapshot.empty) {
+          setPurchaseList([]);
+          setLoading(false);
+          return;
+        }
 
         const historyData: PurchaseHistory[] = [];
         querySnapshot.forEach((doc) => {
@@ -66,7 +77,7 @@ export default function PurchaseHistoryPage() {
     fetchData().catch((error) => {
       console.log(error);
     });
-  }, [param.id]);
+  }, [param.id, warehousePosition]);
 
   return (
     <PageLayout>

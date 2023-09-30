@@ -22,6 +22,7 @@ import { TableModal } from 'renderer/components/TableComponents/TableModal';
 import { DispatchNote } from 'renderer/interfaces/DispatchNote';
 import { Product } from 'renderer/interfaces/Product';
 import { PageLayout } from 'renderer/layout/PageLayout';
+import { useAuth } from 'renderer/providers/AuthProvider';
 const newDispatchNoteInitialStates: DispatchNote = {
   painter: '',
   date: '',
@@ -31,6 +32,7 @@ const newDispatchNoteInitialStates: DispatchNote = {
 export const TransferItemPage = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
+  const { warehousePosition } = useAuth();
   const [modalOpen, setModalOpen] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [dispatchNote, setDispatchNote] = useState<DispatchNote>(
@@ -68,6 +70,10 @@ export const TransferItemPage = () => {
         }
       });
   }, [dispatchNote]);
+
+  useEffect(() => {
+    if (warehousePosition === 'Gudang Jadi') navigate('/');
+  }, [warehousePosition]);
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();

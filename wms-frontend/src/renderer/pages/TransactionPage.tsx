@@ -29,6 +29,7 @@ import { useAuth } from 'renderer/providers/AuthProvider';
 export const TransactionPage = () => {
   const navigate = useNavigate();
   const { warehousePosition } = useAuth();
+  const [initialLoad, setInitialLoad] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [customerList, setCustomerList] = useState<Customer[]>([]);
@@ -85,6 +86,13 @@ export const TransactionPage = () => {
     fetchCustomer().catch((error) => {
       console.log(error);
     });
+  }, []);
+
+  useEffect(() => {
+    if (!initialLoad) {
+      navigate('/');
+    }
+    setInitialLoad(false);
   }, [warehousePosition]);
   // Check all of the input empty or not
   useEffect(() => {

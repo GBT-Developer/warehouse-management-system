@@ -7,6 +7,7 @@ export interface PurchaseHistory {
   supplier: Supplier | null;
   purchase_price: number;
   payment_status: string;
+  warehouse_position: string;
   products: {
     id: string;
     name: string;

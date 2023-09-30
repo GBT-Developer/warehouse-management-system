@@ -14,16 +14,23 @@ import { TableTitle } from 'renderer/components/TableComponents/TableTitle';
 import { Product } from 'renderer/interfaces/Product';
 import { Supplier } from 'renderer/interfaces/Supplier';
 import { PageLayout } from 'renderer/layout/PageLayout';
+import { useAuth } from 'renderer/providers/AuthProvider';
 
 export const ReturnedProductListPage = () => {
   const [search, setSearch] = useState('');
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(false);
+  const { warehousePosition } = useAuth();
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const productsQuery = query(collection(db, 'returned_product'));
+        const productsQuery = query(
+          collection(db, 'returned_product'),
+          warehousePosition !== 'Both'
+            ? where('warehouse_position', '==', warehousePosition)
+            : where('warehouse_position', 'in', ['Gudang Bahan', 'Gudang Jadi'])
+        );
         setLoading(true);
         const querySnapshot = await getDocs(productsQuery);
 
@@ -37,6 +44,7 @@ export const ReturnedProductListPage = () => {
             count: string;
             motor_type: string;
             part: string;
+            warehouse_position: string;
             supplier: string;
           };
           // Check if the supplier is already in the map
@@ -45,6 +53,7 @@ export const ReturnedProductListPage = () => {
         });
 
         if (suppliersMap.size === 0) {
+          setProducts([]);
           setLoading(false);
           return;
         }
@@ -82,7 +91,7 @@ export const ReturnedProductListPage = () => {
     fetchData().catch((error) => {
       console.log(error);
     });
-  }, []);
+  }, [warehousePosition]);
 
   return (
     <PageLayout>

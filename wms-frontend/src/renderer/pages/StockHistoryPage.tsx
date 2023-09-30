@@ -27,6 +27,12 @@ function StockHistoryPage() {
 
       const querySnapshot = await getDocs(q);
 
+      if (querySnapshot.empty) {
+        setStockHistory([]);
+        setLoading(false);
+        return;
+      }
+
       const stockHistoryData: StockHistory[] = [];
       querySnapshot.forEach((theStockHistory) => {
         const data = theStockHistory.data() as StockHistory;

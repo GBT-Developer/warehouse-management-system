@@ -31,6 +31,12 @@ export const ManageProductPage = () => {
         setLoading(true);
         const querySnapshot = await getDocs(productsQuery);
 
+        if (querySnapshot.empty) {
+          setProducts([]);
+          setLoading(false);
+          return;
+        }
+
         const productData: Product[] = [];
         querySnapshot.forEach((theProduct) => {
           const data = theProduct.data() as Product;

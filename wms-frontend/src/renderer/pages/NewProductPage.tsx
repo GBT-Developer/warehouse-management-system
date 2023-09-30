@@ -18,6 +18,7 @@ import { Product } from 'renderer/interfaces/Product';
 import { PurchaseHistory } from 'renderer/interfaces/PurchaseHistory';
 import { Supplier } from 'renderer/interfaces/Supplier';
 import { PageLayout } from 'renderer/layout/PageLayout';
+import { useAuth } from 'renderer/providers/AuthProvider';
 
 const newProductInitialState = {
   brand: '',
@@ -44,6 +45,7 @@ const newPurchaseInitialState = {
   purchase_price: 0,
   supplier: null,
   payment_status: 'unpaid',
+  warehouse_position: '',
   products: [],
   time: '',
 } as PurchaseHistory;
@@ -51,6 +53,8 @@ const newPurchaseInitialState = {
 export const NewProductPage = () => {
   const [newProduct, setNewProduct] = useState<Product>(newProductInitialState);
   const navigate = useNavigate();
+  const [initialLoad, setInitialLoad] = useState(true);
+  const { warehousePosition } = useAuth();
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const warehouseOptionRef = useRef<HTMLSelectElement>(null);
   const supplierOptionRef = useRef<HTMLSelectElement>(null);
@@ -121,6 +125,11 @@ export const NewProductPage = () => {
     }
     console.log('isEmpty', isEmpty);
   }, [newProduct, newPurchase]);
+  useEffect(() => {
+    if (!initialLoad) navigate('/');
+
+    setInitialLoad(false);
+  }, [warehousePosition]);
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
@@ -183,6 +192,7 @@ export const NewProductPage = () => {
         time: theTime,
         purchase_price: newProduct.purchase_price,
         payment_status: newPurchase.payment_status,
+        warehouse_position: newProduct.warehouse_position,
         supplier: newSupplierRef ? newSupplierRef.id : newProduct.supplier?.id,
         products: [
           {
@@ -316,8 +326,12 @@ export const NewProductPage = () => {
                 <option value={''} disabled>
                   Choose Warehouse
                 </option>
-                <option value="Gudang Jadi">Gudang Jadi</option>
-                <option value="Gudang Bahan">Gudang Bahan</option>
+                {warehousePosition !== 'Gudang Bahan' && (
+                  <option value="Gudang Jadi">Gudang Jadi</option>
+                )}
+                {warehousePosition !== 'Gudang Jadi' && (
+                  <option value="Gudang Bahan">Gudang Bahan</option>
+                )}
               </select>
             </div>
           </div>

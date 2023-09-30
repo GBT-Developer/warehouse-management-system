@@ -5,6 +5,7 @@ import {
   and,
   collection,
   doc,
+  documentId,
   getDoc,
   getDocs,
   increment,
@@ -26,6 +27,7 @@ import { Customer } from 'renderer/interfaces/Customer';
 import { Invoice } from 'renderer/interfaces/Invoice';
 import { Product } from 'renderer/interfaces/Product';
 import { PageLayout } from 'renderer/layout/PageLayout';
+import { useAuth } from 'renderer/providers/AuthProvider';
 
 const invoiceInitialState: Invoice = {
   customer_id: '',
@@ -41,6 +43,8 @@ const invoiceInitialState: Invoice = {
 export default function ReturnPage() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
+  const { warehousePosition } = useAuth();
+  const [initialLoad, setInitialLoad] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [mode, setMode] = useState<'return' | 'exchange' | 'void' | ''>('');
   const [invoiceNumber, setInvoiceNumber] = useState('');
@@ -106,6 +110,13 @@ export default function ReturnPage() {
         return;
       }
   }, [invoiceNumber, selectedItems, mode, newTransaction, selectedNewItems]);
+
+  useEffect(() => {
+    if (!initialLoad) {
+      navigate('/');
+    }
+    setInitialLoad(false);
+  }, [warehousePosition]);
 
   const handleSubmit = async () => {
     // Check whether all inputs are filled
@@ -273,6 +284,7 @@ export default function ReturnPage() {
           customer_id: selectedCustomer?.id ?? '',
           customer_name: selectedCustomer?.name ?? invoice.customer_name ?? '',
           total_price: total_price,
+          warehousePosition: selectedNewItems[0].warehouse_position,
           items: selectedNewItems.map((selectedNewItem) => {
             return {
               ...selectedNewItem,
@@ -334,11 +346,17 @@ export default function ReturnPage() {
 
     try {
       setLoading(true);
-      const invoiceRef = doc(db, 'invoice', invoiceNumber);
-      const invoiceSnap = await getDoc(invoiceRef);
-      const invoiceData = invoiceSnap.data() as Invoice | undefined;
+      const invoiceQuery = query(
+        collection(db, 'invoice'),
+        where(documentId(), '==', invoiceNumber),
+        warehousePosition !== 'Both'
+          ? where('warehouse_position', '==', warehousePosition)
+          : where('warehouse_position', 'in', ['Gudang Bahan', 'Gudang Jadi'])
+      );
+      const invoiceSnap = await getDocs(invoiceQuery);
+      console.log(invoiceSnap.docs[0].data());
 
-      if (!invoiceData) {
+      if (invoiceSnap.empty) {
         setErrorMessage('Invoice not found');
         setTimeout(() => {
           setErrorMessage(null);
@@ -346,7 +364,9 @@ export default function ReturnPage() {
         setLoading(false);
         return;
       }
+      console.log(invoiceSnap.docs[0].data());
 
+      const invoiceData = invoiceSnap.docs[0].data() as Invoice;
       setInvoice(() => invoiceData);
 
       setCheckedItems(new Array(invoiceData.items?.length).fill(false));

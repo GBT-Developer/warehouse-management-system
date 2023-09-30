@@ -33,12 +33,13 @@ const newPurchaseInitialState = {
   purchase_price: 0,
   supplier: null,
   payment_status: 'unpaid',
+  warehouse_position: '',
   products: [],
   time: '',
 } as PurchaseHistory;
 
 export const ManageStockPage = () => {
-  const { user } = useAuth();
+  const { user, warehousePosition } = useAuth();
   const navigate = useNavigate();
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -65,6 +66,7 @@ export const ManageStockPage = () => {
   const selectedWarehouseRef = useRef<HTMLSelectElement>(null);
   const dateInputRef = React.useRef<HTMLInputElement>(null);
   const [returnedProduct, setReturnedProduct] = useState(false);
+  const [initialLoad, setInitialLoad] = useState(true);
 
   const successNotify = () => toast.success('Stock data successfully updated');
   const failNotify = (e?: string) =>
@@ -216,6 +218,12 @@ export const ManageStockPage = () => {
     setLoading(false);
   }, [manageStockMode, selectedSupplier, selectedWarehouse]);
 
+  useEffect(() => {
+    if (!initialLoad) navigate('/');
+
+    setInitialLoad(false);
+  }, [warehousePosition]);
+
   const handleSubmit = async () => {
     if (
       manageStockMode === '' ||
@@ -305,6 +313,7 @@ export const ManageStockPage = () => {
             time: theTime,
             purchase_price: newPurchase.purchase_price,
             payment_status: newPurchase.payment_status,
+            warehouse_position: products[0].warehouse_position,
             products: newPurchase.products.map((product, index) => ({
               id: product.id,
               name:
@@ -549,9 +558,11 @@ export const ManageStockPage = () => {
                 Choose change of stock mode
               </option>
               <option value="purchase">Purchase</option>
-              <option value="from_other_warehouse">
-                From raw material warehouse
-              </option>
+              {warehousePosition !== 'Gudang Bahan' && (
+                <option value="from_other_warehouse">
+                  From raw material warehouse
+                </option>
+              )}
               {user?.role.toLowerCase() === 'owner' && (
                 <option value="force-change">Force change</option>
               )}
