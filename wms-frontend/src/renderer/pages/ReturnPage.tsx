@@ -33,6 +33,9 @@ const invoiceInitialState: Invoice = {
   total_price: 0,
   payment_method: '',
   items: [],
+  date: '',
+  time: '',
+  warehouse_position: '',
 };
 
 export default function ReturnPage() {
@@ -74,9 +77,9 @@ export default function ReturnPage() {
   };
   const [isEmpty, setIsEmpty] = useState(false);
 
-  //check input Field
+  // Check input Field
   useEffect(() => {
-    if (mode === 'return' || mode === 'exchange') {
+    if (mode === 'return' || mode === 'exchange')
       if (invoiceNumber === '' || selectedItems.length === 0) {
         setIsEmpty(true);
         return;
@@ -84,7 +87,7 @@ export default function ReturnPage() {
         setIsEmpty(false);
         return;
       }
-    } else if (mode === 'void') {
+    else if (mode === 'void')
       if (
         invoiceNumber === '' ||
         selectedNewItems.length === 0 ||
@@ -102,7 +105,6 @@ export default function ReturnPage() {
         setIsEmpty(false);
         return;
       }
-    }
   }, [invoiceNumber, selectedItems, mode, newTransaction, selectedNewItems]);
 
   const handleSubmit = async () => {
@@ -235,7 +237,7 @@ export default function ReturnPage() {
         reduceSalesStats(invoice, false).catch((err) => console.log(err));
         return Promise.all(promises);
       });
-    } else {
+    } else
       await runTransaction(db, (transaction) => {
         // Delete the invoice
         transaction.delete(doc(db, 'invoice', invoiceNumber));
@@ -262,12 +264,11 @@ export default function ReturnPage() {
         const currentDateandTime = new Date();
         if (!newTransaction.date) return Promise.reject('Date not found');
         let theTime = '';
-        //if invoice date is the same as current date, take the current time
-        if (newTransaction.date === format(currentDateandTime, 'yyyy-MM-dd')) {
+        // If invoice date is the same as current date, take the current time
+        if (newTransaction.date === format(currentDateandTime, 'yyyy-MM-dd'))
           theTime = format(currentDateandTime, 'HH:mm:ss');
-        } else {
-          theTime = '23:59:59';
-        }
+        else theTime = '23:59:59';
+
         transaction.set(doc(collection(db, 'invoice')), {
           customer_id: selectedCustomer?.id ?? '',
           customer_name: selectedCustomer?.name ?? invoice.customer_name ?? '',
@@ -278,7 +279,8 @@ export default function ReturnPage() {
               is_returned: false,
             };
           }),
-          date: newTransaction.date + ' ' + theTime,
+          date: newTransaction.date,
+          time: theTime,
           payment_method: newTransaction.payment_method,
         });
         // Reduce the sales stats
@@ -296,13 +298,13 @@ export default function ReturnPage() {
             }),
             date: new Date().toISOString().slice(0, 10),
             payment_method: newTransaction.payment_method,
+            time: theTime,
           },
           true
         ).catch((err) => console.log(err));
 
         return Promise.resolve();
       });
-    }
 
     // Clear the form
     setInvoiceNumber('');

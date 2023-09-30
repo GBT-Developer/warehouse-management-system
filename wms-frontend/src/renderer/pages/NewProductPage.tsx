@@ -45,6 +45,7 @@ const newPurchaseInitialState = {
   supplier: null,
   payment_status: 'unpaid',
   products: [],
+  time: '',
 } as PurchaseHistory;
 
 export const NewProductPage = () => {
@@ -90,7 +91,7 @@ export const NewProductPage = () => {
     });
   }, []);
 
-  //check all of the input empty or not
+  // Check all of the input empty or not
   useEffect(() => {
     if (
       newProduct.brand === '' ||
@@ -171,16 +172,15 @@ export const NewProductPage = () => {
       const currentDateandTime = new Date();
       if (!newPurchase.created_at) return Promise.reject('Date not found');
       let theTime = '';
-      //if invoice date is the same as current date, take the current time
-      if (newPurchase.created_at === format(currentDateandTime, 'yyyy-MM-dd')) {
+      // If invoice date is the same as current date, take the current time
+      if (newPurchase.created_at === format(currentDateandTime, 'yyyy-MM-dd'))
         theTime = format(currentDateandTime, 'HH:mm:ss');
-      } else {
-        theTime = '23:59:59';
-      }
+      else theTime = '23:59:59';
 
       transaction.set(newPurchaseRef, {
         ...newPurchase,
-        created_at: newPurchase.created_at + ' ' + theTime,
+        created_at: newPurchase.created_at,
+        time: theTime,
         purchase_price: newProduct.purchase_price,
         payment_status: newPurchase.payment_status,
         supplier: newSupplierRef ? newSupplierRef.id : newProduct.supplier?.id,

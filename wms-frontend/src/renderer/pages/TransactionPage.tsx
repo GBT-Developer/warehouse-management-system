@@ -43,6 +43,7 @@ export const TransactionPage = () => {
     total_price: 0,
     payment_method: '',
     items: [],
+    time: '',
   });
   const [products, setProducts] = useState<Product[]>([]);
   const [selectedProducts, setSelectedProducts] = useState<Product[]>([]);
@@ -195,7 +196,8 @@ export const TransactionPage = () => {
           customer_id: selectedCustomer?.id ?? '',
           customer_name: selectedCustomer?.name ?? invoice.customer_name,
           // Current date
-          date: invoice.date + ' ' + theTime,
+          date: invoice.date,
+          time: theTime,
           total_price: totalPrice,
           payment_method: invoice.payment_method,
           warehouse_position: invoice.items[0].warehouse_position,
@@ -218,6 +220,7 @@ export const TransactionPage = () => {
         total_price: 0,
         payment_method: '',
         items: [],
+        time: '',
       });
       setSelectedProducts([]);
       setSelectedCustomer(null);

@@ -34,6 +34,7 @@ const newPurchaseInitialState = {
   supplier: null,
   payment_status: 'unpaid',
   products: [],
+  time: '',
 } as PurchaseHistory;
 
 export const ManageStockPage = () => {
@@ -235,17 +236,6 @@ export const ManageStockPage = () => {
         )) ||
       newPurchase.created_at === ''
     ) {
-      console.log('selectedSupplier', selectedSupplier);
-      console.log('newPurchase.products.length', newPurchase.products.length);
-      console.log('newPurchase.purchase_price');
-      console.log('selectedWarehouse', selectedWarehouse);
-      console.log('dateInputRef.current?.value', dateInputRef.current?.value);
-      console.log('returnedProduct', returnedProduct);
-      console.log('dispatchNote', dispatchNote);
-      console.log('acceptedProducts', acceptedProducts);
-      console.log('products', products);
-      console.log('newPurchase.created_at', newPurchase.created_at);
-
       setErrorMessage('Please fill all the required fields');
       setTimeout(() => {
         setErrorMessage(null);
@@ -298,7 +288,8 @@ export const ManageStockPage = () => {
             difference: product.quantity,
             warehouse_position: selectedWarehouse,
             type: 'purchase',
-            created_at: newPurchase.created_at + ' ' + theTime,
+            created_at: newPurchase.created_at,
+            time: theTime,
           });
         });
 
@@ -310,7 +301,8 @@ export const ManageStockPage = () => {
 
           transaction.set(newPurchaseHistoryDocRef, {
             supplier: selectedSupplier.id,
-            created_at: newPurchase.created_at + ' ' + theTime,
+            created_at: newPurchase.created_at,
+            time: theTime,
             purchase_price: newPurchase.purchase_price,
             payment_status: newPurchase.payment_status,
             products: newPurchase.products.map((product, index) => ({
@@ -383,7 +375,8 @@ export const ManageStockPage = () => {
               count: acceptedProduct.count + theOldCount,
               warehouse_position: selectedWarehouse,
               type: 'from_other_warehouse',
-              created_at: newPurchase.created_at + ' ' + theTime,
+              created_at: newPurchase.created_at,
+              time: theTime,
             },
             {
               merge: true,
