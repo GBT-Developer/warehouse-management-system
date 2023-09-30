@@ -74,6 +74,13 @@ export default function OpnamePage() {
         );
         const invoiceListDoc = await getDocs(q);
 
+        if (invoiceListDoc.empty) {
+          setInvoiceList([]);
+          setLoading(false);
+          setNextPostsEmpty(true);
+          return;
+        }
+
         setNextQuery(() =>
           startAfter(invoiceListDoc.docs[invoiceListDoc.size - 1])
         );
