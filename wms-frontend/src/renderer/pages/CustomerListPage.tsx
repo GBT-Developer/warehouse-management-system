@@ -66,7 +66,11 @@ export default function CustomerListPage() {
   }, []);
 
   const fetchNextPosts = async () => {
-    if (nextQuery === null) return;
+    if (nextQuery === null) {
+      setNextPostsEmpty(true);
+      setNextPostsLoading(false);
+      return;
+    }
     setNextPostsLoading(true);
     try {
       const q = query(

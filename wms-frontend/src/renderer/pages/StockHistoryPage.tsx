@@ -94,7 +94,11 @@ function StockHistoryPage() {
   }, [warehousePosition]);
 
   const fetchNextPosts = async () => {
-    if (nextQuery === null) return;
+    if (nextQuery === null) {
+      setNextPostsEmpty(true);
+      setNextPostsLoading(false);
+      return;
+    }
     setNextPostsLoading(true);
     const q = query(
       collectionGroup(db, 'stock_history'),

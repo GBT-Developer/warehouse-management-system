@@ -64,7 +64,11 @@ export default function SupplierList() {
 
   // Take next product from firebase
   const fetchMoreData = async () => {
-    if (nextQuery === null) return;
+    if (nextQuery === null) {
+      setNextPostsEmpty(true);
+      setNextPostsLoading(false);
+      return;
+    }
     setNextPostsLoading(true);
     try {
       const q = query(
