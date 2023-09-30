@@ -113,6 +113,9 @@ export const BrokenProductListPage = () => {
           }
         );
       } else if (reason === 'painter') {
+        console.log('return to painter');
+        console.log(painterName);
+        console.log(activeProduct);
         // If the return was for a painter, create a new dispatch_note
         // Creating new dispatch_note
         const newDispatchNoteDocRef = doc(collection(db, 'dispatch_note'));

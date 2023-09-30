@@ -603,6 +603,7 @@ export const TransactionPage = () => {
                         available_color: product.available_color,
                         warehouse_position: product.warehouse_position,
                         purchase_price: product.purchase_price,
+                        supplier: product.supplier,
                         is_returned: false,
                       },
                     ],
