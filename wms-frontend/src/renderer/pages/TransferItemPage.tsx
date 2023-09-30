@@ -1,4 +1,3 @@
-import { db } from 'firebase';
 import {
   addDoc,
   and,
@@ -19,6 +18,7 @@ import 'react-toastify/dist/ReactToastify.css';
 import { InputField } from 'renderer/components/InputField';
 import { SingleTableItem } from 'renderer/components/TableComponents/SingleTableItem';
 import { TableModal } from 'renderer/components/TableComponents/TableModal';
+import { db } from 'renderer/firebase';
 import { DispatchNote } from 'renderer/interfaces/DispatchNote';
 import { Product } from 'renderer/interfaces/Product';
 import { PageLayout } from 'renderer/layout/PageLayout';

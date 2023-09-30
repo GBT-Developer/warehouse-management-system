@@ -1,4 +1,3 @@
-import { auth } from 'firebase';
 import {
   EmailAuthProvider,
   reauthenticateWithCredential,
@@ -8,6 +7,7 @@ import { FormEvent, useState } from 'react';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { AuthCard } from 'renderer/components/AuthCard';
+import { auth } from 'renderer/firebase';
 import { PageLayout } from 'renderer/layout/PageLayout';
 export const ChangePasswordPage = () => {
   const [error, setError] = useState('');

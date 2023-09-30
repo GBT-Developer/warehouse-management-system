@@ -1,5 +1,4 @@
 import { collection, getDocs, query } from '@firebase/firestore';
-import { db } from 'firebase';
 import { and, doc, getDoc, or, updateDoc, where } from 'firebase/firestore';
 import { FormEvent, useEffect, useState } from 'react';
 import { AiOutlineLoading3Quarters } from 'react-icons/ai';
@@ -10,6 +9,7 @@ import 'react-toastify/dist/ReactToastify.css';
 import { InputField } from 'renderer/components/InputField';
 import { SingleTableItem } from 'renderer/components/TableComponents/SingleTableItem';
 import { TableModal } from 'renderer/components/TableComponents/TableModal';
+import { db } from 'renderer/firebase';
 import { Customer } from 'renderer/interfaces/Customer';
 import { SpecialPrice } from 'renderer/interfaces/SpecialPrice';
 import { PageLayout } from 'renderer/layout/PageLayout';

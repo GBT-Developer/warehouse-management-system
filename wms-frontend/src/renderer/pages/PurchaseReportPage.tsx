@@ -1,4 +1,3 @@
-import { db } from 'firebase';
 import {
   collection,
   deleteDoc,
@@ -16,6 +15,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { SingleTableItem } from 'renderer/components/TableComponents/SingleTableItem';
 import { TableHeader } from 'renderer/components/TableComponents/TableHeader';
 import { TableTitle } from 'renderer/components/TableComponents/TableTitle';
+import { db } from 'renderer/firebase';
 import { PurchaseHistory } from 'renderer/interfaces/PurchaseHistory';
 import { PageLayout } from 'renderer/layout/PageLayout';
 

@@ -1,4 +1,3 @@
-import { db } from 'firebase';
 import {
   collection,
   collectionGroup,
@@ -20,6 +19,7 @@ import 'react-toastify/dist/ReactToastify.css';
 import { InputField } from 'renderer/components/InputField';
 import { SingleTableItem } from 'renderer/components/TableComponents/SingleTableItem';
 import { TableHeader } from 'renderer/components/TableComponents/TableHeader';
+import { db } from 'renderer/firebase';
 import { Product } from 'renderer/interfaces/Product';
 import { StockHistory } from 'renderer/interfaces/StockHistory';
 import { Supplier } from 'renderer/interfaces/Supplier';

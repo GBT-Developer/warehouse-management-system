@@ -1,8 +1,8 @@
-import { useNavigate } from 'react-router-dom';
-import '../App.css';
-import { auth, db } from 'firebase';
-import { collection, getDocs, query } from 'firebase/firestore';
 import { GoogleAuthProvider, signInWithRedirect } from 'firebase/auth';
+import { collection, getDocs, query } from 'firebase/firestore';
+import { useNavigate } from 'react-router-dom';
+import { auth, db } from 'renderer/firebase';
+import '../App.css';
 
 export function Hello() {
   const navigate = useNavigate();

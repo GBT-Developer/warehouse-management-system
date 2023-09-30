@@ -1,4 +1,3 @@
-import { auth, db, secondaryAuth } from 'firebase';
 import { FirebaseError } from 'firebase/app';
 import {
   createUserWithEmailAndPassword,
@@ -11,6 +10,7 @@ import React, { useContext, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { auth, db, secondaryAuth } from 'renderer/firebase';
 import { CustomUser } from 'renderer/interfaces/CustomUser';
 
 export interface LoginData {
