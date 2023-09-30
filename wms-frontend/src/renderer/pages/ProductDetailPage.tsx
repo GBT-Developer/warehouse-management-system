@@ -388,13 +388,12 @@ export default function ProductDetailPage() {
             <div className="w-full">
               <p className="text-2xl font-medium">Stock History</p>
             </div>
-            <table className="w-full text-sm text-left text-gray-500 dark:text-gray-400">
+            <table className="w-full text-sm text-left text-gray-500">
               <TableHeader>
-                <td className=" py-3">Date</td>
-                <td className=" py-3">Old count</td>
-                <td className=" py-3">New count</td>
-                <td className=" py-3">Difference</td>
-                <td className=" py-3">Type</td>
+                <th className=" py-3">Date</th>
+                <th className=" py-3">Old count</th>
+                <th className=" py-3">New count</th>
+                <th className=" py-3">Difference</th>
               </TableHeader>
               <tbody className="overflow-y-auto">
                 {stockHistory.map((stock_history: StockHistory, index) => (
@@ -405,7 +404,7 @@ export default function ProductDetailPage() {
                     <SingleTableItem>{stock_history.old_count}</SingleTableItem>
                     <SingleTableItem>{stock_history.count}</SingleTableItem>
                     <SingleTableItem>
-                      <div className="flex items-center gap-[1.75rem]">
+                      <div className="flex items-center justify-between">
                         {stock_history.difference}
                         {Number(stock_history.difference) > 0 ? (
                           <GoTriangleUp size={23} className="text-green-500" />
