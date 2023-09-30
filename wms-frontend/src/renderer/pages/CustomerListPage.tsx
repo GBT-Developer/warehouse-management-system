@@ -1,5 +1,15 @@
 import { db } from 'firebase';
-import { collection, deleteDoc, doc, getDocs, query } from 'firebase/firestore';
+import {
+  QueryStartAtConstraint,
+  collection,
+  deleteDoc,
+  doc,
+  getDocs,
+  limit,
+  orderBy,
+  query,
+  startAfter,
+} from 'firebase/firestore';
 import { useEffect, useState } from 'react';
 import { AiOutlineLoading3Quarters } from 'react-icons/ai';
 import { BiSolidTrash } from 'react-icons/bi';
@@ -15,11 +25,20 @@ export default function CustomerListPage() {
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const [nextPosts_loading, setNextPostsLoading] = useState(false);
+  const [nextPosts_empty, setNextPostsEmpty] = useState(false);
+  const [nextQuery, setNextQuery] = useState<QueryStartAtConstraint | null>(
+    null
+  );
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const q = query(collection(db, 'customer'));
+        const q = query(
+          collection(db, 'customer'),
+          orderBy('name', 'asc'),
+          limit(50)
+        );
         const querySnapshot = await getDocs(q);
 
         const customerData: Customer[] = [];
@@ -28,6 +47,11 @@ export default function CustomerListPage() {
           data.id = theCustomer.id;
           customerData.push(data);
         });
+
+        const nextQ = startAfter(
+          querySnapshot.docs[querySnapshot.docs.length - 1]
+        );
+        setNextQuery(nextQ);
 
         setCustomerList(customerData);
         setLoading(false);
@@ -40,6 +64,38 @@ export default function CustomerListPage() {
       console.log(error);
     });
   }, []);
+
+  const fetchNextPosts = async () => {
+    if (nextQuery === null) return;
+    setNextPostsLoading(true);
+    try {
+      const q = query(
+        collection(db, 'customer'),
+        orderBy('name', 'asc'),
+        limit(50),
+        nextQuery
+      );
+      const querySnapshot = await getDocs(q);
+
+      const customerData: Customer[] = [];
+      querySnapshot.forEach((theCustomer) => {
+        const data = theCustomer.data() as Customer;
+        data.id = theCustomer.id;
+        customerData.push(data);
+      });
+
+      const nextQ = startAfter(
+        querySnapshot.docs[querySnapshot.docs.length - 1]
+      );
+      setNextQuery(nextQ);
+
+      setCustomerList([...customerList, ...customerData]);
+      setNextPostsLoading(false);
+      if (querySnapshot.docs.length === 0) setNextPostsEmpty(true);
+    } catch (error) {
+      console.error('Error fetching data:', error);
+    }
+  };
 
   return (
     <PageLayout>
@@ -135,6 +191,25 @@ export default function CustomerListPage() {
                 )}
               </tbody>
             </table>
+            {nextPosts_empty ? (
+              <div className="flex justify-center items-center py-6 px-3 w-full">
+                <p className="text-gray-500 text-sm">No more data</p>
+              </div>
+            ) : (
+              <div className="flex justify-center items-center py-6 px-3 w-full">
+                <button
+                  className="text-gray-500 text-sm hover:underline"
+                  onClick={fetchNextPosts}
+                  disabled={nextPosts_loading}
+                >
+                  {nextPosts_loading ? (
+                    <AiOutlineLoading3Quarters className="animate-spin flex justify-center text-4xl" />
+                  ) : (
+                    'Load more'
+                  )}
+                </button>
+              </div>
+            )}
           </div>
           <div className="flex flex-row-reverse gap-2 w-full justify-start">
             <button

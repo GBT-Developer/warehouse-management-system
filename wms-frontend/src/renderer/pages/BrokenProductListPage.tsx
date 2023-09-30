@@ -1,11 +1,15 @@
 import { db } from 'firebase';
 import {
+  QueryStartAtConstraint,
   collection,
   doc,
   getDocs,
   increment,
+  limit,
+  orderBy,
   query,
   runTransaction,
+  startAfter,
   where,
 } from 'firebase/firestore';
 import { useEffect, useState } from 'react';
@@ -34,6 +38,12 @@ export const BrokenProductListPage = () => {
     toast.success('Product status successfully updated');
   const failNotify = (e?: string) =>
     toast.error(e ?? 'Failed to update product status');
+  const [lastBrandKey, setLastBrandKey] = useState(null);
+  const [nextPosts_loading, setNextPostsLoading] = useState(false);
+  const [nextPosts_empty, setNextPostsEmpty] = useState(false);
+  const [nextQuery, setNextQuery] = useState<QueryStartAtConstraint | null>(
+    null
+  );
 
   useEffect(() => {
     const fetchData = async () => {
@@ -42,7 +52,12 @@ export const BrokenProductListPage = () => {
           collection(db, 'broken_product'),
           warehousePosition !== 'Both'
             ? where('warehouse_position', '==', warehousePosition)
-            : where('warehouse_position', 'in', ['Gudang Bahan', 'Gudang Jadi'])
+            : where('warehouse_position', 'in', [
+                'Gudang Bahan',
+                'Gudang Jadi',
+              ]),
+          orderBy('brand', 'asc'),
+          limit(50)
         );
         setLoading(true);
         const querySnapshot = await getDocs(productsQuery);
@@ -58,7 +73,14 @@ export const BrokenProductListPage = () => {
           const data = theProduct.data() as Product;
           data.id = theProduct.id;
           productData.push(data);
+          setLastBrandKey(theProduct.data().brand);
         });
+
+        const nextQ = startAfter(
+          querySnapshot.docs[querySnapshot.docs.length - 1]
+        );
+
+        setNextQuery(nextQ);
 
         setProducts(productData);
         setLoading(false);
@@ -71,6 +93,50 @@ export const BrokenProductListPage = () => {
       console.log(error);
     });
   }, [warehousePosition]);
+
+  const fetchMoreData = async () => {
+    try {
+      if (nextQuery === null) return;
+      setNextPostsLoading(true);
+      const productsQuery = query(
+        collection(db, 'broken_product'),
+        warehousePosition !== 'Both'
+          ? where('warehouse_position', '==', warehousePosition)
+          : where('warehouse_position', 'in', ['Gudang Bahan', 'Gudang Jadi']),
+        orderBy('brand', 'asc'),
+        startAfter(lastBrandKey),
+        limit(50),
+        nextQuery
+      );
+
+      const querySnapshot = await getDocs(productsQuery);
+
+      if (querySnapshot.empty) {
+        setNextPostsEmpty(true);
+        setNextPostsLoading(false);
+        return;
+      }
+
+      const productData: Product[] = [];
+      querySnapshot.forEach((theProduct) => {
+        const data = theProduct.data() as Product;
+        data.id = theProduct.id;
+        productData.push(data);
+        setLastBrandKey(theProduct.data().brand);
+      });
+
+      const nextQ = startAfter(
+        querySnapshot.docs[querySnapshot.docs.length - 1]
+      );
+
+      setNextQuery(nextQ);
+
+      setProducts((prev) => [...prev, ...productData]);
+      setNextPostsLoading(false);
+    } catch (error) {
+      console.error('Error fetching data:', error);
+    }
+  };
 
   const returnHandler = async () => {
     await runTransaction(db, async (transaction) => {
@@ -270,6 +336,26 @@ export const BrokenProductListPage = () => {
                 )}
               </tbody>
             </table>
+            {nextPosts_empty ? (
+              <div className="flex justify-center items-center py-6 px-3 w-full bg-gray-50 rounded-lg z-0 bg-opacity-50">
+                <p className="text-gray-500 text-sm">No more data</p>
+              </div>
+            ) : (
+              <div className="flex justify-center items-center py-6 px-3 w-full bg-gray-50 rounded-lg z-0 bg-opacity-50">
+                <button
+                  className="text-gray-500 text-sm hover:underline"
+                  onClick={() => fetchMoreData()}
+                >
+                  {nextPosts_loading ? (
+                    <div className="flex justify-center items-center">
+                      <AiOutlineLoading3Quarters className="animate-spin flex justify-center text-4xl" />
+                    </div>
+                  ) : (
+                    'Load more'
+                  )}
+                </button>
+              </div>
+            )}
             <ReturnModal
               confirmHandler={returnHandler}
               confirmationMsg="Are you sure you want to return this product?"
