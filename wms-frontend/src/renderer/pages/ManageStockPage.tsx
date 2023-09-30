@@ -334,6 +334,12 @@ export const ManageStockPage = () => {
               const queryRef = query(
                 collection(db, 'returned_product'),
                 where(documentId(), '==', product.id),
+                where('available_color', '==', product.available_color),
+                where('brand', '==', product.brand),
+                where('motor_type', '==', product.motor_type),
+                where('part', '==', product.part),
+                where('supplier', '==', selectedSupplier.id),
+                where('warehouse_position', '==', selectedWarehouse),
                 where('count', '==', newProduct.quantity)
               );
 
