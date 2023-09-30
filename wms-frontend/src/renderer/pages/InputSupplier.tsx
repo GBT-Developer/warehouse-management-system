@@ -27,8 +27,10 @@ function InputSupplier() {
   );
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const successNotify = () => toast.success('Supplier Successfully Added');
-  const failNotify = (e?: string) => toast.error(e ?? 'Supplier Failed to Add');
+  const successNotify = () =>
+    toast.success('Supplier baru berhasil ditambahkan');
+  const failNotify = (e?: string) =>
+    toast.error(e ?? 'Supplier baru gagal ditambahkan');
   const [isEmpty, setIsEmpty] = useState(false);
 
   //check all of the input empty or not
@@ -69,7 +71,7 @@ function InputSupplier() {
       !newSupplier.bank_number ||
       !newSupplier.contact_person
     ) {
-      setErrorMessage('Please fill all the fields');
+      setErrorMessage('Tolong isi semua kolom');
       setTimeout(() => {
         setErrorMessage(null);
       }, 3000);
@@ -81,7 +83,7 @@ function InputSupplier() {
       Number.isNaN(Number(newSupplier.bank_number)) ||
       Number.isNaN(Number(newSupplier.phone_number))
     ) {
-      setErrorMessage('Please input a valid number');
+      setErrorMessage('Nomor telepon dan nomor rekening harus angka');
       setTimeout(() => {
         setErrorMessage(null);
       }, 3000);
@@ -107,7 +109,7 @@ function InputSupplier() {
   return (
     <PageLayout>
       <h1 className="text-4xl font-extrabold tracking-tight text-gray-900 md:text-5xl">
-        Add New Supplier
+        Supplier Baru
       </h1>
       <form
         onSubmit={handleSubmit}
@@ -122,7 +124,7 @@ function InputSupplier() {
         )}
         <InputField
           loading={loading}
-          label="Company Name"
+          label="Nama Perusahaan"
           labelFor="company_name"
           value={newSupplier.company_name}
           placeholder="i.e. PT. Berkat Abadi"
@@ -132,7 +134,7 @@ function InputSupplier() {
         />
         <InputField
           loading={loading}
-          label="Address"
+          label="Alamat"
           labelFor="address"
           value={newSupplier.address}
           placeholder="i.e. Jl.Soekarno-Hatta No. 123"
@@ -142,7 +144,7 @@ function InputSupplier() {
         />
         <InputField
           loading={loading}
-          label="City"
+          label="Kota"
           labelFor="city"
           value={newSupplier.city}
           placeholder="i.e. 10120, Jakarta"
@@ -152,7 +154,7 @@ function InputSupplier() {
         />
         <InputField
           loading={loading}
-          label="Contact Number"
+          label="Nomor Telepon"
           labelFor="phone_number"
           value={newSupplier.phone_number}
           placeholder="Phone number or landline number"
@@ -162,7 +164,7 @@ function InputSupplier() {
         />
         <InputField
           loading={loading}
-          label="Contact Person"
+          label="Kontak Person"
           labelFor="contact_person"
           value={newSupplier.contact_person}
           placeholder="i.e John Doe"
@@ -172,7 +174,7 @@ function InputSupplier() {
         />
         <InputField
           loading={loading}
-          label="Bank Number"
+          label="Nomor Rekening"
           labelFor="bank_number"
           value={newSupplier.bank_number}
           placeholder="1234567890"
@@ -182,7 +184,7 @@ function InputSupplier() {
         />
         <InputField
           loading={loading}
-          label="Bank Owner"
+          label="Atas Nama"
           labelFor="bank_owner"
           value={newSupplier.bank_owner}
           placeholder="i.e John Doe"
@@ -192,12 +194,12 @@ function InputSupplier() {
         />
         <AreaField
           loading={loading}
-          label="Remarks"
+          label="Catatan"
           labelFor="remarks"
           maxLength={300}
           rows={7}
           value={newSupplier.remarks ?? ''}
-          placeholder="Additional info... (max. 300 characters)"
+          placeholder="Info tambahan... (max. 300 characters)"
           onChange={(e) =>
             setNewSupplier({ ...newSupplier, remarks: e.target.value })
           }

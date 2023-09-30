@@ -65,9 +65,8 @@ export const ManageStockPage = () => {
   const dateInputRef = React.useRef<HTMLInputElement>(null);
   const [returnedProduct, setReturnedProduct] = useState(false);
 
-  const successNotify = () => toast.success('Stock data successfully updated');
-  const failNotify = (e?: string) =>
-    toast.error(e ?? 'Failed to update stock data');
+  const successNotify = () => toast.success('Stock berhasil diupdate');
+  const failNotify = (e?: string) => toast.error(e ?? 'Stock gagal diupdate');
   // If the input Field is Empty
   const [isEmpty, setIsEmpty] = useState(false);
 
@@ -502,7 +501,7 @@ export const ManageStockPage = () => {
   return (
     <PageLayout>
       <h1 className="text-4xl font-extrabold tracking-tight text-gray-900 md:text-5xl pt-4">
-        Manage Stock
+        Kelola Stock
       </h1>
       <form
         onSubmit={(e) => {
@@ -524,7 +523,7 @@ export const ManageStockPage = () => {
         <div className="flex justify-between">
           <div className="w-1/3 flex items-center">
             <label htmlFor={'change-of-stock-mode'} className="text-md">
-              Change of stock mode
+              Mode Perubahan Stock
             </label>
           </div>
           <div className="w-2/3">
@@ -553,14 +552,12 @@ export const ManageStockPage = () => {
               className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
             >
               <option value={''} disabled>
-                Choose change of stock mode
+                Pilih Mode
               </option>
-              <option value="purchase">Purchase</option>
-              <option value="from_other_warehouse">
-                From raw material warehouse
-              </option>
+              <option value="purchase">Pembelian</option>
+              <option value="from_other_warehouse">Dari Gudang Bahan</option>
               {user?.role.toLowerCase() === 'owner' && (
-                <option value="force-change">Force change</option>
+                <option value="force-change">Ubah Paksa</option>
               )}
             </select>
           </div>
@@ -568,7 +565,7 @@ export const ManageStockPage = () => {
         <div className="flex justify-between">
           <div className="w-1/3 flex items-center">
             <label htmlFor={'warehouse-id'} className="text-md">
-              Choose warehouse
+              Pilih Gudang
             </label>
           </div>
           <div className="w-2/3">
@@ -593,7 +590,7 @@ export const ManageStockPage = () => {
               className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
             >
               <option value={''} disabled>
-                Choose warehouse
+                Pilih Gudang
               </option>
               {manageStockMode === 'purchase' ||
               manageStockMode === 'force-change' ? (
@@ -621,7 +618,7 @@ export const ManageStockPage = () => {
             <div className="flex justify-between">
               <div className="w-1/3 flex items-center">
                 <label htmlFor={'supplier-id'} className="text-md">
-                  Choose supplier
+                  Pilih Supplier
                 </label>
               </div>
               <div className="w-2/3">
@@ -642,7 +639,7 @@ export const ManageStockPage = () => {
                   className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
                 >
                   <option value={''} disabled>
-                    Choose supplier
+                    Pilih Supplier
                   </option>
                   {supplierList.map((supplier) => (
                     <option key={supplier.id} value={supplier.id}>
@@ -656,7 +653,7 @@ export const ManageStockPage = () => {
             <div className="flex items-center relative">
               <InputField
                 loading={loading}
-                label="Dispatch note"
+                label="Surat Jalan"
                 labelFor="dispatch-note"
                 value={dispatchNote}
                 onChange={(e) => {
@@ -697,7 +694,7 @@ export const ManageStockPage = () => {
                     <div className="w-full flex justify-between items-center">
                       <div className="w-4/5">
                         <label htmlFor={'quantity'} className="text-md">
-                          Passed quality check
+                          Lolos quality check
                         </label>
                       </div>
                       <div className="w-1/5">
@@ -772,7 +769,7 @@ export const ManageStockPage = () => {
                   type="button"
                   onClick={() => setModalOpen(() => !modalOpen)}
                 >
-                  Choose product(s)
+                  Pilih Product(s)
                 </button>
               </div>
             </div>
@@ -847,7 +844,7 @@ export const ManageStockPage = () => {
               <div className="flex justify-between py-2">
                 <div className="w-1/3 flex items-center">
                   <label htmlFor={'returned-product'} className="text-md">
-                    Returned products?
+                    Product Return?
                   </label>
                 </div>
                 <div className="w-2/3 flex items-center">
@@ -865,7 +862,7 @@ export const ManageStockPage = () => {
             {!returnedProduct && manageStockMode !== 'force-change' && (
               <InputField
                 loading={loading}
-                label="Purchase price"
+                label="Harga Beli"
                 labelFor="purchase-price"
                 value={newPurchase.purchase_price}
                 onChange={(e) => {
@@ -886,7 +883,7 @@ export const ManageStockPage = () => {
         <div className="flex justify-between">
           <div className="w-1/3 flex items-center">
             <label htmlFor={'date-id'} className="text-md">
-              Purchase date
+              Tanggal Pembelian
             </label>
           </div>
           <div className="w-2/3">

@@ -63,7 +63,7 @@ export default function VoidListPage() {
         <div className="relative shadow-md sm:rounded-lg overflow-auto h-full flex flex-col justify-between">
           <TableTitle setSearch={setSearch}>
             <h1 className="text-4xl font-extrabold tracking-tight text-gray-900 md:text-5xl">
-              Void List
+              List Void
             </h1>
           </TableTitle>
           <div className="overflow-y-auto h-full relative">
@@ -75,10 +75,10 @@ export default function VoidListPage() {
             <table className="w-full text-sm text-left text-gray-500">
               <TableHeader>
                 <th className="py-3">Void Invoice ID</th>
-                <th className="py-3">Customer Name</th>
-                <th className="py-3">Date</th>
-                <th className="py-3">Payment Method</th>
-                <th className="py-3">Price</th>
+                <th className="py-3">Nama Customer</th>
+                <th className="py-3">Tanggal</th>
+                <th className="py-3">Metode Pembayaran</th>
+                <th className="py-3">Total Harga</th>
               </TableHeader>
               <tbody className="overflow-y-auto">
                 {voidList.length === 0 ? (

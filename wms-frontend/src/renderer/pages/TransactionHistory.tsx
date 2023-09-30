@@ -87,12 +87,12 @@ export default function TransactionHistory() {
             )}
             <table className="w-full text-sm text-left text-gray-500">
               <TableHeader>
-                <th className=" py-3">Date</th>
-                <th className=" py-3">Invoice Number</th>
-                <th className=" py-3">Customer Name</th>
-                <th className=" py-3">Warehouse</th>
-                <th className=" py-3">Sales</th>
-                <th className=" py-3">Payment</th>
+                <th className=" py-3">Tangga</th>
+                <th className=" py-3">Nomor Invoice</th>
+                <th className=" py-3">Nama Customer</th>
+                <th className=" py-3">Posisi Gudang</th>
+                <th className=" py-3">Total Harga</th>
+                <th className=" py-3">Methode Pembayaran</th>
                 <th className=" py-3"></th>
               </TableHeader>
               <tbody className="overflow-y-auto">

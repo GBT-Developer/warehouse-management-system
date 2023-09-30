@@ -69,7 +69,7 @@ export const CreateAdminPage = () => {
   return (
     <PageLayout>
       <h1 className="text-4xl font-extrabold tracking-tight text-gray-900 md:text-5xl pt-4">
-        Add New Admin
+        Admin Baru
       </h1>
       <form
         className={`w-2/3 py-14 my-10 flex flex-col gap-3 relative ${
@@ -84,7 +84,7 @@ export const CreateAdminPage = () => {
         )}
         <InputField
           loading={loading}
-          label="Display Name"
+          label="Nama"
           labelFor="display_name"
           value={newAdmin.display_name}
           placeholder="i.e. John Doe"
@@ -114,7 +114,7 @@ export const CreateAdminPage = () => {
 
         <div className="flex flex-row items-center py-1">
           <label htmlFor="role" className="text-md w-1/3">
-            Role
+            Peran
           </label>
           <div className="w-2/3 flex flex-row gap-8">
             <div className="flex flex-row items-center gap-1">

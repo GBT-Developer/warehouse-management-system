@@ -67,7 +67,7 @@ export default function SupplierDetailPage() {
       Number.isNaN(Number(supplier.bank_number)) ||
       Number.isNaN(Number(supplier.phone_number))
     ) {
-      setErrorMessage('Harga atau jumlah barang tidak valid');
+      setErrorMessage('Harga atau nomor rekening tidak valid');
       setTimeout(() => {
         setErrorMessage(null);
       }, 3000);
@@ -110,7 +110,7 @@ export default function SupplierDetailPage() {
             <IoChevronBackOutline size={40} /> {/* Icon */}
           </button>
           <h1 className="text-4xl font-extrabold tracking-tight text-gray-900 md:text-5xl">
-            Supplier Detail
+            Detail Supplier
           </h1>
         </div>
         <button
@@ -147,7 +147,7 @@ export default function SupplierDetailPage() {
             <InputField
               loading={loading || !editToggle}
               labelFor="company_name"
-              label="Company Name"
+              label="Nama Perusahaan"
               value={supplier?.company_name ?? ''}
               onChange={(e) => {
                 if (supplier === undefined) return;
@@ -160,7 +160,7 @@ export default function SupplierDetailPage() {
             <InputField
               loading={loading || !editToggle}
               labelFor="address"
-              label="Address"
+              label="Alamat"
               value={supplier?.address ?? ''}
               onChange={(e) => {
                 if (supplier === undefined) return;
@@ -173,7 +173,7 @@ export default function SupplierDetailPage() {
             <InputField
               loading={loading || !editToggle}
               labelFor="city"
-              label="City"
+              label="Kota"
               value={supplier?.city ?? ''}
               onChange={(e) => {
                 if (supplier === undefined) return;
@@ -186,7 +186,7 @@ export default function SupplierDetailPage() {
             <InputField
               loading={loading || !editToggle}
               labelFor="phone_number"
-              label="Contact Number"
+              label="Nomor Telepon"
               value={supplier?.phone_number ?? ''}
               onChange={(e) => {
                 if (supplier === undefined) return;
@@ -212,7 +212,7 @@ export default function SupplierDetailPage() {
             <InputField
               loading={loading || !editToggle}
               labelFor="bank_number"
-              label="Bank Number"
+              label="Nomor Rekening"
               value={supplier?.bank_number ?? ''}
               onChange={(e) => {
                 if (supplier === undefined) return;
@@ -225,7 +225,7 @@ export default function SupplierDetailPage() {
             <InputField
               loading={loading || !editToggle}
               labelFor="bank_owner"
-              label="Bank Owner"
+              label="Atas Nama"
               value={supplier?.bank_owner ?? ''}
               onChange={(e) => {
                 if (supplier === undefined) return;
@@ -237,7 +237,7 @@ export default function SupplierDetailPage() {
             />
             <AreaField
               loading={loading || !editToggle}
-              label="Remarks"
+              label="Catatan"
               labelFor="remarks"
               maxLength={300}
               rows={7}

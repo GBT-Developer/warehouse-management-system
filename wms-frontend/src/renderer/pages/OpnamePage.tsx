@@ -142,10 +142,10 @@ export default function OpnamePage() {
           <BarChart data={salesStats?.daily_sales} chartTitle="Sales Chart" />
         </div>
         <div className="w-full h-[fit-content] flex flex-col gap-4">
-          <p className="text-2xl font-bold">Summary</p>
+          <p className="text-2xl font-bold">Rangkuman</p>
           <div className="w-full flex justify-between items-center">
             <div className="w-1/3">
-              <p className="text-md">Total Sales: </p>
+              <p className="text-md">Total Penjualan: </p>
             </div>
             <div className="w-2/3 flex gap-2 items-center">
               <p>
@@ -158,7 +158,7 @@ export default function OpnamePage() {
           </div>
           <div className="w-full flex justify-between items-center">
             <div className="w-1/3">
-              <p className="text-md">Total Profit: </p>
+              <p className="text-md">Total Keuntungan: </p>
             </div>
             <div className="w-2/3 flex gap-2 items-center">
               <p>
@@ -171,7 +171,7 @@ export default function OpnamePage() {
           </div>
           <div className="w-full flex justify-between items-center">
             <div className="w-1/3">
-              <p className="text-md">Tax to be payed: </p>
+              <p className="text-md">Pajak yang harus dibayar: </p>
             </div>
             <div className="w-2/3 flex gap-2 items-center">
               <p>
@@ -209,16 +209,16 @@ export default function OpnamePage() {
         <hr className="my-4" />
         <div className="relative flex flex-col justify-between h-[fit-content]">
           <div className="flex flex-col md:flex-row items-center justify-between space-y-3 md:space-y-0 md:space-x-4 py-1 mb-[1rem]">
-            <p className="text-2xl font-bold">Transaction List</p>
+            <p className="text-2xl font-bold">List Transaksi</p>
           </div>
           <div className="overflow-y-auto h-full relative">
             <table className="w-full text-sm text-left text-gray-500">
               <TableHeader>
-                <th className=" py-3">Date</th>
-                <th className=" py-3">Customer Name</th>
-                <th className=" py-3">Total Purchase</th>
-                <th className=" py-3">Payment Method</th>
-                <th className=" py-3">Invoice Number</th>
+                <th className=" py-3">Tanggal</th>
+                <th className=" py-3">Nama Customer</th>
+                <th className=" py-3">Total Pembelian</th>
+                <th className=" py-3">Methode Pembayaran</th>
+                <th className=" py-3">Nomor Invoice</th>
               </TableHeader>
               <tbody>
                 {invoiceList.length === 0 ? (

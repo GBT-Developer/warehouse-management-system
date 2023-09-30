@@ -59,9 +59,9 @@ export default function CustomerListPage() {
 
             <table className="w-full text-sm text-left text-gray-500">
               <TableHeader>
-                <th className=" py-3">Name</th>
-                <th className=" py-3">Address</th>
-                <th className=" py-3">Telephone</th>
+                <th className=" py-3">Nama</th>
+                <th className=" py-3">Alamat</th>
+                <th className=" py-3">Telepon</th>
                 <th className=" py-3"></th>
               </TableHeader>
               <tbody className="overflow-y-auto">

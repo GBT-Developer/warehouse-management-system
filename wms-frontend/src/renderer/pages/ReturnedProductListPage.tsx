@@ -102,9 +102,9 @@ export const ReturnedProductListPage = () => {
 
             <table className="w-full text-sm text-left text-gray-500">
               <TableHeader>
-                <th className=" py-3">Name</th>
+                <th className=" py-3">Nama Product</th>
                 <th className=" py-3">Supplier</th>
-                <th className=" py-3">Amount</th>
+                <th className=" py-3">Jumlah</th>
               </TableHeader>
               <tbody>
                 {products.length === 0 ? (

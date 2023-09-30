@@ -62,8 +62,9 @@ export const NewProductPage = () => {
   const [newPurchase, setNewPurchase] = useState<PurchaseHistory>(
     newPurchaseInitialState
   );
-  const successNotify = () => toast.success('Product Successfully Added');
-  const failNotify = (e?: string) => toast.error(e ?? 'Failed to Add Product');
+  const successNotify = () => toast.success('Product berhasil ditambahkan');
+  const failNotify = (e?: string) =>
+    toast.error(e ?? 'Product gagal ditambahkan');
   const [isEmpty, setIsEmpty] = useState(false);
   // Take product from firebase
   useEffect(() => {
@@ -130,7 +131,7 @@ export const NewProductPage = () => {
       ) ||
       newProduct.warehouse_position === ''
     ) {
-      setErrorMessage('Please fill all the fields');
+      setErrorMessage('Tolong isi semua kolom');
       setTimeout(() => {
         setErrorMessage(null);
       }, 3000);
@@ -144,7 +145,7 @@ export const NewProductPage = () => {
       Number(newProduct.purchase_price) <= 0 ||
       Number(newProduct.count) <= 0
     ) {
-      setErrorMessage('Please input a valid number');
+      setErrorMessage('Harga jual, harga beli, dan jumlah harus angka');
       setTimeout(() => {
         setErrorMessage(null);
       }, 3000);
@@ -208,7 +209,7 @@ export const NewProductPage = () => {
   return (
     <PageLayout>
       <h1 className="text-4xl font-extrabold tracking-tight text-gray-900 md:text-5xl">
-        Add new product
+        Tambah Product Baru
       </h1>
       <form
         onSubmit={(e) => {
@@ -228,7 +229,7 @@ export const NewProductPage = () => {
         <InputField
           loading={loading}
           labelFor="brand"
-          label="Brand"
+          label="Merek"
           value={newProduct.brand}
           onChange={(e) =>
             setNewProduct({ ...newProduct, brand: e.target.value })
@@ -237,7 +238,7 @@ export const NewProductPage = () => {
         <InputField
           loading={loading}
           labelFor="type"
-          label="Motorcycle Type"
+          label="Tipe Motor"
           value={newProduct.motor_type}
           onChange={(e) =>
             setNewProduct({ ...newProduct, motor_type: e.target.value })
@@ -255,7 +256,7 @@ export const NewProductPage = () => {
         <InputField
           loading={loading}
           labelFor="available_color"
-          label="Available Color"
+          label="Warna Tersedia"
           value={newProduct.available_color}
           onChange={(e) =>
             setNewProduct({ ...newProduct, available_color: e.target.value })
@@ -264,7 +265,7 @@ export const NewProductPage = () => {
         <InputField
           loading={loading}
           labelFor="count"
-          label="Product Count"
+          label="Jumlah Barang"
           value={newProduct.count}
           onChange={(e) => {
             setNewProduct({ ...newProduct, count: Number(e.target.value) });
@@ -273,7 +274,7 @@ export const NewProductPage = () => {
         <InputField
           loading={loading}
           labelFor="purchase_price"
-          label="Purchase Price"
+          label="Harga Beli"
           value={newProduct.purchase_price}
           onChange={(e) => {
             setNewProduct({
@@ -285,7 +286,7 @@ export const NewProductPage = () => {
         <InputField
           loading={loading}
           labelFor="sell_price"
-          label="Sell Price"
+          label="Harga Jual"
           value={newProduct.sell_price}
           onChange={(e) =>
             setNewProduct({ ...newProduct, sell_price: Number(e.target.value) })
@@ -295,7 +296,7 @@ export const NewProductPage = () => {
           <div className="flex justify-between">
             <div className="w-1/3 py-1.5">
               <label htmlFor={'warehouse'} className="text-md">
-                Warehouse Position
+                Posisi Gudang
               </label>
             </div>
             <div className="w-2/3">
@@ -314,7 +315,7 @@ export const NewProductPage = () => {
                 className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
               >
                 <option value={''} disabled>
-                  Choose Warehouse
+                  Pilih Gudang
                 </option>
                 <option value="Gudang Jadi">Gudang Jadi</option>
                 <option value="Gudang Bahan">Gudang Bahan</option>
@@ -326,7 +327,7 @@ export const NewProductPage = () => {
         <div className="flex justify-between">
           <div className="w-1/3 flex items-center">
             <label htmlFor={'date-id'} className="text-md">
-              Purchase date
+              Tanggal Pembelian
             </label>
           </div>
           <div className="w-2/3">
@@ -377,7 +378,7 @@ export const NewProductPage = () => {
                 className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
               >
                 <option value={''} disabled>
-                  Choose Supplier
+                  Pilih Supplier
                 </option>
                 {suppliers.map((supplier) => (
                   <option key={supplier.id} value={supplier.id}>

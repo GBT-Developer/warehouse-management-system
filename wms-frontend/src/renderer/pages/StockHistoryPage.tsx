@@ -72,7 +72,7 @@ function StockHistoryPage() {
         <div className="relative shadow-md sm:rounded-lg overflow-auto h-full flex flex-col justify-between">
           <TableTitle setSearch={setSearch}>
             <h1 className="text-4xl font-extrabold tracking-tight text-gray-900 md:text-5xl">
-              Stock History
+              Riwayat Stock
             </h1>
           </TableTitle>
           <div className="overflow-y-auto h-full">
@@ -83,12 +83,12 @@ function StockHistoryPage() {
             )}
             <table className="w-full text-sm text-left text-gray-500">
               <TableHeader>
-                <th className=" py-3">Date</th>
+                <th className=" py-3">Tanggal</th>
                 <th className=" py-3">Product</th>
-                <th className=" py-3">Warehouse</th>
-                <th className=" py-3">Old count</th>
-                <th className=" py-3">New count</th>
-                <th className=" py-3">Difference</th>
+                <th className=" py-3">Posisi Gudang</th>
+                <th className=" py-3">Jumlah Lama</th>
+                <th className=" py-3">Jumlah Baru</th>
+                <th className=" py-3">Selisih</th>
               </TableHeader>
               <tbody className="overflow-y-auto">
                 {stockHistory.length === 0 ? (

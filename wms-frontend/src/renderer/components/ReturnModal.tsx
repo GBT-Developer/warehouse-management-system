@@ -92,7 +92,7 @@ export const ReturnModal = ({
                   </div>
                 )}
                 <div className="flex">
-                  <p className="w-2/5 font-bold">Product Name:</p>
+                  <p className="w-2/5 font-bold">Nama Produkt:</p>
                   <p className="w-3/5">
                     {product &&
                       product.brand +
@@ -103,7 +103,7 @@ export const ReturnModal = ({
                   </p>
                 </div>
                 <div className="flex">
-                  <p className="w-2/5 font-bold">Color:</p>
+                  <p className="w-2/5 font-bold">Warna:</p>
                   <p className="w-3/5">
                     {product?.available_color
                       .split(' ')
@@ -112,7 +112,7 @@ export const ReturnModal = ({
                   </p>
                 </div>
                 <div className="flex">
-                  <p className="w-2/5 font-bold">Count:</p>
+                  <p className="w-2/5 font-bold">Jumlah Barang:</p>
                   <p className="w-3/5">{product?.count}</p>
                 </div>
                 {product?.supplier?.company_name && (
@@ -122,7 +122,7 @@ export const ReturnModal = ({
                   </div>
                 )}
                 <div className="flex">
-                  <p className="w-2/5 font-bold">Warehouse Position:</p>
+                  <p className="w-2/5 font-bold">Posisi Gudang:</p>
                   <p className="w-3/5">{product?.warehouse_position}</p>
                 </div>
                 {children}

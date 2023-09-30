@@ -84,7 +84,7 @@ export const OnDispatchListPage = () => {
         <div className="relative shadow-md sm:rounded-lg overflow-auto h-full flex flex-col justify-between">
           <TableTitle setSearch={setSearch}>
             <h1 className="text-4xl font-extrabold tracking-tight text-gray-900 md:text-5xl">
-              On Dispatch List
+              List Pengiriman
             </h1>
           </TableTitle>
           <div className="overflow-y-auto h-full relative">
@@ -96,10 +96,10 @@ export const OnDispatchListPage = () => {
 
             <table className="w-full text-sm text-left text-gray-500">
               <TableHeader>
-                <th className=" py-3">Dispatch Note Number</th>
-                <th className=" py-3">Painter's Name</th>
-                <th className=" py-3">Date</th>
-                <th className=" py-3">Number of Products</th>
+                <th className=" py-3">Nomor Surat Jalan</th>
+                <th className=" py-3">Nama Tukang Cat</th>
+                <th className=" py-3">Tanggal</th>
+                <th className=" py-3">Jumlah Product</th>
               </TableHeader>
               <tbody>
                 {dispatchNoteList.length === 0 ? (

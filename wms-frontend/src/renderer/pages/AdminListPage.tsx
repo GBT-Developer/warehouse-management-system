@@ -77,7 +77,7 @@ export const AdminListPage = () => {
         <div className="relative shadow-md sm:rounded-lg overflow-auto h-full flex flex-col justify-between">
           <TableTitle setSearch={setSearch}>
             <h1 className="text-4xl font-extrabold tracking-tight text-gray-900 md:text-5xl">
-              Admin List
+              List Admin
             </h1>
           </TableTitle>
           <div className="overflow-y-auto h-full relative">
@@ -90,9 +90,9 @@ export const AdminListPage = () => {
             <div className="overflow-y-auto h-full">
               <table className="w-full text-sm text-left text-gray-500">
                 <TableHeader>
-                  <th className="py-3">Name</th>
+                  <th className="py-3">Nama</th>
                   <th className="py-3">Email</th>
-                  <th className="py-3">Role</th>
+                  <th className="py-3">Peran</th>
                   <th className="py-3"></th>
                 </TableHeader>
                 <tbody>

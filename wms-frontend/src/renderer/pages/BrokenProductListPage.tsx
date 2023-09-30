@@ -30,10 +30,9 @@ export const BrokenProductListPage = () => {
   const [errorMessage, setErrorMessage] = useState('');
   const { warehousePosition } = useAuth();
   const [painterName, setPainterName] = useState('');
-  const successNotify = () =>
-    toast.success('Product status successfully updated');
+  const successNotify = () => toast.success('Product berhasil dikembalikan');
   const failNotify = (e?: string) =>
-    toast.error(e ?? 'Failed to update product status');
+    toast.error(e ?? 'Product gagal dikembalikan');
 
   useEffect(() => {
     const fetchData = async () => {
@@ -164,7 +163,7 @@ export const BrokenProductListPage = () => {
         <div className="relative shadow-md sm:rounded-lg overflow-auto h-full flex flex-col justify-between">
           <TableTitle setSearch={setSearch}>
             <h1 className="text-4xl font-extrabold tracking-tight text-gray-900 md:text-5xl">
-              Broken Products
+              List Barang Rusak
             </h1>
           </TableTitle>
           <div className="overflow-y-auto h-full relative">
@@ -176,9 +175,9 @@ export const BrokenProductListPage = () => {
 
             <table className="w-full text-sm text-left text-gray-500">
               <TableHeader>
-                <th className=" py-3">Name</th>
-                <th className=" py-3">Warehouse Origin Position</th>
-                <th className=" py-3">Amount</th>
+                <th className=" py-3">Nama Produkt</th>
+                <th className=" py-3">Gudang Asal</th>
+                <th className=" py-3">Jumlah</th>
               </TableHeader>
               <tbody>
                 {products.length === 0 ? (
@@ -265,13 +264,13 @@ export const BrokenProductListPage = () => {
             </table>
             <ReturnModal
               confirmHandler={returnHandler}
-              confirmationMsg="Are you sure you want to return this product?"
+              confirmationMsg="Apakah anda yakin ingin mengembalikan product ini?"
               modalOpen={modalOpen}
               setModalOpen={setModalOpen}
               product_id={activeProduct?.id}
             >
               <div className="flex">
-                <p className="w-2/5 font-bold">Return to:</p>
+                <p className="w-2/5 font-bold">Kembalikan Ke:</p>
                 <div className="w-3/5 flex gap-4">
                   <label
                     htmlFor="supplier"
@@ -309,7 +308,7 @@ export const BrokenProductListPage = () => {
               </div>
               {reason === 'painter' && (
                 <div className="flex items-center">
-                  <p className="w-2/5 font-bold">Painter's name:</p>
+                  <p className="w-2/5 font-bold">Nama Tukang Cat:</p>
                   <div className="w-3/5 flex gap-4">
                     <input
                       type="text"

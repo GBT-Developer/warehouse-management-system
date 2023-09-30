@@ -69,7 +69,7 @@ function EditCustomerPage() {
       !newCustomer.address ||
       !newCustomer.phone_number
     ) {
-      setErrorMessage('Please fill all the fields');
+      setErrorMessage('Tolong isi semua kolom');
       setTimeout(() => {
         setErrorMessage(null);
       }, 3000);
@@ -78,7 +78,7 @@ function EditCustomerPage() {
 
     // Check data type
     if (Number.isNaN(Number(newCustomer.phone_number))) {
-      setErrorMessage('Please input a valid number');
+      setErrorMessage('Nomor telepon harus berupa angka');
       setTimeout(() => {
         setErrorMessage(null);
       }, 3000);
@@ -86,7 +86,7 @@ function EditCustomerPage() {
     }
 
     if (newCustomer.SpecialPrice.some((sp) => sp.price === 0)) {
-      setErrorMessage('Please enter prices for all selected products');
+      setErrorMessage('Harga khusus tidak boleh 0');
       setTimeout(() => {
         setErrorMessage(null);
       }, 3000);
@@ -174,7 +174,7 @@ function EditCustomerPage() {
         )}
         <InputField
           loading={loading}
-          label="Name"
+          label="Nama"
           labelFor="name"
           value={newCustomer.name}
           placeholder="i.e. John Doe"
@@ -184,7 +184,7 @@ function EditCustomerPage() {
         />
         <InputField
           loading={loading}
-          label="Address"
+          label="Alamat"
           labelFor="address"
           value={newCustomer.address}
           placeholder="i.e. Jl.Soekarno-Hatta No. 123"
@@ -194,7 +194,7 @@ function EditCustomerPage() {
         />
         <InputField
           loading={loading}
-          label="Contact Number"
+          label="Nomor Telepon"
           labelFor="phone_number"
           value={newCustomer.phone_number}
           placeholder="Phone number or landline number"
@@ -204,7 +204,7 @@ function EditCustomerPage() {
         />
 
         <hr className="my-4" />
-        <h2 className="text-2xl font-bold">Special Price</h2>
+        <h2 className="text-2xl font-bold">Harga Khusus</h2>
         <ul className="my-3 space-y-3 font-regular">
           {selectedProducts.map((product, index) => (
             <li key={index}>
@@ -287,7 +287,7 @@ function EditCustomerPage() {
           className="py-2 px-5 text-sm font-medium text-red-500 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-red-700 focus:z-10 focus:ring-4 focus:ring-gray-200"
           onClick={() => setModalOpen(true)}
         >
-          + Add Products
+          + Pilih Product(s)
         </button>
 
         <div className="flex flex-row-reverse gap-2 justify-start">
@@ -319,10 +319,10 @@ function EditCustomerPage() {
         modalOpen={modalOpen}
         handleSearch={handleSearch}
         setModalOpen={setModalOpen}
-        title={'Choose Product'}
+        title={'Pilih Product'}
         headerList={
           products.length > 0
-            ? ['', 'Product name', 'Sell Price', 'Warehouse']
+            ? ['', 'Nama Product', 'Harga Jual', 'Posisi Gudang']
             : []
         }
       >

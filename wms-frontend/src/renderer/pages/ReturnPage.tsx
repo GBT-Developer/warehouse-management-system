@@ -63,9 +63,8 @@ export default function ReturnPage() {
     })[]
   >([]);
   const dateInputRef = React.useRef<HTMLInputElement>(null);
-  const successNotify = () => toast.success('Submit successful');
-  const failNotify = (e?: string) =>
-    toast.error(e ?? 'An error occured while submitting');
+  const successNotify = () => toast.success('Barang berhasil ditukar');
+  const failNotify = (e?: string) => toast.error(e ?? 'Barang gagal ditukar');
   const getSpecialPriceForProduct = (productId: string) => {
     const specialPrice = selectedCustomer?.SpecialPrice.find(
       (p) => p.product_id === productId
@@ -449,7 +448,7 @@ export default function ReturnPage() {
   return (
     <PageLayout>
       <h1 className="text-4xl font-extrabold tracking-tight text-gray-900 md:text-5xl pt-4">
-        Return
+        Pengembalian Barang
       </h1>
       <form
         onSubmit={(e) => {
@@ -472,7 +471,7 @@ export default function ReturnPage() {
         <div className="flex justify-between">
           <div className="w-1/3 flex items-center">
             <label htmlFor={'change-of-stock-mode'} className="text-md">
-              Change of stock mode
+              Mode Pengembalian
             </label>
           </div>
           <div className="w-2/3">
@@ -493,8 +492,8 @@ export default function ReturnPage() {
               <option value={''} disabled>
                 Select mode
               </option>
-              <option value={'return'}>Return</option>
-              <option value={'exchange'}>Exchange</option>
+              <option value={'return'}>Pengembalian</option>
+              <option value={'exchange'}>Tukar Barang</option>
               <option value={'void'}>Void</option>
             </select>
           </div>
@@ -502,7 +501,7 @@ export default function ReturnPage() {
         <div className="flex items-center relative">
           <InputField
             loading={loading}
-            label="Invoice number"
+            label="Nomor Invoice"
             labelFor="invoice-number"
             value={invoiceNumber}
             onChange={(e) => setInvoiceNumber(e.target.value)}
@@ -536,14 +535,14 @@ export default function ReturnPage() {
         >
           <div className="my-3 space-y-3 font-regular">
             <hr />
-            <h1 className="text-2xl font-bold">Invoice Details</h1>
+            <h1 className="text-2xl font-bold">Detail Invoice</h1>
             <div className="flex flex-col gap-3">
               <div className="flex justify-between">
                 <p className="text-md">Customer</p>
                 <p className="text-md">{invoice.customer_name}</p>
               </div>
               <div className="flex justify-between">
-                <p className="text-md">Total price</p>
+                <p className="text-md">Total harga</p>
                 <p className="text-md">
                   {new Intl.NumberFormat('id-ID', {
                     style: 'currency',
@@ -552,7 +551,7 @@ export default function ReturnPage() {
                 </p>
               </div>
               <div className="flex justify-between">
-                <p className="text-md">Payment method</p>
+                <p className="text-md">Methode pembayaran</p>
                 <p className="text-md">{invoice.payment_method}</p>
               </div>
               <ul className="my-3 space-y-3 font-regular">
@@ -649,7 +648,7 @@ export default function ReturnPage() {
                                   }
                                 } else {
                                   setErrorMessage(
-                                    'Amount cannot be more than the original amount'
+                                    'Jumlah tidak bisa lebih dari jumlah asli'
                                   );
                                   e.target.value = e.target.value.slice(0, -1);
                                   setTimeout(() => {
@@ -674,7 +673,7 @@ export default function ReturnPage() {
               }`}
             >
               <hr className="my-3" />
-              <h1 className="text-2xl font-bold">New Transaction</h1>
+              <h1 className="text-2xl font-bold">Transaksi Baru</h1>
               <ul className="my-3 space-y-3 font-regular">
                 {selectedNewItems.map((newItem, newIndex) => (
                   <li key={newIndex}>
@@ -710,7 +709,7 @@ export default function ReturnPage() {
                           </button>
                         </div>
                         <InputField
-                          label="new amount"
+                          label="Jumlah Barang"
                           labelFor="new amount"
                           loading={loading}
                           value={selectedNewItems[newIndex]?.count}
@@ -790,7 +789,9 @@ export default function ReturnPage() {
               </div>
 
               <div className="flex justify-end">
-                <p className="text-lg font-semibold">To be paid: &nbsp;</p>
+                <p className="text-lg font-semibold">
+                  Jumlah yang harus dibayar: &nbsp;
+                </p>
                 <p className="text-lg font-semibold">
                   {new Intl.NumberFormat('id-ID', {
                     style: 'currency',
@@ -810,7 +811,7 @@ export default function ReturnPage() {
                 disabled={loading}
                 onClick={() => setModalOpen(true)}
               >
-                Choose Products
+                + Pilih Product(s)
               </button>
 
               <hr />
@@ -818,7 +819,7 @@ export default function ReturnPage() {
               <div className="w-full flex justify-between items-center">
                 <div className="w-1/3">
                   <label htmlFor={'payment-method'} className="text-md">
-                    Payment Method
+                    Methode Pembayaran
                   </label>
                 </div>
                 <div className="w-2/3 flex justify-start">
@@ -873,7 +874,7 @@ export default function ReturnPage() {
               <div className="flex justify-between">
                 <div className="w-1/3 flex items-center">
                   <label htmlFor={'date-id'} className="text-md">
-                    Transaction Date
+                    Tanggal Transaksi
                   </label>
                 </div>
                 <div className="w-2/3">
@@ -929,7 +930,7 @@ export default function ReturnPage() {
         title={'Choose Product'}
         headerList={
           products.length > 0
-            ? ['', 'Product name', 'Warehouse', 'Available amount', 'Price']
+            ? ['', 'Nama Product', 'Posisi Gudang', 'Jumlah Tersedia', 'Harga']
             : []
         }
       >

@@ -51,15 +51,13 @@ export const AuthPage = () => {
     <PageLayout>
       <AuthCard>
         <form className="flex flex-col gap-[0.5rem]" onSubmit={handleSubmit}>
-          <h3 className="text-xl font-medium text-gray-900">
-            Sign in
-          </h3>
+          <h3 className="text-xl font-medium text-gray-900">Sign in</h3>
           <div>
             <label
               htmlFor="email"
               className="text-sm font-medium text-gray-900 block mb-2"
             >
-              Your email
+              Email Anda
               <input
                 type="email"
                 name="email"
@@ -82,7 +80,7 @@ export const AuthPage = () => {
               htmlFor="password"
               className="text-sm font-medium text-gray-900 block mb-2"
             >
-              Your password
+              Password Anda
               <input
                 type="password"
                 name="password"
@@ -104,7 +102,7 @@ export const AuthPage = () => {
             className="text-sm text-blue-700 hover:underline ml-auto"
             href="https://google.com"
           >
-            Lost Password?
+            Lupa Password?
           </a>
           <button
             type="submit"
@@ -115,7 +113,7 @@ export const AuthPage = () => {
                 <AiOutlineLoading3Quarters className="animate-spin flex justify-center" />
               </p>
             ) : (
-              'Sign in'
+              'Login'
             )}
           </button>
           {error !== '' && (
