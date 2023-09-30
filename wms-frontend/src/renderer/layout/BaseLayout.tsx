@@ -1,11 +1,10 @@
 import React from 'react';
 import { useAuth } from 'renderer/providers/AuthProvider';
-import { AppHeaderProps } from './AppHeader';
 import { AppSidebar } from './AppSidebar';
 
-export type BaseLayoutProps = AppHeaderProps & {
+export interface BaseLayoutProps {
   children: React.ReactNode;
-};
+}
 
 export const BaseLayout = ({ children }: BaseLayoutProps) => {
   const { isLoggedIn } = useAuth();
