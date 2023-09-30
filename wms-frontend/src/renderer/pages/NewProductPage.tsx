@@ -267,6 +267,11 @@ export const NewProductPage = () => {
           label="Product Count"
           value={newProduct.count}
           onChange={(e) => {
+            if (
+              !/^[0-9]*(\.[0-9]*)?$/.test(e.target.value) &&
+              e.target.value !== ''
+            )
+              return;
             setNewProduct({ ...newProduct, count: Number(e.target.value) });
           }}
         />
@@ -276,6 +281,11 @@ export const NewProductPage = () => {
           label="Purchase Price"
           value={newProduct.purchase_price}
           onChange={(e) => {
+            if (
+              !/^[0-9]*(\.[0-9]*)?$/.test(e.target.value) &&
+              e.target.value !== ''
+            )
+              return;
             setNewProduct({
               ...newProduct,
               purchase_price: Number(e.target.value),
@@ -287,9 +297,17 @@ export const NewProductPage = () => {
           labelFor="sell_price"
           label="Sell Price"
           value={newProduct.sell_price}
-          onChange={(e) =>
-            setNewProduct({ ...newProduct, sell_price: Number(e.target.value) })
-          }
+          onChange={(e) => {
+            if (
+              !/^[0-9]*(\.[0-9]*)?$/.test(e.target.value) &&
+              e.target.value !== ''
+            )
+              return;
+            setNewProduct({
+              ...newProduct,
+              sell_price: Number(e.target.value),
+            });
+          }}
         />
         <div>
           <div className="flex justify-between">
