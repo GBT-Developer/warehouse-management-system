@@ -390,11 +390,19 @@ export const seedTransaction = async (num_of_transaction: number) => {
         }),
       });
     }
-    await db.collection("invoice").doc("--stats--").set({
-      total_sales: totalSales,
-      transaction_count: num_of_transaction,
-      daily_sales: daily_sales,
-    });
+    await db
+      .collection("invoice")
+      .doc("--stats--")
+      .set({
+        total_sales: totalSales,
+        transaction_count: num_of_transaction,
+        daily_sales: daily_sales,
+        month: parseInt(
+          new Date().toLocaleDateString("en-US", {
+            month: "numeric",
+          })
+        ),
+      });
   } else {
     functions.logger.info("Enough transaction already");
   }
