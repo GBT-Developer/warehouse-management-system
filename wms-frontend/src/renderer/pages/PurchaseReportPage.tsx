@@ -63,7 +63,7 @@ export default function PurchaseHistoryPage() {
                 'Gudang Jadi',
               ]),
           orderBy('created_at', 'desc'),
-          limit(1)
+          limit(50)
         );
         const querySnapshot = await getDocs(q);
 
@@ -116,7 +116,7 @@ export default function PurchaseHistoryPage() {
           : where('warehouse_position', 'in', ['Gudang Bahan', 'Gudang Jadi']),
         orderBy('created_at', 'desc'),
         nextQuery,
-        limit(1)
+        limit(50)
       );
 
       const querySnapshot = await getDocs(q);
