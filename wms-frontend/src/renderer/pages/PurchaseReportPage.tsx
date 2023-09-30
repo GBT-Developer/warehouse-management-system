@@ -1,10 +1,14 @@
 import { db } from 'firebase';
 import {
+  QueryStartAtConstraint,
   collection,
   deleteDoc,
   doc,
   getDocs,
+  limit,
+  orderBy,
   query,
+  startAfter,
   updateDoc,
   where,
 } from 'firebase/firestore';
@@ -29,6 +33,11 @@ export default function PurchaseHistoryPage() {
     Record<string, boolean>
   >({});
   const navigate = useNavigate();
+  const [nextPosts_loading, setNextPostsLoading] = useState(false);
+  const [nextPosts_empty, setNextPostsEmpty] = useState(false);
+  const [nextQuery, setNextQuery] = useState<QueryStartAtConstraint | null>(
+    null
+  );
 
   const toggleShowProducts = (purchaseId: string) => {
     setShowProductsMap((prevState) => ({
@@ -49,15 +58,32 @@ export default function PurchaseHistoryPage() {
           where('supplier', '==', param.id),
           warehousePosition !== 'Both'
             ? where('warehouse_position', '==', warehousePosition)
-            : where('warehouse_position', 'in', ['Gudang Bahan', 'Gudang Jadi'])
+            : where('warehouse_position', 'in', [
+                'Gudang Bahan',
+                'Gudang Jadi',
+              ]),
+          orderBy('created_at', 'desc'),
+          limit(1)
         );
         const querySnapshot = await getDocs(q);
+
+        querySnapshot.forEach((doc) => {
+          console.log(doc.id, ' => ', doc.data());
+        });
 
         if (querySnapshot.empty) {
           setPurchaseList([]);
           setLoading(false);
+          setNextQuery(null);
+          setNextPostsEmpty(true);
+          setNextPostsLoading(false);
+
           return;
         }
+
+        setNextQuery(
+          startAfter(querySnapshot.docs[querySnapshot.docs.length - 1])
+        );
 
         const historyData: PurchaseHistory[] = [];
         querySnapshot.forEach((doc) => {
@@ -77,6 +103,49 @@ export default function PurchaseHistoryPage() {
       console.log(error);
     });
   }, [param.id, warehousePosition]);
+
+  const fetchMoreData = async () => {
+    try {
+      if (nextQuery === null) return;
+      setNextPostsLoading(true);
+      const q = query(
+        collection(db, 'purchase_history'),
+        where('supplier', '==', param.id),
+        warehousePosition !== 'Both'
+          ? where('warehouse_position', '==', warehousePosition)
+          : where('warehouse_position', 'in', ['Gudang Bahan', 'Gudang Jadi']),
+        orderBy('created_at', 'desc'),
+        nextQuery,
+        limit(1)
+      );
+
+      const querySnapshot = await getDocs(q);
+
+      if (querySnapshot.empty) {
+        setNextPostsEmpty(true);
+        setNextQuery(null);
+        setNextPostsLoading(false);
+        setNextPostsEmpty(true);
+        return;
+      }
+
+      setNextQuery(() =>
+        startAfter(querySnapshot.docs[querySnapshot.docs.length - 1])
+      );
+
+      const invoiceData: PurchaseHistory[] = [];
+      querySnapshot.forEach((theInvoice) => {
+        const data = theInvoice.data() as PurchaseHistory;
+        data.id = theInvoice.id;
+        invoiceData.push(data);
+      });
+
+      setPurchaseList((prev) => [...prev, ...invoiceData]);
+      setNextPostsLoading(false);
+    } catch (error) {
+      console.error('Error fetching data:', error);
+    }
+  };
 
   return (
     <PageLayout>
@@ -231,6 +300,20 @@ export default function PurchaseHistoryPage() {
                   ))}
               </tbody>
             </table>
+            <div className="flex justify-center w-full pt-5">
+              <button
+                className={
+                  'bg-gray-300 hover:bg-gray-400 text-white px-6 py-1 rounded text-sm'
+                }
+                hidden={nextPosts_empty}
+                disabled={nextPosts_loading}
+                onClick={() => {
+                  fetchMoreData().catch(() => console.log('error'));
+                }}
+              >
+                {nextPosts_loading ? 'Loading...' : 'Load More'}
+              </button>
+            </div>
           </div>
           <button
             type="button"
