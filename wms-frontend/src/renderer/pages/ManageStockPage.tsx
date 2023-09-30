@@ -234,6 +234,7 @@ export const ManageStockPage = () => {
         selectedSupplier === null) ||
       ((manageStockMode === 'purchase' || manageStockMode === 'force-change') &&
         newPurchase.purchase_price === 0 &&
+        manageStockMode != 'force-change' &&
         !returnedProduct) ||
       (manageStockMode === 'from_other_warehouse' && dispatchNote === '') ||
       (manageStockMode === 'from_other_warehouse' &&

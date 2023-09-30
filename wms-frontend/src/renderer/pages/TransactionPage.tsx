@@ -235,6 +235,8 @@ export const TransactionPage = () => {
       setProducts([]);
       setLoading(false);
       setGuestFormOpen(false);
+      // Clear date input
+      if (dateInputRef.current) dateInputRef.current.value = '';
     } catch (error) {
       console.error('Error adding document: ', error);
     }

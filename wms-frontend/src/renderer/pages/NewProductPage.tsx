@@ -58,6 +58,7 @@ export const NewProductPage = () => {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const warehouseOptionRef = useRef<HTMLSelectElement>(null);
   const supplierOptionRef = useRef<HTMLSelectElement>(null);
+  const dateRef = useRef<HTMLInputElement>(null);
   const [loading, setLoading] = useState(false);
   const [suppliers, setSupplier] = useState<Supplier[]>([]);
   const [showSupplierForm, setShowSupplierForm] = useState(false);
@@ -207,6 +208,12 @@ export const NewProductPage = () => {
       setNewProduct(newProductInitialState);
       setNewSupplier(newSupplierInitialState);
       setNewPurchase(newPurchaseInitialState);
+      //make the supplier select empty
+      if (supplierOptionRef.current) supplierOptionRef.current.value = '';
+      //make the warehouse select empty
+      if (warehouseOptionRef.current) warehouseOptionRef.current.value = '';
+      //make the date input empty
+      if (dateRef.current) dateRef.current.value = '';
       return Promise.resolve(newProductRef);
     }).catch((error) => {
       setLoading(false);
@@ -277,6 +284,11 @@ export const NewProductPage = () => {
           label="Product Count"
           value={newProduct.count}
           onChange={(e) => {
+            if (
+              !/^[0-9]*(\.[0-9]*)?$/.test(e.target.value) &&
+              e.target.value !== ''
+            )
+              return;
             setNewProduct({ ...newProduct, count: Number(e.target.value) });
           }}
         />
@@ -286,6 +298,11 @@ export const NewProductPage = () => {
           label="Purchase Price"
           value={newProduct.purchase_price}
           onChange={(e) => {
+            if (
+              !/^[0-9]*(\.[0-9]*)?$/.test(e.target.value) &&
+              e.target.value !== ''
+            )
+              return;
             setNewProduct({
               ...newProduct,
               purchase_price: Number(e.target.value),
@@ -297,9 +314,17 @@ export const NewProductPage = () => {
           labelFor="sell_price"
           label="Sell Price"
           value={newProduct.sell_price}
-          onChange={(e) =>
-            setNewProduct({ ...newProduct, sell_price: Number(e.target.value) })
-          }
+          onChange={(e) => {
+            if (
+              !/^[0-9]*(\.[0-9]*)?$/.test(e.target.value) &&
+              e.target.value !== ''
+            )
+              return;
+            setNewProduct({
+              ...newProduct,
+              sell_price: Number(e.target.value),
+            });
+          }}
         />
         <div>
           <div className="flex justify-between">
@@ -346,6 +371,7 @@ export const NewProductPage = () => {
           <div className="w-2/3">
             <input
               disabled={loading}
+              ref={dateRef}
               type="date"
               name="date"
               className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"

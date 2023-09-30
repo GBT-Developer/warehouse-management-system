@@ -274,6 +274,11 @@ export default function ProductDetailPage() {
               label="Sell Price"
               value={product?.sell_price ?? ''}
               onChange={(e) => {
+                if (
+                  !/^[0-9]*(\.[0-9]*)?$/.test(e.target.value) &&
+                  e.target.value !== ''
+                )
+                  return;
                 if (product === undefined) return;
                 setProduct({ ...product, sell_price: Number(e.target.value) });
               }}

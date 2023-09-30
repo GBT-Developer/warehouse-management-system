@@ -70,7 +70,7 @@ export default function ReturnPage() {
     })[]
   >([]);
   const dateInputRef = React.useRef<HTMLInputElement>(null);
-  const successNotify = () => toast.success('Submit successful');
+  const successNotify = () => toast.success('Product returned successfully');
   const failNotify = (e?: string) =>
     toast.error(e ?? 'An error occured while submitting');
   const getSpecialPriceForProduct = (productId: string) => {
@@ -1017,7 +1017,12 @@ export default function ReturnPage() {
               </SingleTableItem>
               <SingleTableItem>{product.warehouse_position}</SingleTableItem>
               <SingleTableItem>{product.count}</SingleTableItem>
-              <SingleTableItem>{product.sell_price}</SingleTableItem>
+              <SingleTableItem>
+                {new Intl.NumberFormat('id-ID', {
+                  style: 'currency',
+                  currency: 'IDR',
+                }).format(product.sell_price)}
+              </SingleTableItem>
             </tr>
           ))
         ) : (
