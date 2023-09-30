@@ -81,9 +81,9 @@ export default function VoidListPage() {
             )}
             <table className="w-full text-sm text-left text-gray-500">
               <TableHeader>
+                <th className="py-3">Date</th>
                 <th className="py-3">Void Invoice ID</th>
                 <th className="py-3">Customer Name</th>
-                <th className="py-3">Date</th>
                 <th className="py-3">Payment Method</th>
                 <th className="py-3">Price</th>
               </TableHeader>
@@ -128,11 +128,11 @@ export default function VoidListPage() {
                             toggleShowProducts(void_list.id);
                           }}
                         >
+                          <SingleTableItem>{void_list.date}</SingleTableItem>
                           <SingleTableItem>{void_list.id}</SingleTableItem>
                           <SingleTableItem>
                             {void_list.customer_name}
                           </SingleTableItem>
-                          <SingleTableItem>{void_list.date}</SingleTableItem>
                           <SingleTableItem>
                             {void_list.payment_method}
                           </SingleTableItem>

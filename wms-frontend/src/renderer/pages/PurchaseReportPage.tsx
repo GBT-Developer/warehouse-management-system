@@ -105,8 +105,8 @@ export default function PurchaseHistoryPage() {
             )}
             <table className="w-full text-sm text-left text-gray-500">
               <TableHeader>
-                <th className="py-3">Invoice ID</th>
                 <th className="py-3">Date</th>
+                <th className="py-3">Invoice ID</th>
                 <th className="py-3">Purchase Price</th>
                 <th className="py-3">Status</th>
                 <th className="py-3"></th>
@@ -138,10 +138,10 @@ export default function PurchaseHistoryPage() {
                           toggleShowProducts(purchase_history.id);
                         }}
                       >
-                        <SingleTableItem>{purchase_history.id}</SingleTableItem>
                         <SingleTableItem>
                           {purchase_history.created_at}
                         </SingleTableItem>
+                        <SingleTableItem>{purchase_history.id}</SingleTableItem>
                         <SingleTableItem>
                           <span className="font-medium text-md">
                             {purchase_history.purchase_price}
