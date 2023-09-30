@@ -76,7 +76,7 @@ export default function TransactionHistory() {
         <div className="relative shadow-md sm:rounded-lg overflow-auto h-full flex flex-col justify-between">
           <TableTitle setSearch={setSearch}>
             <h1 className="text-4xl font-extrabold tracking-tight text-gray-900 md:text-5xl">
-              Transaction History
+              Riwayat Transaksi
             </h1>
           </TableTitle>
           <div className="overflow-y-auto h-full">

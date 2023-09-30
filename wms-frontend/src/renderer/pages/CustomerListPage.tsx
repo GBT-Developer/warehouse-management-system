@@ -47,7 +47,7 @@ export default function CustomerListPage() {
         <div className="relative shadow-md sm:rounded-lg overflow-auto h-full flex flex-col justify-between">
           <TableTitle setSearch={setSearch}>
             <h1 className="text-4xl font-extrabold tracking-tight text-gray-900 md:text-5xl">
-              Customer List
+              List Customer
             </h1>
           </TableTitle>
           <div className="overflow-y-auto h-full relative">
