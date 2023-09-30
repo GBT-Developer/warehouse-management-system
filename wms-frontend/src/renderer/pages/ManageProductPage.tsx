@@ -1,6 +1,11 @@
-import { collection, getDocs, query } from '@firebase/firestore';
+import { collection, getDocs, orderBy, query } from '@firebase/firestore';
 import { db } from 'firebase';
-import { where } from 'firebase/firestore';
+import {
+  QueryStartAtConstraint,
+  limit,
+  startAfter,
+  where,
+} from 'firebase/firestore';
 import { useEffect, useState } from 'react';
 import { AiOutlineLoading3Quarters } from 'react-icons/ai';
 import { IoInformationCircleSharp } from 'react-icons/io5';
@@ -18,10 +23,14 @@ export const ManageProductPage = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(false);
   const { warehousePosition } = useAuth();
+  const [page, setPage] = useState(1);
+  const [lastBrandKey, setLastBrandKey] = useState(null);
+  const [nextPosts_loading, setNextPostsLoading] = useState(false);
+  const [nextPosts_empty, setNextPostsEmpty] = useState(false);
+  const [nextQuery, setNextQuery] = useState<QueryStartAtConstraint | null>(
+    null
+  );
 
-  useEffect(() => {
-    console.log('warehouse changed', warehousePosition);
-  }, [warehousePosition]);
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -29,7 +38,12 @@ export const ManageProductPage = () => {
           collection(db, 'product'),
           warehousePosition !== 'Both'
             ? where('warehouse_position', '==', warehousePosition)
-            : where('warehouse_position', 'in', ['Gudang Bahan', 'Gudang Jadi'])
+            : where('warehouse_position', 'in', [
+                'Gudang Bahan',
+                'Gudang Jadi',
+              ]),
+          orderBy('brand', 'asc'),
+          limit(50)
         );
         setLoading(true);
         const querySnapshot = await getDocs(productsQuery);
@@ -45,7 +59,14 @@ export const ManageProductPage = () => {
           const data = theProduct.data() as Product;
           data.id = theProduct.id;
           productData.push(data);
+          setLastBrandKey(theProduct.data().brand);
         });
+
+        const nextQ = startAfter(
+          querySnapshot.docs[querySnapshot.docs.length - 1]
+        );
+
+        setNextQuery(nextQ);
 
         setProducts(productData);
         setLoading(false);
@@ -58,6 +79,50 @@ export const ManageProductPage = () => {
       console.log(error);
     });
   }, [warehousePosition]);
+
+  const fetchMoreData = async () => {
+    try {
+      if (nextQuery === null) return;
+      setNextPostsLoading(true);
+      const productsQuery = query(
+        collection(db, 'product'),
+        warehousePosition !== 'Both'
+          ? where('warehouse_position', '==', warehousePosition)
+          : where('warehouse_position', 'in', ['Gudang Bahan', 'Gudang Jadi']),
+        orderBy('brand', 'asc'),
+        startAfter(lastBrandKey),
+        nextQuery,
+        limit(50)
+      );
+
+      const querySnapshot = await getDocs(productsQuery);
+
+      setNextQuery(
+        startAfter(querySnapshot.docs[querySnapshot.docs.length - 1])
+      );
+
+      if (querySnapshot.empty) {
+        //disable load more button
+        setNextPostsEmpty(true);
+        return;
+      }
+
+      const productData: Product[] = [];
+      querySnapshot.forEach((theProduct) => {
+        const data = theProduct.data() as Product;
+        data.id = theProduct.id;
+        productData.push(data);
+        setLastBrandKey(theProduct.data().brand);
+      });
+
+      setProducts((prev) => [...prev, ...productData]);
+      setNextPostsLoading(false);
+
+      setPage(page + 1);
+    } catch (error) {
+      console.error('Error fetching data:', error);
+    }
+  };
 
   return (
     <PageLayout>
@@ -175,6 +240,16 @@ export const ManageProductPage = () => {
                 )}
               </tbody>
             </table>
+            <div className="flex justify-center w-full pt-5">
+              <button
+                className={`bg-gray-300 hover:bg-gray-400 text-white px-6 py-1 rounded text-sm`}
+                hidden={nextPosts_empty}
+                disabled={nextPosts_loading}
+                onClick={fetchMoreData}
+              >
+                {nextPosts_loading ? 'Loading...' : 'Load More'}
+              </button>
+            </div>
           </div>
           <div className="flex flex-row-reverse gap-2 w-full justify-start">
             <button
