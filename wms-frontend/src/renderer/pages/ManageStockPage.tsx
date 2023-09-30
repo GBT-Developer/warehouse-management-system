@@ -4,6 +4,7 @@ import {
   collection,
   deleteDoc,
   doc,
+  documentId,
   getDocs,
   increment,
   query,
@@ -93,6 +94,7 @@ export const ManageStockPage = () => {
         console.log('selectedWarehouse', selectedWarehouse);
         console.log('dateInputRef.current?.value', dateInputRef.current?.value);
         console.log('returnedProduct', returnedProduct);
+        console.log('Products', products);
         setIsEmpty(true);
         return;
       } else if (
@@ -258,7 +260,7 @@ export const ManageStockPage = () => {
     else theTime = '23:59:59';
 
     if (manageStockMode === 'purchase' || manageStockMode === 'force-change')
-      await runTransaction(db, (transaction) => {
+      await runTransaction(db, async (transaction) => {
         if (newPurchase.products.length === 0 || selectedSupplier === null)
           return Promise.reject();
 
@@ -323,6 +325,27 @@ export const ManageStockPage = () => {
                 products[index].available_color,
               quantity: product.quantity,
             })),
+          });
+        }
+        if (returnedProduct && manageStockMode === 'purchase') {
+          // Construct a query to find matching returned products
+          const queryRef = query(
+            collection(db, 'returned_product'),
+            where(documentId(), '==', products[0].id),
+            where('count', '==', newPurchase.products[0].quantity)
+          );
+
+          // Execute the query to find matching documents
+          const querySnapshot = await getDocs(queryRef);
+
+          // Loop through the matching documents and delete them
+          querySnapshot.forEach(async (docSnapshot) => {
+            const returnedProductRef = doc(
+              db,
+              'returned_product',
+              docSnapshot.id
+            );
+            await deleteDoc(returnedProductRef);
           });
         }
         // Wait for all promises in the map to resolve
