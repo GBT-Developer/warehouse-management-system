@@ -72,8 +72,6 @@ exports/
 
 .DS_Store
 
-**/.erb
-
 **/.DS_Store
 
 # Logs
