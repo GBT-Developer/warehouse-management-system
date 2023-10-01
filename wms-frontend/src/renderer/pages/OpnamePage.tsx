@@ -196,17 +196,17 @@ export default function OpnamePage() {
 
   return (
     <PageLayout>
+      <div className="flex flex-col md:flex-row items-center justify-between space-y-3 md:space-y-0 md:space-x-4 py-4 mb-[2rem]">
+        <h1 className="text-4xl font-extrabold tracking-tight text-gray-900 md:text-5xl">
+          Opname
+        </h1>
+      </div>
       <div className="relative flex flex-col w-2/3 h-[fit-content] pt-4">
         {loading && (
           <div className="absolute flex justify-center items-center py-2 px-3 top-0 left-0 w-full h-full bg-gray-50 rounded-lg z-50 bg-opacity-50">
             <AiOutlineLoading3Quarters className="animate-spin flex justify-center text-4xl" />
           </div>
         )}
-        <div className="flex flex-col md:flex-row items-center justify-between space-y-3 md:space-y-0 md:space-x-4 py-4 mb-[2rem]">
-          <h1 className="text-4xl font-extrabold tracking-tight text-gray-900 md:text-5xl">
-            Opname
-          </h1>
-        </div>
         <div className="flex flex-col justify-center">
           <p>Date Range:</p>
           <DateRangeComp
