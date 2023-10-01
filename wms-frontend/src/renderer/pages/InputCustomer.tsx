@@ -31,8 +31,10 @@ function InputCustomerPage() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [selectedProducts, setSelectedProducts] = useState<Product[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
-  const successNotify = () => toast.success('Customer Successfully Added');
-  const failNotify = (e?: string) => toast.error(e ?? 'Failed to add customer');
+  const successNotify = () =>
+    toast.success('Customer baru berhasil ditambahkan');
+  const failNotify = (e?: string) =>
+    toast.error(e ?? 'Gagal menambahkan customer');
   const [isEmpty, setIsEmpty] = useState(false);
 
   useEffect(() => {
@@ -61,7 +63,7 @@ function InputCustomerPage() {
       !newCustomer.address ||
       !newCustomer.phone_number
     ) {
-      setErrorMessage('Please fill all the fields');
+      setErrorMessage('Tolong isi semua kolom');
       setTimeout(() => {
         setErrorMessage(null);
       }, 3000);
@@ -70,7 +72,7 @@ function InputCustomerPage() {
 
     // Check data type
     if (Number.isNaN(Number(newCustomer.phone_number))) {
-      setErrorMessage('Please input a valid number');
+      setErrorMessage('Nomor telepon harus berupa angka');
       setTimeout(() => {
         setErrorMessage(null);
       }, 3000);
@@ -78,7 +80,7 @@ function InputCustomerPage() {
     }
 
     if (newCustomer.SpecialPrice.some((sp) => sp.price === 0)) {
-      setErrorMessage('Please enter prices for all selected products');
+      setErrorMessage('Tolong isi semua harga khusus');
       setTimeout(() => {
         setErrorMessage(null);
       }, 3000);
@@ -146,7 +148,7 @@ function InputCustomerPage() {
   return (
     <PageLayout>
       <h1 className="text-4xl font-extrabold tracking-tight text-gray-900 md:text-5xl pt-4">
-        Add New Customer
+        Customer Baru
       </h1>
       <form
         className={`w-2/3 py-14 my-10 flex flex-col gap-3 relative ${
@@ -160,7 +162,7 @@ function InputCustomerPage() {
         )}
         <InputField
           loading={loading}
-          label="Name"
+          label="Nama"
           labelFor="name"
           value={newCustomer.name}
           placeholder="i.e. John Doe"
@@ -170,7 +172,7 @@ function InputCustomerPage() {
         />
         <InputField
           loading={loading}
-          label="Address"
+          label="Alamat"
           labelFor="address"
           value={newCustomer.address}
           placeholder="i.e. Jl.Soekarno-Hatta No. 123"
@@ -180,7 +182,7 @@ function InputCustomerPage() {
         />
         <InputField
           loading={loading}
-          label="Contact Number"
+          label="Nomor Telepon"
           labelFor="phone_number"
           value={newCustomer.phone_number}
           placeholder="Phone number or landline number"
@@ -190,7 +192,7 @@ function InputCustomerPage() {
         />
 
         <hr className="my-4" />
-        <h2 className="text-2xl font-bold">Special Price</h2>
+        <h2 className="text-2xl font-bold">Harga Khusus</h2>
         <ul className="my-3 space-y-3 font-regular">
           {selectedProducts.map((product, index) => (
             <li key={index}>
@@ -273,7 +275,7 @@ function InputCustomerPage() {
           className="py-2 px-5 text-sm font-medium text-red-500 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-red-700 focus:z-10 focus:ring-4 focus:ring-gray-200"
           onClick={() => setModalOpen(true)}
         >
-          + Add Products
+          + Pilih Product(s)
         </button>
 
         <div className="flex flex-row-reverse gap-2 justify-start">
@@ -312,7 +314,7 @@ function InputCustomerPage() {
         title={'Choose Product'}
         headerList={
           products.length > 0
-            ? ['', 'Product name', 'Sell Price', 'Warehouse']
+            ? ['', 'Nama Product', 'Harga Jual', 'Posisi Gudang']
             : []
         }
       >

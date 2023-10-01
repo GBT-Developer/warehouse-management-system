@@ -105,7 +105,7 @@ export default function SupplierList() {
         <div className="relative shadow-md sm:rounded-lg overflow-auto h-full flex flex-col justify-between">
           <TableTitle setSearch={setSearch}>
             <h1 className="text-4xl font-extrabold tracking-tight text-gray-900 md:text-5xl">
-              Supplier List
+              List Supplier
             </h1>
           </TableTitle>
           <div className="overflow-y-auto h-full relative">
@@ -117,10 +117,10 @@ export default function SupplierList() {
 
             <table className="w-full text-sm text-left text-gray-500">
               <TableHeader>
-                <th className=" py-3">Factory Name</th>
-                <th className=" py-3">Address</th>
-                <th className=" py-3">Telephone</th>
-                <th className=" py-3">Bank Account</th>
+                <th className=" py-3">Nama Perusahaan</th>
+                <th className=" py-3">Alamat</th>
+                <th className=" py-3">Telefon</th>
+                <th className=" py-3">Bank</th>
                 <th className=" py-3"></th>
               </TableHeader>
               <tbody className="overflow-y-auto">
@@ -196,7 +196,7 @@ export default function SupplierList() {
                                 );
                             }}
                           >
-                            Purchase History
+                            Riwayat Pembelian
                           </button>
                         </SingleTableItem>
                       </tr>

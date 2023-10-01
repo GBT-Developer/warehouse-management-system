@@ -44,7 +44,7 @@ export default function TransactionHistory() {
       setLoading(true);
       const q = query(
         collection(db, 'invoice'),
-        warehousePosition !== 'Both'
+        warehousePosition !== 'Semua Gudang'
           ? where('warehouse_position', '==', warehousePosition)
           : where('warehouse_position', 'in', ['Gudang Bahan', 'Gudang Jadi']),
         orderBy('date', 'desc'),
@@ -89,7 +89,7 @@ export default function TransactionHistory() {
       setNextPostsLoading(true);
       const q = query(
         collection(db, 'invoice'),
-        warehousePosition !== 'Both'
+        warehousePosition !== 'Semua Gudang'
           ? where('warehouse_position', '==', warehousePosition)
           : where('warehouse_position', 'in', ['Gudang Bahan', 'Gudang Jadi']),
         orderBy('date', 'desc'),
@@ -137,7 +137,7 @@ export default function TransactionHistory() {
         <div className="relative shadow-md sm:rounded-lg overflow-auto h-full flex flex-col justify-between">
           <TableTitle setSearch={setSearch}>
             <h1 className="text-4xl font-extrabold tracking-tight text-gray-900 md:text-5xl">
-              Transaction History
+              Riwayat Transaksi
             </h1>
           </TableTitle>
           <div className="overflow-y-auto h-full">
@@ -148,12 +148,12 @@ export default function TransactionHistory() {
             )}
             <table className="w-full text-sm text-left text-gray-500">
               <TableHeader>
-                <th className=" py-3">Date</th>
-                <th className=" py-3">Invoice Number</th>
-                <th className=" py-3">Customer Name</th>
-                <th className=" py-3">Warehouse</th>
-                <th className=" py-3">Sales</th>
-                <th className=" py-3">Payment</th>
+                <th className=" py-3">Tangga</th>
+                <th className=" py-3">Nomor Invoice</th>
+                <th className=" py-3">Nama Customer</th>
+                <th className=" py-3">Posisi Gudang</th>
+                <th className=" py-3">Total Harga</th>
+                <th className=" py-3">Methode Pembayaran</th>
                 <th className=" py-3"></th>
               </TableHeader>
               <tbody className="overflow-y-auto">

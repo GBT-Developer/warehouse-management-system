@@ -36,7 +36,7 @@ export const ReturnedProductListPage = () => {
       try {
         const productsQuery = query(
           collection(db, 'returned_product'),
-          warehousePosition !== 'Both'
+          warehousePosition !== 'Semua Gudang'
             ? where('warehouse_position', '==', warehousePosition)
             : where('warehouse_position', 'in', [
                 'Gudang Bahan',
@@ -129,7 +129,7 @@ export const ReturnedProductListPage = () => {
       setNextPostsLoading(true);
       const q = query(
         collection(db, 'returned_product'),
-        warehousePosition !== 'Both'
+        warehousePosition !== 'Semua Gudang'
           ? where('warehouse_position', '==', warehousePosition)
           : where('warehouse_position', 'in', ['Gudang Bahan', 'Gudang Jadi']),
         orderBy('brand', 'asc'),
@@ -209,7 +209,7 @@ export const ReturnedProductListPage = () => {
         <div className="relative shadow-md sm:rounded-lg overflow-auto h-full flex flex-col justify-between">
           <TableTitle setSearch={setSearch}>
             <h1 className="text-4xl font-extrabold tracking-tight text-gray-900 md:text-5xl">
-              Returned Products
+              Retur Produk Supplier
             </h1>
           </TableTitle>
           <div className="overflow-y-auto h-full relative">
@@ -221,9 +221,9 @@ export const ReturnedProductListPage = () => {
 
             <table className="w-full text-sm text-left text-gray-500">
               <TableHeader>
-                <th className=" py-3">Name</th>
+                <th className=" py-3">Nama Product</th>
                 <th className=" py-3">Supplier</th>
-                <th className=" py-3">Amount</th>
+                <th className=" py-3">Jumlah</th>
               </TableHeader>
               <tbody>
                 {products.length === 0 ? (

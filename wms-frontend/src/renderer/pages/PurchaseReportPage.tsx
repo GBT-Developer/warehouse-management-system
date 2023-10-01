@@ -57,7 +57,7 @@ export default function PurchaseHistoryPage() {
         const q = query(
           collection(db, 'purchase_history'),
           where('supplier', '==', param.id),
-          warehousePosition !== 'Both'
+          warehousePosition !== 'Semua Gudang'
             ? where('warehouse_position', '==', warehousePosition)
             : where('warehouse_position', 'in', [
                 'Gudang Bahan',
@@ -112,7 +112,7 @@ export default function PurchaseHistoryPage() {
       const q = query(
         collection(db, 'purchase_history'),
         where('supplier', '==', param.id),
-        warehousePosition !== 'Both'
+        warehousePosition !== 'Semua Gudang'
           ? where('warehouse_position', '==', warehousePosition)
           : where('warehouse_position', 'in', ['Gudang Bahan', 'Gudang Jadi']),
         orderBy('created_at', 'desc'),
@@ -174,9 +174,9 @@ export default function PurchaseHistoryPage() {
             )}
             <table className="w-full text-sm text-left text-gray-500">
               <TableHeader>
-                <th className="py-3">Date</th>
-                <th className="py-3">Invoice ID</th>
-                <th className="py-3">Purchase Price</th>
+                <th className="py-3">Nomor Invoice</th>
+                <th className="py-3">Tanggal</th>
+                <th className="py-3">Harga Beli</th>
                 <th className="py-3">Status</th>
                 <th className="py-3"></th>
               </TableHeader>
@@ -213,7 +213,10 @@ export default function PurchaseHistoryPage() {
                         <SingleTableItem>{purchase_history.id}</SingleTableItem>
                         <SingleTableItem>
                           <span className="font-medium text-md">
-                            {purchase_history.purchase_price}
+                            {new Intl.NumberFormat('id-ID', {
+                              style: 'currency',
+                              currency: 'IDR',
+                            }).format(purchase_history.purchase_price)}
                           </span>
                         </SingleTableItem>
                         <SingleTableItem>
@@ -250,10 +253,10 @@ export default function PurchaseHistoryPage() {
                               } border border-gray-300 text-gray-900 text-sm rounded-lg outline-none block w-fit p-2.5`}
                             >
                               <option className="bg-gray-50" value="unpaid">
-                                Unpaid
+                                Belum
                               </option>
                               <option className="bg-gray-50" value="paid">
-                                Paid
+                                Lunas
                               </option>
                             </select>
                           </form>

@@ -55,19 +55,18 @@ const Profile = () => {
   const { setCurrentWarehouse } = useAuth().actions;
   const [isWarehouseDropdownOpen, setIsWarehouseDropdownOpen] = useState(false);
   const [dataWarehouse, setDataWarehouse] = useState<
-    'Raw Material Warehouse' | 'Finished Goods Warehouse' | 'Both'
+    'Gudang Bahan' | 'Gudang Jadi' | 'Semua Gudang'
   >(
-    warehousePosition === 'Both'
-      ? 'Both'
+    warehousePosition === 'Semua Gudang'
+      ? 'Semua Gudang'
       : warehousePosition === 'Gudang Bahan'
-      ? 'Raw Material Warehouse'
-      : 'Finished Goods Warehouse'
+      ? 'Gudang Bahan' // Match the type here
+      : 'Gudang Jadi' // Match the type here
   );
-
   const warehouseOptions = [
-    'Raw Material Warehouse',
-    'Finished Goods Warehouse',
-    'Both',
+    'Gudang Bahan',
+    'Gudang Jadi',
+    'Semua Gudang',
   ].filter((option) => option !== dataWarehouse);
 
   return (
@@ -98,26 +97,23 @@ const Profile = () => {
               .filter((option) => {
                 if (user?.role === 'Owner') return true;
                 else if (user?.role === 'Gudang Bahan')
-                  return option === 'Raw Material Warehouse';
+                  return option === 'Gudang Bahan';
                 else if (user?.role === 'Gudang Jadi')
-                  return option === 'Finished Goods Warehouse';
+                  return option === 'Gudang Jadi';
               })
               .map((option) => (
                 <SidebarItem
                   key={option}
                   onClick={() => {
                     setDataWarehouse(
-                      option as
-                        | 'Raw Material Warehouse'
-                        | 'Finished Goods Warehouse'
-                        | 'Both'
+                      option as 'Gudang Bahan' | 'Gudang Jadi' | 'Semua Gudang'
                     );
                     let chosenWarehouse = '';
-                    if (option === 'Raw Material Warehouse')
+                    if (option === 'Gudang Bahan')
                       chosenWarehouse = 'Gudang Bahan';
-                    else if (option === 'Finished Goods Warehouse')
+                    else if (option === 'Gudang Jadi')
                       chosenWarehouse = 'Gudang Jadi';
-                    else chosenWarehouse = 'Both';
+                    else chosenWarehouse = 'Semua Gudang';
 
                     setCurrentWarehouse(chosenWarehouse);
                     setIsWarehouseDropdownOpen(false);
@@ -136,6 +132,7 @@ const Profile = () => {
 
 export const AppSidebar = () => {
   const { logout } = useAuth().actions;
+  const { user } = useAuth();
   const { warehousePosition } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
@@ -159,7 +156,7 @@ export const AppSidebar = () => {
       </div>
       <div className={'w-full mb-2 border-b border-gray-300'} />
       <div className="h-full px-3 hover:overflow-y-auto overflow-hidden">
-        <p className="text-sm font-bold text-gray-500 ">Main Functions</p>
+        <p className="text-sm font-bold text-gray-500 ">Fungsi Utama</p>
         <ul className="my-3 space-y-2 font-regular">
           <SidebarItem
             onClick={() => {
@@ -168,7 +165,7 @@ export const AppSidebar = () => {
             icon={<AiOutlineHome />}
             selected={location.pathname === '/profile'}
           >
-            Home
+            Beranda
           </SidebarItem>
 
           <SidebarItem
@@ -178,7 +175,7 @@ export const AppSidebar = () => {
             icon={<MdHistoryEdu />}
             selected={location.pathname.includes('/stock-history')}
           >
-            Stock History
+            Riwayat Stock
           </SidebarItem>
 
           <SidebarItem
@@ -188,7 +185,7 @@ export const AppSidebar = () => {
             icon={<LuPackageOpen />}
             selected={location.pathname.includes('/manage-product')}
           >
-            Manage Product
+            Kelola Produk
           </SidebarItem>
 
           <li>
@@ -200,7 +197,7 @@ export const AppSidebar = () => {
               <p>
                 <MdInventory2 />
               </p>
-              <span className="text-left whitespace-nowrap">Inventory</span>
+              <span className="text-left whitespace-nowrap">Inventaris</span>
               <div className="flex justify-end w-full">
                 {isInventDropdownOpen ? <BsChevronUp /> : <BsChevronDown />}
               </div>
@@ -210,15 +207,17 @@ export const AppSidebar = () => {
                 isInventDropdownOpen ? '' : 'hidden'
               } space-y-2 pl-5`}
             >
-              <SidebarItem
-                icon={<AiOutlineDatabase />}
-                onClick={() => {
-                  navigate('/supplier-list');
-                }}
-                selected={location.pathname.includes('/supplier-list')}
-              >
-                Supplier Data
-              </SidebarItem>
+              {user?.role.toLocaleLowerCase() === 'owner' && (
+                <SidebarItem
+                  icon={<AiOutlineDatabase />}
+                  onClick={() => {
+                    navigate('/supplier-list');
+                  }}
+                  selected={location.pathname.includes('/supplier-list')}
+                >
+                  Data Supplier
+                </SidebarItem>
+              )}
 
               <SidebarItem
                 icon={<LuFolderEdit />}
@@ -227,7 +226,7 @@ export const AppSidebar = () => {
                 }}
                 selected={location.pathname.includes('/manage-stock')}
               >
-                Manage Stock
+                Kelola Stock
               </SidebarItem>
 
               <SidebarItem
@@ -237,7 +236,7 @@ export const AppSidebar = () => {
                 }}
                 selected={location.pathname.includes('/on-dispatch')}
               >
-                On Dispatch
+                Dalam Pengiriman
               </SidebarItem>
 
               {warehousePosition !== 'Gudang Jadi' && (
@@ -248,7 +247,7 @@ export const AppSidebar = () => {
                   }}
                   selected={location.pathname.includes('/transfer-item')}
                 >
-                  Transfer Item
+                  Transfer Barang
                 </SidebarItem>
               )}
 
@@ -261,17 +260,20 @@ export const AppSidebar = () => {
                   '/broken-product-list-page'
                 )}
               >
-                Broken Products
+                Product Rusak
               </SidebarItem>
-              <SidebarItem
-                icon={<AiOutlineStop />}
-                onClick={() => {
-                  navigate('/void-list');
-                }}
-                selected={location.pathname.includes('/void-list')}
-              >
-                Void List
-              </SidebarItem>
+
+              {user?.role.toLocaleLowerCase() === 'owner' && (
+                <SidebarItem
+                  icon={<AiOutlineStop />}
+                  onClick={() => {
+                    navigate('/void-list');
+                  }}
+                  selected={location.pathname.includes('/void-list')}
+                >
+                  List Void
+                </SidebarItem>
+              )}
             </ul>
           </li>
 
@@ -282,7 +284,7 @@ export const AppSidebar = () => {
             icon={<LiaMoneyBillWaveSolid />}
             selected={location.pathname.includes('/transaction-page')}
           >
-            Transaction
+            Transaksi
           </SidebarItem>
 
           <SidebarItem
@@ -292,7 +294,7 @@ export const AppSidebar = () => {
             icon={<LuHistory />}
             selected={location.pathname.includes('/transaction-history')}
           >
-            Transaction History
+            Riwayat Transaksi
           </SidebarItem>
 
           <SidebarItem
@@ -302,7 +304,7 @@ export const AppSidebar = () => {
             icon={<TbTruckReturn />}
             selected={location.pathname.includes('/return-page')}
           >
-            Return
+            Pengembalian
           </SidebarItem>
 
           <SidebarItem
@@ -312,7 +314,7 @@ export const AppSidebar = () => {
             icon={<MdOutlineAssignmentReturn />}
             selected={location.pathname.includes('/returned-products')}
           >
-            Returned Products
+            Retur Produk Supplier
           </SidebarItem>
 
           <SidebarItem
@@ -336,17 +338,19 @@ export const AppSidebar = () => {
           </SidebarItem>
         </ul>
 
-        <p className="text-sm font-bold text-gray-500 ">Administrative</p>
+        <p className="text-sm font-bold text-gray-500 ">Administrasi</p>
         <ul className="my-3 space-y-2 font-regular">
-          <SidebarItem
-            icon={<PiUserListLight />}
-            onClick={() => {
-              navigate('/adminlistpage');
-            }}
-            selected={location.pathname.includes('/adminlistpage')}
-          >
-            Admin List
-          </SidebarItem>
+          {user?.role.toLocaleLowerCase() === 'owner' && (
+            <SidebarItem
+              icon={<PiUserListLight />}
+              onClick={() => {
+                navigate('/adminlistpage');
+              }}
+              selected={location.pathname.includes('/adminlistpage')}
+            >
+              List Admin
+            </SidebarItem>
+          )}
           <SidebarItem
             icon={<PiPasswordLight />}
             onClick={() => {
@@ -354,14 +358,14 @@ export const AppSidebar = () => {
             }}
             selected={location.pathname.includes('/changepassword')}
           >
-            Change Password
+            Ubah Password
           </SidebarItem>
           <SidebarItem
             icon={<CiLogout />}
             onClick={logout}
             selected={location.pathname === '/'}
           >
-            Logout
+            Keluar
           </SidebarItem>
         </ul>
       </div>

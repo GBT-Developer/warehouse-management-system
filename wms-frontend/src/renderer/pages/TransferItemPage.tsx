@@ -41,9 +41,9 @@ export const TransferItemPage = () => {
   const [selectedProducts, setSelectedProducts] = useState<Product[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const dateInputRef = React.useRef<HTMLInputElement>(null);
-  const successNotify = () => toast.success('Item successfully transferred');
+  const successNotify = () => toast.success('Barang berhasil ditransfer');
   const failNotify = (e?: string) =>
-    toast.error(e ?? 'Failed to transfer item');
+    toast.error(e ?? 'Barang gagal ditransfer');
   const [isEmpty, setIsEmpty] = useState(false);
 
   useEffect(() => {
@@ -223,7 +223,7 @@ export const TransferItemPage = () => {
   return (
     <PageLayout>
       <h1 className="text-4xl font-extrabold tracking-tight text-gray-900 md:text-5xl pt-4">
-        Transfer Item
+        Transfer Barang
       </h1>
       <form
         className={`w-2/3 py-14 my-10 flex flex-col gap-3 relative ${
@@ -237,7 +237,7 @@ export const TransferItemPage = () => {
         )}
 
         <InputField
-          label="Painter"
+          label="Tukang Cat"
           labelFor="painter"
           loading={loading}
           value={dispatchNote.painter}
@@ -252,7 +252,7 @@ export const TransferItemPage = () => {
         <div className="flex justify-between">
           <div className="w-1/3 flex items-center">
             <label htmlFor={'date-id'} className="text-md">
-              Date
+              Tanggal
             </label>
           </div>
           <div className="w-2/3">
@@ -310,7 +310,7 @@ export const TransferItemPage = () => {
                       </button>
                     </div>
                     <InputField
-                      label="Color"
+                      label="Warna"
                       labelFor="color"
                       loading={loading}
                       value={item.color}
@@ -328,7 +328,7 @@ export const TransferItemPage = () => {
                       }}
                     />
                     <InputField
-                      label="Amount"
+                      label="Jumlah"
                       labelFor="amount"
                       loading={loading}
                       value={item.amount}
@@ -360,7 +360,7 @@ export const TransferItemPage = () => {
           className="py-2 px-5 text-sm font-medium text-red-500 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-red-700 focus:z-10 focus:ring-4 focus:ring-gray-200"
           onClick={() => setModalOpen(true)}
         >
-          + Add Products
+          + Pilih Product(s)
         </button>
 
         <div className="flex flex-row-reverse gap-2 justify-start">
@@ -376,7 +376,7 @@ export const TransferItemPage = () => {
               handleSubmit(e).catch((error) => console.error(error));
             }}
           >
-            Transfer Item
+            Transfer Barang
           </button>
           <button
             disabled={loading}
@@ -397,9 +397,9 @@ export const TransferItemPage = () => {
         modalOpen={modalOpen}
         handleSearch={handleSearch}
         setModalOpen={setModalOpen}
-        title={'Choose Product'}
+        title={'Pilih Product'}
         headerList={
-          products.length > 0 ? ['', 'Product name', 'Available amount'] : []
+          products.length > 0 ? ['', 'Nama Product', 'Jumlah Tersedia'] : []
         }
       >
         {products.length > 0 ? (

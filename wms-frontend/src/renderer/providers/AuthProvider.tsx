@@ -92,7 +92,9 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
             } as CustomUser;
 
             setUser(() => theUser);
-            setWarehouse(theUser.role === 'Owner' ? 'Both' : theUser.role);
+            setWarehouse(
+              theUser.role === 'Owner' ? 'Semua Gudang' : theUser.role
+            );
           })
           .catch(() => {
             setAccessToken(null);

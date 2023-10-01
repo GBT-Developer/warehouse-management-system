@@ -51,9 +51,9 @@ export const TransactionPage = () => {
   const [modalOpen, setModalOpen] = useState(false);
   const dateInputRef = React.useRef<HTMLInputElement>(null);
   const [guestFormOpen, setGuestFormOpen] = useState(false);
-  const successNotify = () => toast.success('Transaction successfully added');
+  const successNotify = () => toast.success('Transaksi berhasil dilakukan');
   const failNotify = (e?: string) =>
-    toast.error(e ?? 'Failed to add transaction');
+    toast.error(e ?? 'Transaksi gagal dilakukan');
   const [isEmpty, setIsEmpty] = useState(false);
   useEffect(() => {
     const fetchCustomer = async () => {
@@ -270,7 +270,7 @@ export const TransactionPage = () => {
             where('brand', '<=', search.toLowerCase() + '\uf8ff')
           )
         ),
-        warehousePosition !== 'Both'
+        warehousePosition !== 'Semua Gudang'
           ? where('warehouse_position', '==', warehousePosition)
           : where('warehouse_position', 'in', ['Gudang Bahan', 'Gudang Jadi'])
       )
@@ -288,7 +288,7 @@ export const TransactionPage = () => {
   return (
     <PageLayout>
       <h1 className="text-4xl font-extrabold tracking-tight text-gray-900 md:text-5xl pt-4">
-        Transaction
+        Transaksi
       </h1>
       <form
         onSubmit={(e) => {
@@ -307,7 +307,7 @@ export const TransactionPage = () => {
         <div className="flex justify-between">
           <div className="w-1/3 flex items-center">
             <label htmlFor={'supplier-id'} className="text-md">
-              Choose customer
+              Pilih customer
             </label>
           </div>
           <div className="w-2/3">
@@ -340,14 +340,14 @@ export const TransactionPage = () => {
               className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
             >
               <option value={''} disabled>
-                Choose customer
+                Pilih customer
               </option>
               {customerList.map((customer) => (
                 <option key={customer.id} value={customer.id}>
                   {customer.name}
                 </option>
               ))}
-              <option value="New Customer">New Customer</option>
+              <option value="New Customer">Customer Baru</option>
               <option key="Guest" value="Guest">
                 Guest
               </option>
@@ -403,7 +403,7 @@ export const TransactionPage = () => {
                     </button>
                   </div>
                   <InputField
-                    label="Amount"
+                    label="Jumlah"
                     labelFor="amount"
                     loading={loading}
                     value={item.count}
@@ -413,7 +413,7 @@ export const TransactionPage = () => {
                         parseInt(e.target.value) > selectedProducts[index].count
                       ) {
                         setErrorMessage(
-                          'Not enough stock in warehouse. Stock in warehouse: ' +
+                          'Stock di gudang tidak cukup. Stock di gudang: ' +
                             selectedProducts[index].count.toString()
                         );
                         setTimeout(() => {
@@ -446,7 +446,7 @@ export const TransactionPage = () => {
         </ul>
 
         <div className="flex justify-end">
-          <p className="text-lg font-semibold">Total: &nbsp;</p>
+          <p className="text-lg font-semibold">Total Harga: &nbsp;</p>
           <p className="text-lg font-semibold">
             {new Intl.NumberFormat('id-ID', {
               style: 'currency',
@@ -466,7 +466,7 @@ export const TransactionPage = () => {
           disabled={!selectedCustomer && !guestFormOpen}
           onClick={() => setModalOpen(true)}
         >
-          Choose Products
+          + Pilih Product(s)
         </button>
 
         <hr />
@@ -474,7 +474,7 @@ export const TransactionPage = () => {
         <div className="w-full flex justify-between items-center">
           <div className="w-1/3">
             <label htmlFor={'payment-method'} className="text-md">
-              Payment Method
+              Methode Pembayaran
             </label>
           </div>
           <div className="w-2/3 flex justify-start">
@@ -523,7 +523,7 @@ export const TransactionPage = () => {
         <div className="flex justify-between">
           <div className="w-1/3 flex items-center">
             <label htmlFor={'date-id'} className="text-md">
-              Transaction Date
+              Tanggal Transaksi
             </label>
           </div>
           <div className="w-2/3">
@@ -564,7 +564,7 @@ export const TransactionPage = () => {
         title={'Choose Product'}
         headerList={
           products.length > 0
-            ? ['', 'Product name', 'Warehouse', 'Available amount', 'Price']
+            ? ['', 'Nama Product', 'Posisi Gudang', 'Jumlah Tersedia', 'Harga']
             : []
         }
       >

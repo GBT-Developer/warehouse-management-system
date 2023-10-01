@@ -34,10 +34,9 @@ export default function ProductDetailPage() {
   const [suppliers, setSupplier] = useState<Supplier[]>([]);
   const [stockHistory, setStockHistory] = useState<StockHistory[]>([]);
   const navigate = useNavigate();
-  const successNotify = () =>
-    toast.success('Product data successfully updated');
+  const successNotify = () => toast.success('Detail Product berhasil diubah');
   const failNotify = (e?: string) =>
-    toast.error(e ?? 'Failed to update product data');
+    toast.error(e ?? 'Detail Product gagal diubah');
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -168,7 +167,7 @@ export default function ProductDetailPage() {
             <IoChevronBackOutline size={40} /> {/* Icon */}
           </button>
           <h1 className="text-4xl font-extrabold tracking-tight text-gray-900 md:text-5xl">
-            Product Detail
+            Detail Product
           </h1>
         </div>
         <button
@@ -205,7 +204,7 @@ export default function ProductDetailPage() {
             <InputField
               loading={loading || !editToggle}
               labelFor="brand"
-              label="Brand"
+              label="Merek"
               value={product?.brand ?? ''}
               onChange={(e) => {
                 if (product === undefined) return;
@@ -218,7 +217,7 @@ export default function ProductDetailPage() {
             <InputField
               loading={loading || !editToggle}
               labelFor="type"
-              label="Motorcyle Type"
+              label="Tipe Motor"
               value={product?.motor_type ?? ''}
               onChange={(e) => {
                 if (product === undefined) return;
@@ -244,7 +243,7 @@ export default function ProductDetailPage() {
             <InputField
               loading={loading || !editToggle}
               labelFor="available_color"
-              label="Available Color"
+              label="Warna Tersedia"
               value={product?.available_color ?? ''}
               onChange={(e) => {
                 if (product === undefined) return;
@@ -257,7 +256,7 @@ export default function ProductDetailPage() {
             <InputField
               loading={true}
               labelFor="count"
-              label="Product Count"
+              label="Jumlah Product"
               value={product?.count ?? ''}
               onChange={(e) => {
                 if (product === undefined) return;
@@ -270,7 +269,7 @@ export default function ProductDetailPage() {
             <InputField
               loading={loading || !editToggle}
               labelFor="sell_price"
-              label="Sell Price"
+              label="Harga Jual"
               value={product?.sell_price ?? ''}
               onChange={(e) => {
                 if (
@@ -289,7 +288,7 @@ export default function ProductDetailPage() {
               <div className="flex justify-between">
                 <div className="w-1/3 flex items-center">
                   <label htmlFor={'warehouse'} className="text-md">
-                    Warehouse Position
+                    Posisi Gudang
                   </label>
                 </div>
                 <div className="w-2/3">
@@ -385,14 +384,14 @@ export default function ProductDetailPage() {
           <hr />
           <div className="flex flex-col gap-5">
             <div className="w-full">
-              <p className="text-2xl font-medium">Stock History</p>
+              <p className="text-2xl font-medium">Riwayat Stock</p>
             </div>
             <table className="w-full text-sm text-left text-gray-500">
               <TableHeader>
-                <th className=" py-3">Date</th>
-                <th className=" py-3">Old count</th>
-                <th className=" py-3">New count</th>
-                <th className=" py-3">Difference</th>
+                <td className=" py-3">Tanggal</td>
+                <td className=" py-3">Jumlah Lama</td>
+                <td className=" py-3">Jumlah Baru</td>
+                <td className=" py-3">Selisih</td>
               </TableHeader>
               <tbody className="overflow-y-auto">
                 {stockHistory.map((stock_history: StockHistory, index) => (
