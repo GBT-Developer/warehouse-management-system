@@ -207,17 +207,15 @@ export const AppSidebar = () => {
                 isInventDropdownOpen ? '' : 'hidden'
               } space-y-2 pl-5`}
             >
-              {user?.role.toLocaleLowerCase() === 'owner' && (
-                <SidebarItem
-                  icon={<AiOutlineDatabase />}
-                  onClick={() => {
-                    navigate('/supplier-list');
-                  }}
-                  selected={location.pathname.includes('/supplier-list')}
-                >
-                  Data Supplier
-                </SidebarItem>
-              )}
+              <SidebarItem
+                icon={<AiOutlineDatabase />}
+                onClick={() => {
+                  navigate('/supplier-list');
+                }}
+                selected={location.pathname.includes('/supplier-list')}
+              >
+                Data Supplier
+              </SidebarItem>
 
               <SidebarItem
                 icon={<LuFolderEdit />}

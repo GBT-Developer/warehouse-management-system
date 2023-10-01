@@ -27,7 +27,7 @@ import { useAuth } from 'renderer/providers/AuthProvider';
 export default function PurchaseHistoryPage() {
   const [loading, setLoading] = useState(false);
   const param = useParams();
-  const { warehousePosition } = useAuth();
+  const { warehousePosition, user } = useAuth();
   const [purchaseList, setPurchaseList] = useState<PurchaseHistory[]>([]);
   const [search, setSearch] = useState('');
   const [showProductsMap, setShowProductsMap] = useState<
@@ -219,7 +219,9 @@ export default function PurchaseHistoryPage() {
                           <form>
                             <select
                               value={purchase_history.payment_status.toLowerCase()}
-                              disabled={loading}
+                              disabled={
+                                loading || user?.role.toLowerCase() !== 'owner'
+                              }
                               id="purchase_history"
                               name="purchase_history"
                               onChange={(e) => {
