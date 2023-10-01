@@ -228,7 +228,11 @@ export default function VoidListPage() {
                                   className="py-[0.75rem]"
                                 >
                                   <div>
-                                    {product.brand}: {product.count}x
+                                    <span>{product.brand + ' '}</span>
+                                    <span>{product.motor_type + ' '}</span>
+                                    <span>{product.part + ' '}</span>
+                                    <span>{product.available_color}:</span>{' '}
+                                    <span>{product.count}x</span>
                                   </div>
                                 </div>
                               ))}
