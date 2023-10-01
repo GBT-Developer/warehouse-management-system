@@ -145,7 +145,7 @@ export const AppSidebar = () => {
   return (
     <aside
       id="sidebar-multi-level-sidebar"
-      className="flex flex-col h-screen sidebar-bg min-w-[16rem] px-2 pt-[2rem] w-1/5 "
+      className="flex flex-col h-screen sidebar-bg px-2 pt-[2rem] w-1/5 "
     >
       <div className="py-4">
         <div className="flex px-3 justify-between items-center text-black">
