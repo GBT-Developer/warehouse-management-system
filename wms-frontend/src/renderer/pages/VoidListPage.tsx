@@ -150,7 +150,8 @@ export default function VoidListPage() {
                                   className="py-[0.75rem]"
                                 >
                                   <div>
-                                    {product.brand}: {product.count}x
+                                    {product.brand} {product.part}{' '}
+                                    {product.available_color}: {product.count}x
                                   </div>
                                 </div>
                               ))}
