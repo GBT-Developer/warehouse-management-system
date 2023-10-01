@@ -117,8 +117,6 @@ export const TransactionPage = () => {
           return;
         }
       });
-
-    console.log('isEmpty', isEmpty);
   }, [invoice]);
 
   const handleSubmit = (e: FormEvent) => {
@@ -135,7 +133,6 @@ export const TransactionPage = () => {
       }, 3000);
       return;
     }
-    console.log(invoice);
 
     try {
       setLoading(true);

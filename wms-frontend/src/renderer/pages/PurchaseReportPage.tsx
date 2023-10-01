@@ -68,10 +68,6 @@ export default function PurchaseHistoryPage() {
         );
         const querySnapshot = await getDocs(q);
 
-        querySnapshot.forEach((doc) => {
-          console.log(doc.id, ' => ', doc.data());
-        });
-
         if (querySnapshot.empty) {
           setPurchaseList([]);
           setLoading(false);

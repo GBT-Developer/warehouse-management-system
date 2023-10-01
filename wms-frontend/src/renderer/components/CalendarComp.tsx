@@ -47,7 +47,6 @@ const CalendarComp = () => {
         className="text-[22px] border-[2px] border-[#0000] rounded-[3px] p-[5px]"
         onClick={(e) => {
           //console log what was clicked
-          console.log('clicked');
           setOpen((open) => !open);
         }}
       />
