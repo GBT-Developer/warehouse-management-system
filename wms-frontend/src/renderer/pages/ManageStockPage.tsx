@@ -3,7 +3,6 @@ import {
   collection,
   deleteDoc,
   doc,
-  documentId,
   getDocs,
   increment,
   query,
@@ -322,32 +321,17 @@ export const ManageStockPage = () => {
         }
         if (returnedProduct && manageStockMode === 'purchase') {
           // Construct a query to find matching returned products
-          products.map(async (product) => {
-            newPurchase.products.map(async (newProduct) => {
-              const queryRef = query(
-                collection(db, 'returned_product'),
-                where(documentId(), '==', product.id),
-                where('available_color', '==', product.available_color),
-                where('brand', '==', product.brand),
-                where('motor_type', '==', product.motor_type),
-                where('part', '==', product.part),
-                where('supplier', '==', selectedSupplier.id),
-                where('warehouse_position', '==', selectedWarehouse),
-                where('count', '==', newProduct.quantity)
-              );
+          newPurchase.products.map(async (newProduct) => {
+            const returnedProductRef = doc(
+              db,
+              'returned_product',
+              newProduct.id
+            );
 
-              // Execute the query to find matching documents
-              const querySnapshot = await getDocs(queryRef);
+            const updateStock = increment(-1 * newProduct.quantity);
 
-              // Loop through the matching documents and delete them
-              querySnapshot.forEach(async (docSnapshot) => {
-                const returnedProductRef = doc(
-                  db,
-                  'returned_product',
-                  docSnapshot.id
-                );
-                transaction.delete(returnedProductRef);
-              });
+            transaction.update(returnedProductRef, {
+              count: updateStock,
             });
           });
         }
