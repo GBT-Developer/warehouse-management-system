@@ -418,6 +418,14 @@ export default function ReturnPage() {
     await runTransaction(db, (transaction) => {
       if (!invoice.total_price) return Promise.resolve();
 
+      const currentMonth = format(new Date(), 'MM');
+
+      // Take the month of the invoice
+      if (invoice.date) {
+        const invoiceMonth = format(new Date(invoice.date), 'MM');
+        if (invoiceMonth !== currentMonth) return Promise.resolve();
+      }
+
       const incrementTransaction = increment(positive ? 1 : -1);
       const incrementTotalSales = increment(
         positive ? invoice.total_price : -invoice.total_price
