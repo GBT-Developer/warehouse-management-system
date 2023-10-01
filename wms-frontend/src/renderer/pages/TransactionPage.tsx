@@ -234,6 +234,8 @@ export const TransactionPage = () => {
       setProducts([]);
       setLoading(false);
       setGuestFormOpen(false);
+      // Clear date input
+      if (dateInputRef.current) dateInputRef.current.value = '';
     } catch (error) {
       console.error('Error adding document: ', error);
     }
@@ -600,6 +602,7 @@ export const TransactionPage = () => {
                         available_color: product.available_color,
                         warehouse_position: product.warehouse_position,
                         purchase_price: product.purchase_price,
+                        supplier: product.supplier,
                         is_returned: false,
                       },
                     ],

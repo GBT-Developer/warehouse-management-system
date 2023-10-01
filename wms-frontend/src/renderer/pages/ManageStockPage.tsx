@@ -3,6 +3,7 @@ import {
   collection,
   deleteDoc,
   doc,
+  documentId,
   getDocs,
   increment,
   query,
@@ -115,7 +116,7 @@ export const ManageStockPage = () => {
         acceptedProducts.length != 0
       )
         acceptedProducts.map((product) => {
-          if (!product.count || product.count === 0) {
+          if (product.count === null) {
             setIsEmpty(true);
             return;
           } else {
@@ -228,14 +229,11 @@ export const ManageStockPage = () => {
         selectedSupplier === null) ||
       ((manageStockMode === 'purchase' || manageStockMode === 'force-change') &&
         newPurchase.purchase_price === 0 &&
+        manageStockMode != 'force-change' &&
         !returnedProduct) ||
       (manageStockMode === 'from_other_warehouse' && dispatchNote === '') ||
       (manageStockMode === 'from_other_warehouse' &&
         acceptedProducts.length != products.length) ||
-      (manageStockMode === 'from_other_warehouse' &&
-        acceptedProducts.some(
-          (acceptedProduct) => acceptedProduct.count === 0
-        )) ||
       newPurchase.created_at === ''
     ) {
       setErrorMessage('Please fill all the required fields');
@@ -255,7 +253,7 @@ export const ManageStockPage = () => {
     else theTime = '23:59:59';
 
     if (manageStockMode === 'purchase' || manageStockMode === 'force-change')
-      await runTransaction(db, (transaction) => {
+      await runTransaction(db, async (transaction) => {
         if (newPurchase.products.length === 0 || selectedSupplier === null)
           return Promise.reject();
 
@@ -320,6 +318,37 @@ export const ManageStockPage = () => {
                 products[index].available_color,
               quantity: product.quantity,
             })),
+          });
+        }
+        if (returnedProduct && manageStockMode === 'purchase') {
+          // Construct a query to find matching returned products
+          products.map(async (product) => {
+            newPurchase.products.map(async (newProduct) => {
+              const queryRef = query(
+                collection(db, 'returned_product'),
+                where(documentId(), '==', product.id),
+                where('available_color', '==', product.available_color),
+                where('brand', '==', product.brand),
+                where('motor_type', '==', product.motor_type),
+                where('part', '==', product.part),
+                where('supplier', '==', selectedSupplier.id),
+                where('warehouse_position', '==', selectedWarehouse),
+                where('count', '==', newProduct.quantity)
+              );
+
+              // Execute the query to find matching documents
+              const querySnapshot = await getDocs(queryRef);
+
+              // Loop through the matching documents and delete them
+              querySnapshot.forEach(async (docSnapshot) => {
+                const returnedProductRef = doc(
+                  db,
+                  'returned_product',
+                  docSnapshot.id
+                );
+                transaction.delete(returnedProductRef);
+              });
+            });
           });
         }
         // Wait for all promises in the map to resolve

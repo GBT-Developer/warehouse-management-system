@@ -34,8 +34,7 @@ export const BrokenProductListPage = () => {
   const [errorMessage, setErrorMessage] = useState('');
   const { warehousePosition } = useAuth();
   const [painterName, setPainterName] = useState('');
-  const successNotify = () =>
-    toast.success('Product status successfully updated');
+  const successNotify = () => toast.success('Product returned successfully');
   const failNotify = (e?: string) =>
     toast.error(e ?? 'Failed to update product status');
   const [lastBrandKey, setLastBrandKey] = useState(null);
@@ -184,6 +183,9 @@ export const BrokenProductListPage = () => {
           }
         );
       } else if (reason === 'painter') {
+        console.log('return to painter');
+        console.log(painterName);
+        console.log(activeProduct);
         // If the return was for a painter, create a new dispatch_note
         // Creating new dispatch_note
         const newDispatchNoteDocRef = doc(collection(db, 'dispatch_note'));
@@ -226,13 +228,12 @@ export const BrokenProductListPage = () => {
       });
       setReason('');
       setModalOpen(false);
+      successNotify();
       return Promise.resolve();
-    })
-      .then(() => successNotify())
-      .catch((error) => {
-        const errorMessage = error as string;
-        failNotify(errorMessage);
-      });
+    }).catch((error) => {
+      const errorMessage = error as string;
+      failNotify(errorMessage);
+    });
   };
 
   return (

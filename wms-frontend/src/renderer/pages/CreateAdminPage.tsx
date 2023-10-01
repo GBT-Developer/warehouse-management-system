@@ -54,6 +54,13 @@ export const CreateAdminPage = () => {
           successNotify();
           setNewAdmin(initNewAdmin);
           setPassword('');
+          //unchecked radio button
+          const radioBtn = document.querySelectorAll(
+            'input[type="radio"]'
+          ) as NodeListOf<HTMLInputElement>;
+          radioBtn.forEach((btn) => {
+            btn.checked = false;
+          });
         }
       })
       .catch((err) => {

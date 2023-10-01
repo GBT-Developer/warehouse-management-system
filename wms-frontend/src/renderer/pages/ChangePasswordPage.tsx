@@ -3,7 +3,7 @@ import {
   reauthenticateWithCredential,
   updatePassword,
 } from 'firebase/auth';
-import { FormEvent, useState } from 'react';
+import { FormEvent, useEffect, useState } from 'react';
 import { AuthCard } from 'renderer/components/AuthCard';
 import { auth } from 'renderer/firebase';
 import { PageLayout } from 'renderer/layout/PageLayout';
@@ -14,6 +14,17 @@ export const ChangePasswordPage = () => {
   const [newPassword, setNewPassword] = useState('');
   const [confirmNewPassword, setConfirmNewPassword] = useState('');
   const [success, setSuccess] = useState(false);
+  const [isEmpty, setIsEmpty] = useState(false);
+
+  useEffect(() => {
+    if (password === '' || newPassword === '' || confirmNewPassword === '') {
+      setIsEmpty(true);
+      return;
+    } else {
+      setIsEmpty(false);
+      return;
+    }
+  }, [password, newPassword, confirmNewPassword]);
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -76,8 +87,13 @@ export const ChangePasswordPage = () => {
               required
             />
             <button
+              disabled={isEmpty}
               type="submit"
-              className="w-full text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center"
+              style={{
+                backgroundColor: isEmpty ? 'gray' : 'blue',
+                // Add other styles as needed
+              }}
+              className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5"
             >
               Submit
             </button>
