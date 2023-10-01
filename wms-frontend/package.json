@@ -1,4 +1,5 @@
 {
+  "version": "0.1.0",
   "description": "A Warehouse Management System for the 21st Century",
   "keywords": [
     "electron",
@@ -11,11 +12,22 @@
     "hot",
     "reload"
   ],
-  "license": "MIT",
   "contributors": [
     {
       "name": "Farouq Abdurrahman",
       "email": "farouq03@gmail.com"
+    },
+    {
+      "name": "Bernhard Ricardo Putranto",
+      "email": "brnhricardo@gmail.com"
+    },
+    {
+      "name": "Vinsky Strauss TanHanSen",
+      "email": "vinsky.strauss@gmail.com"
+    },
+    {
+      "name": "Ivan Febrianto",
+      "email": "ivangfx.febrianto@gmail.com"
     }
   ],
   "main": "./src/main/main.ts",
@@ -229,12 +241,17 @@
     ],
     "publish": {
       "provider": "github",
-      "owner": "electron-react-boilerplate",
-      "repo": "electron-react-boilerplate"
+      "owner": "GBT-Developer",
+      "repo": "warehouse-management-system",
+      "releaseType": "release"
     }
   },
-  "collective": {
-    "url": "https://opencollective.com/electron-react-boilerplate-594"
+  "repository": "https://github.com/GBT-Developer/warehouse-management-system",
+  "publish": {
+    "provider": "github",
+    "owner": "GBT-Developer",
+    "repo": "warehouse-management-system",
+    "releaseType": "release"
   },
   "devEngines": {
     "node": ">=14.x",
