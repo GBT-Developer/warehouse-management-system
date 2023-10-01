@@ -48,17 +48,12 @@ const DateRangeComp = ({
 
   return (
     <div className="flex flex-col w-2/3 relative">
-      <div
-        onClick={() => {
-          setOpen((open) => !open);
-        }}
-        className="flex text-center items-center py-[0.15rem] w-[fit-content] rounded-sm cursor-pointer"
-      >
-        <p>From:&nbsp;</p>
+      <div className="flex text-center items-center py-[0.15rem] w-[fit-content] rounded-sm cursor-pointer">
+        <p>Dari:&nbsp;</p>
         <p className="font-medium text-[1.15rem]">
           {format(new Date(startDate), 'dd/MM/yyyy')}
         </p>
-        <p>&nbsp;&nbsp;to:&nbsp;</p>
+        <p>&nbsp;&nbsp;sampai:&nbsp;</p>
         <p className="font-medium text-[1.15rem]">
           {format(new Date(endDate), 'dd/MM/yyyy')}
         </p>

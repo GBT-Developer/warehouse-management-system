@@ -27,7 +27,9 @@ export default function OpnamePage() {
     total_sales: number;
     transaction_count: number;
     daily_sales: Record<string, number>;
+    month: number;
   }>();
+  const { user } = useAuth();
   const [tax, setTax] = useState(10);
   const { warehousePosition } = useAuth();
   const [purchasePrice, setPurchasePrice] = useState(0);
@@ -94,13 +96,15 @@ export default function OpnamePage() {
         });
 
         invoices.forEach((invoice) => {
-          invoice.items?.forEach((item) => {
-            totalPurchasePrice += item.purchase_price * item.count;
-          });
+          if (invoice.total_price && invoice.total_price > 0)
+            invoice.items?.forEach((item) => {
+              totalPurchasePrice += item.purchase_price * item.count;
+            });
         });
 
         setPurchasePrice(totalPurchasePrice);
         setInvoiceList(invoices);
+        return invoices;
       } catch (error) {
         console.error('Error fetching data:', error);
       }
@@ -145,8 +149,20 @@ export default function OpnamePage() {
       setLoading(false);
     };
 
-    fetchInvoiceStats()
-      .then(() => fetchInvoiceList())
+    fetchInvoiceList()
+      .then((invoices) => {
+        if (!invoices || invoices?.length === 0) {
+          setSalesStats({
+            total_sales: 0,
+            transaction_count: 0,
+            daily_sales: {},
+            month: new Date().getMonth(),
+          });
+          setPurchasePrice(0);
+          return;
+        }
+        fetchInvoiceStats();
+      })
       .catch(() => console.log('error'));
   }, [startDate, endDate, warehousePosition]);
 
@@ -169,8 +185,6 @@ export default function OpnamePage() {
       const querySnapshot = await getDocs(q);
 
       if (querySnapshot.empty) {
-        console.log('empty');
-        // Disable load more button
         setNextPostsEmpty(true);
         setNextQuery(null);
         return;
@@ -208,79 +222,86 @@ export default function OpnamePage() {
           </div>
         )}
         <div className="flex flex-col justify-center">
-          <p>Date Range:</p>
+          <p>Periode tanggal:</p>
           <DateRangeComp
             {...{ startDate, endDate, setStartDate, setEndDate }}
           />
         </div>
         <div className="w-full min-h-[30rem]">
-          <BarChart data={salesStats?.daily_sales} chartTitle="Sales Chart" />
+          <BarChart
+            data={salesStats?.daily_sales}
+            chartTitle="Grafik Penjualan"
+          />
         </div>
-        <div className="w-full h-[fit-content] flex flex-col gap-4">
-          <p className="text-2xl font-bold">Rangkuman</p>
-          <div className="w-full flex justify-between items-center">
-            <div className="w-1/3">
-              <p className="text-md">Total Penjualan: </p>
+        {user?.role.toLocaleLowerCase() === 'owner' && (
+          <div className="w-full h-[fit-content] flex flex-col gap-4">
+            <p className="text-2xl font-bold">Rangkuman</p>
+            <div className="w-full flex justify-between items-center">
+              <div className="w-1/3">
+                <p className="text-md">Total Penjualan: </p>
+              </div>
+              <div className="w-2/3 flex gap-2 items-center">
+                <p>
+                  {new Intl.NumberFormat('id-ID', {
+                    style: 'currency',
+                    currency: 'IDR',
+                  }).format(
+                    salesStats?.total_sales ? salesStats.total_sales : 0
+                  )}
+                </p>
+              </div>
             </div>
-            <div className="w-2/3 flex gap-2 items-center">
-              <p>
-                {new Intl.NumberFormat('id-ID', {
-                  style: 'currency',
-                  currency: 'IDR',
-                }).format(salesStats?.total_sales ? salesStats.total_sales : 0)}
-              </p>
+            <div className="w-full flex justify-between items-center">
+              <div className="w-1/3">
+                <p className="text-md">Total Keuntungan: </p>
+              </div>
+              <div className="w-2/3 flex gap-2 items-center">
+                <p>
+                  {new Intl.NumberFormat('id-ID', {
+                    style: 'currency',
+                    currency: 'IDR',
+                  }).format((salesStats?.total_sales ?? 0) - purchasePrice)}
+                </p>
+              </div>
+            </div>
+            <div className="w-full flex justify-between items-center">
+              <div className="w-1/3">
+                <p className="text-md">Pajak yang harus dibayar: </p>
+              </div>
+              <div className="w-2/3 flex gap-2 items-center">
+                <p>
+                  {new Intl.NumberFormat('id-ID', {
+                    style: 'currency',
+                    currency: 'IDR',
+                  }).format(salesStats?.total_sales ?? 0)}
+                </p>
+                <p>x</p>
+                <input
+                  className={
+                    'placeholder:text-xs text-center placeholder:font-light bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 px-2 py-1 w-[3rem]'
+                  }
+                  type="text"
+                  value={tax}
+                  onChange={(e) => {
+                    if (
+                      !/^[0-9]*(\.[0-9]*)?$/.test(e.target.value) &&
+                      e.target.value !== ''
+                    )
+                      return;
+                    setTax(Number(e.target.value));
+                  }}
+                />
+                <p>% &nbsp; =</p>
+                <p>
+                  {new Intl.NumberFormat('id-ID', {
+                    style: 'currency',
+                    currency: 'IDR',
+                  }).format(((salesStats?.total_sales ?? 0) * tax) / 100)}
+                </p>
+              </div>
             </div>
           </div>
-          <div className="w-full flex justify-between items-center">
-            <div className="w-1/3">
-              <p className="text-md">Total Keuntungan: </p>
-            </div>
-            <div className="w-2/3 flex gap-2 items-center">
-              <p>
-                {new Intl.NumberFormat('id-ID', {
-                  style: 'currency',
-                  currency: 'IDR',
-                }).format((salesStats?.total_sales ?? 0) - purchasePrice)}
-              </p>
-            </div>
-          </div>
-          <div className="w-full flex justify-between items-center">
-            <div className="w-1/3">
-              <p className="text-md">Pajak yang harus dibayar: </p>
-            </div>
-            <div className="w-2/3 flex gap-2 items-center">
-              <p>
-                {new Intl.NumberFormat('id-ID', {
-                  style: 'currency',
-                  currency: 'IDR',
-                }).format(salesStats?.total_sales ?? 0)}
-              </p>
-              <p>x</p>
-              <input
-                className={
-                  'placeholder:text-xs text-center placeholder:font-light bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 px-2 py-1 w-[3rem]'
-                }
-                type="text"
-                value={tax}
-                onChange={(e) => {
-                  if (
-                    !/^[0-9]*(\.[0-9]*)?$/.test(e.target.value) &&
-                    e.target.value !== ''
-                  )
-                    return;
-                  setTax(Number(e.target.value));
-                }}
-              />
-              <p>% &nbsp; =</p>
-              <p>
-                {new Intl.NumberFormat('id-ID', {
-                  style: 'currency',
-                  currency: 'IDR',
-                }).format(((salesStats?.total_sales ?? 0) * tax) / 100)}
-              </p>
-            </div>
-          </div>
-        </div>
+        )}
         <hr className="my-4" />
         <div className="relative flex flex-col justify-between h-[fit-content]">
           <div className="flex flex-col md:flex-row items-center justify-between space-y-3 md:space-y-0 md:space-x-4 py-1 mb-[1rem]">
