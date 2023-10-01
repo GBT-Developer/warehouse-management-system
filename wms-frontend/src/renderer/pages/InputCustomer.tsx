@@ -1,13 +1,15 @@
 import { collection, getDocs, query } from '@firebase/firestore';
-import { db } from 'firebase';
 import { addDoc, and, or, where } from 'firebase/firestore';
-import { FormEvent, useState } from 'react';
+import { FormEvent, useEffect, useState } from 'react';
 import { AiOutlineLoading3Quarters } from 'react-icons/ai';
 import { IoRemoveCircleOutline } from 'react-icons/io5';
 import { useNavigate } from 'react-router-dom';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import { InputField } from 'renderer/components/InputField';
 import { SingleTableItem } from 'renderer/components/TableComponents/SingleTableItem';
 import { TableModal } from 'renderer/components/TableComponents/TableModal';
+import { db } from 'renderer/firebase';
 import { Customer } from 'renderer/interfaces/Customer';
 import { Product } from 'renderer/interfaces/Product';
 import { PageLayout } from 'renderer/layout/PageLayout';
@@ -29,6 +31,29 @@ function InputCustomerPage() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [selectedProducts, setSelectedProducts] = useState<Product[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
+  const successNotify = () =>
+    toast.success('Customer baru berhasil ditambahkan');
+  const failNotify = (e?: string) =>
+    toast.error(e ?? 'Gagal menambahkan customer');
+  const [isEmpty, setIsEmpty] = useState(false);
+
+  useEffect(() => {
+    if (
+      newCustomer.name === '' ||
+      newCustomer.address === '' ||
+      newCustomer.phone_number === ''
+    ) {
+      setIsEmpty(true);
+      return;
+    } else if (
+      newCustomer.name !== '' &&
+      newCustomer.address !== '' &&
+      newCustomer.phone_number !== ''
+    ) {
+      setIsEmpty(false);
+      return;
+    }
+  }, [newCustomer]);
 
   function handleSubmit(e: FormEvent) {
     e.preventDefault();
@@ -38,7 +63,7 @@ function InputCustomerPage() {
       !newCustomer.address ||
       !newCustomer.phone_number
     ) {
-      setErrorMessage('Please fill all the fields');
+      setErrorMessage('Tolong isi semua kolom');
       setTimeout(() => {
         setErrorMessage(null);
       }, 3000);
@@ -47,21 +72,20 @@ function InputCustomerPage() {
 
     // Check data type
     if (Number.isNaN(Number(newCustomer.phone_number))) {
-      setErrorMessage('Please input a valid number');
+      setErrorMessage('Nomor telepon harus berupa angka');
       setTimeout(() => {
         setErrorMessage(null);
       }, 3000);
       return;
     }
 
-    if (newCustomer.SpecialPrice.some((sp) => sp.price === '')) {
-      setErrorMessage('Please enter prices for all selected products');
+    if (newCustomer.SpecialPrice.some((sp) => sp.price === 0)) {
+      setErrorMessage('Tolong isi semua harga khusus');
       setTimeout(() => {
         setErrorMessage(null);
       }, 3000);
       return;
     }
-    console.log(newCustomer);
 
     // Make a code to input my data to firebase
     const productCollection = collection(db, '/customer');
@@ -69,11 +93,13 @@ function InputCustomerPage() {
     addDoc(productCollection, newCustomer)
       .then(() => {
         setLoading(false);
-        navigate(-1);
+        successNotify();
+        setNewCustomer(newCustomerInitialState);
       })
       .catch((error) => {
-        console.error('Error adding document: ', error);
         setLoading(false);
+        const errorMessage = error as unknown as string;
+        failNotify(errorMessage);
       });
   }
 
@@ -112,7 +138,7 @@ function InputCustomerPage() {
     querySnapshot.forEach((theProduct) => {
       const data = theProduct.data() as Product;
       data.id = theProduct.id;
-      data.sell_price = theProduct.get('sell_price') as string;
+      data.sell_price = theProduct.get('sell_price') as number;
       productData.push(data);
     });
 
@@ -121,8 +147,8 @@ function InputCustomerPage() {
 
   return (
     <PageLayout>
-      <h1 className="text-4xl font-extrabold tracking-tight text-gray-900 md:text-5xl">
-        Add New Customer
+      <h1 className="text-4xl font-extrabold tracking-tight text-gray-900 md:text-5xl pt-4">
+        Customer Baru
       </h1>
       <form
         className={`w-2/3 py-14 my-10 flex flex-col gap-3 relative ${
@@ -136,7 +162,7 @@ function InputCustomerPage() {
         )}
         <InputField
           loading={loading}
-          label="Name"
+          label="Nama"
           labelFor="name"
           value={newCustomer.name}
           placeholder="i.e. John Doe"
@@ -146,7 +172,7 @@ function InputCustomerPage() {
         />
         <InputField
           loading={loading}
-          label="Address"
+          label="Alamat"
           labelFor="address"
           value={newCustomer.address}
           placeholder="i.e. Jl.Soekarno-Hatta No. 123"
@@ -156,7 +182,7 @@ function InputCustomerPage() {
         />
         <InputField
           loading={loading}
-          label="Contact Number"
+          label="Nomor Telepon"
           labelFor="phone_number"
           value={newCustomer.phone_number}
           placeholder="Phone number or landline number"
@@ -166,7 +192,7 @@ function InputCustomerPage() {
         />
 
         <hr className="my-4" />
-        <h2 className="text-2xl font-bold">Special Price</h2>
+        <h2 className="text-2xl font-bold">Harga Khusus</h2>
         <ul className="my-3 space-y-3 font-regular">
           {selectedProducts.map((product, index) => (
             <li key={index}>
@@ -208,7 +234,9 @@ function InputCustomerPage() {
                         const index = newSpecialPriceProducts.findIndex(
                           (sp) => sp.product_id === product.id
                         );
-                        newSpecialPriceProducts[index].price = e.target.value;
+                        newSpecialPriceProducts[index].price = Number(
+                          e.target.value
+                        );
                         setNewCustomer(() => {
                           return {
                             ...newCustomer,
@@ -247,13 +275,17 @@ function InputCustomerPage() {
           className="py-2 px-5 text-sm font-medium text-red-500 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-red-700 focus:z-10 focus:ring-4 focus:ring-gray-200"
           onClick={() => setModalOpen(true)}
         >
-          + Add Products
+          + Pilih Product(s)
         </button>
 
         <div className="flex flex-row-reverse gap-2 justify-start">
           <button
-            disabled={loading}
+            disabled={isEmpty}
             type="submit"
+            style={{
+              backgroundColor: isEmpty ? 'gray' : 'blue',
+              // Add other styles as needed
+            }}
             className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2 focus:outline-none"
             onClick={(e) => {
               handleSubmit(e);
@@ -282,7 +314,7 @@ function InputCustomerPage() {
         title={'Choose Product'}
         headerList={
           products.length > 0
-            ? ['', 'Product name', 'Sell Price', 'Warehouse']
+            ? ['', 'Nama Product', 'Harga Jual', 'Posisi Gudang']
             : []
         }
       >
@@ -342,6 +374,18 @@ function InputCustomerPage() {
           </tr>
         )}
       </TableModal>
+      <ToastContainer
+        position="top-right"
+        autoClose={2000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="light"
+      />
     </PageLayout>
   );
 }

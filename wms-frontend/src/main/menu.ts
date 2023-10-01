@@ -1,10 +1,11 @@
 import {
-  app,
-  Menu,
-  shell,
   BrowserWindow,
+  Menu,
   MenuItemConstructorOptions,
+  app,
+  dialog,
 } from 'electron';
+import { autoUpdater } from 'electron-updater';
 
 interface DarwinMenuItemConstructorOptions extends MenuItemConstructorOptions {
   selector?: string;
@@ -60,6 +61,29 @@ export default class MenuBuilder {
           label: 'About WMS',
           selector: 'orderFrontStandardAboutPanel:',
         },
+        {
+          label: 'Check for Updates...',
+          click: () => {
+            autoUpdater.autoDownload = true;
+            autoUpdater.autoInstallOnAppQuit = true;
+            autoUpdater.checkForUpdatesAndNotify().catch(console.log);
+
+            // Show a dialog box asking the user to update now
+            if (
+              dialog.showMessageBoxSync({
+                type: 'question',
+                buttons: ['Yes', 'No'],
+                title: 'Update available',
+                message:
+                  'A new version of WMS is available. Would you like to update now?',
+                defaultId: 0,
+                cancelId: 1,
+              }) === 0
+            ) {
+              autoUpdater.downloadUpdate();
+            }
+          },
+        },
         { type: 'separator' },
         { label: 'Services', submenu: [] },
         { type: 'separator' },
@@ -73,7 +97,10 @@ export default class MenuBuilder {
           accelerator: 'Command+Shift+H',
           selector: 'hideOtherApplications:',
         },
-        { label: 'Show All', selector: 'unhideAllApplications:' },
+        {
+          label: 'Show All',
+          selector: 'unhideAllApplications:',
+        },
         { type: 'separator' },
         {
           label: 'Quit',
@@ -87,12 +114,32 @@ export default class MenuBuilder {
     const subMenuEdit: DarwinMenuItemConstructorOptions = {
       label: 'Edit',
       submenu: [
-        { label: 'Undo', accelerator: 'Command+Z', selector: 'undo:' },
-        { label: 'Redo', accelerator: 'Shift+Command+Z', selector: 'redo:' },
+        {
+          label: 'Undo',
+          accelerator: 'Command+Z',
+          selector: 'undo:',
+        },
+        {
+          label: 'Redo',
+          accelerator: 'Shift+Command+Z',
+          selector: 'redo:',
+        },
         { type: 'separator' },
-        { label: 'Cut', accelerator: 'Command+X', selector: 'cut:' },
-        { label: 'Copy', accelerator: 'Command+C', selector: 'copy:' },
-        { label: 'Paste', accelerator: 'Command+V', selector: 'paste:' },
+        {
+          label: 'Cut',
+          accelerator: 'Command+X',
+          selector: 'cut:',
+        },
+        {
+          label: 'Copy',
+          accelerator: 'Command+C',
+          selector: 'copy:',
+        },
+        {
+          label: 'Paste',
+          accelerator: 'Command+V',
+          selector: 'paste:',
+        },
         {
           label: 'Select All',
           accelerator: 'Command+A',
@@ -146,50 +193,23 @@ export default class MenuBuilder {
           accelerator: 'Command+M',
           selector: 'performMiniaturize:',
         },
-        { label: 'Close', accelerator: 'Command+W', selector: 'performClose:' },
+        {
+          label: 'Close',
+          accelerator: 'Command+W',
+          selector: 'performClose:',
+        },
         { type: 'separator' },
-        { label: 'Bring All to Front', selector: 'arrangeInFront:' },
-      ],
-    };
-    const subMenuHelp: MenuItemConstructorOptions = {
-      label: 'Help',
-      submenu: [
         {
-          label: 'Learn More',
-          click() {
-            shell.openExternal('https://electronjs.org');
-          },
-        },
-        {
-          label: 'Documentation',
-          click() {
-            shell.openExternal(
-              'https://github.com/electron/electron/tree/main/docs#readme'
-            );
-          },
-        },
-        {
-          label: 'Community Discussions',
-          click() {
-            shell.openExternal('https://www.electronjs.org/community');
-          },
-        },
-        {
-          label: 'Search Issues',
-          click() {
-            shell.openExternal('https://github.com/electron/electron/issues');
-          },
+          label: 'Bring All to Front',
+          selector: 'arrangeInFront:',
         },
       ],
     };
 
     const subMenuView =
-      process.env.NODE_ENV === 'development' ||
-      process.env.DEBUG_PROD === 'true'
-        ? subMenuViewDev
-        : subMenuViewProd;
+      process.env.NODE_ENV === 'development' ? subMenuViewDev : subMenuViewProd;
 
-    return [subMenuAbout, subMenuEdit, subMenuView, subMenuWindow, subMenuHelp];
+    return [subMenuAbout, subMenuEdit, subMenuView, subMenuWindow];
   }
 
   buildDefaultTemplate() {
@@ -251,37 +271,6 @@ export default class MenuBuilder {
                   },
                 },
               ],
-      },
-      {
-        label: 'Help',
-        submenu: [
-          {
-            label: 'Learn More',
-            click() {
-              shell.openExternal('https://electronjs.org');
-            },
-          },
-          {
-            label: 'Documentation',
-            click() {
-              shell.openExternal(
-                'https://github.com/electron/electron/tree/main/docs#readme'
-              );
-            },
-          },
-          {
-            label: 'Community Discussions',
-            click() {
-              shell.openExternal('https://www.electronjs.org/community');
-            },
-          },
-          {
-            label: 'Search Issues',
-            click() {
-              shell.openExternal('https://github.com/electron/electron/issues');
-            },
-          },
-        ],
       },
     ];
 

@@ -1,40 +1,50 @@
-import { db } from 'firebase';
+import { format } from 'date-fns';
 import {
-  addDoc,
   collection,
   deleteDoc,
   doc,
   getDocs,
+  increment,
   query,
   runTransaction,
-  updateDoc,
   where,
 } from 'firebase/firestore';
 import React, { useEffect, useRef, useState } from 'react';
-import { AiOutlineLoading3Quarters, AiOutlineReload } from 'react-icons/ai';
+import {
+  AiFillRightCircle,
+  AiOutlineLoading3Quarters,
+  AiOutlineReload,
+} from 'react-icons/ai';
 import { useNavigate } from 'react-router-dom';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import { InputField } from 'renderer/components/InputField';
 import { SingleTableItem } from 'renderer/components/TableComponents/SingleTableItem';
 import { TableModal } from 'renderer/components/TableComponents/TableModal';
+import { db } from 'renderer/firebase';
 import { Product } from 'renderer/interfaces/Product';
 import { PurchaseHistory } from 'renderer/interfaces/PurchaseHistory';
 import { Supplier } from 'renderer/interfaces/Supplier';
 import { PageLayout } from 'renderer/layout/PageLayout';
+import { useAuth } from 'renderer/providers/AuthProvider';
 
 const newPurchaseInitialState = {
   created_at: '',
-  purchase_price: '0',
+  purchase_price: 0,
   supplier: null,
   payment_status: 'unpaid',
+  warehouse_position: '',
   products: [],
+  time: '',
 } as PurchaseHistory;
 
 export const ManageStockPage = () => {
+  const { user, warehousePosition } = useAuth();
   const navigate = useNavigate();
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [manageStockMode, setManageStockMode] = useState<
-    'purchase' | 'from_other_warehouse' | ''
+    'purchase' | 'from_other_warehouse' | 'force-change' | ''
   >('');
   const [supplierList, setSupplierList] = useState<Supplier[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
@@ -55,11 +65,100 @@ export const ManageStockPage = () => {
   const selectedSupplierRef = useRef<HTMLSelectElement>(null);
   const selectedWarehouseRef = useRef<HTMLSelectElement>(null);
   const dateInputRef = React.useRef<HTMLInputElement>(null);
+  const [returnedProduct, setReturnedProduct] = useState(false);
+  const [initialLoad, setInitialLoad] = useState(true);
+
+  const successNotify = () => toast.success('Stock berhasil diupdate');
+  const failNotify = (e?: string) => toast.error(e ?? 'Stock gagal diupdate');
+  // If the input Field is Empty
+  const [isEmpty, setIsEmpty] = useState(false);
+
+  // Check input Field
+  useEffect(() => {
+    if (manageStockMode === '') {
+      setIsEmpty(true);
+      return;
+    } else if (manageStockMode === 'purchase') {
+      if (
+        selectedSupplier === null ||
+        newPurchase.products.length === 0 ||
+        (newPurchase.purchase_price === 0 && !returnedProduct) ||
+        !selectedWarehouse ||
+        dateInputRef.current?.value === ''
+      ) {
+        setIsEmpty(true);
+        return;
+      } else if (
+        (newPurchase.products.length > 0 &&
+          dateInputRef.current?.value !== '' &&
+          !returnedProduct &&
+          newPurchase.purchase_price > 0) ||
+        returnedProduct
+      )
+        newPurchase.products.map((product) => {
+          if (product.quantity === 0 || !product.quantity) {
+            setIsEmpty(true);
+            return;
+          } else {
+            setIsEmpty(false);
+            return;
+          }
+        });
+    } else if (manageStockMode === 'from_other_warehouse') {
+      if (dispatchNote === '' || dateInputRef.current?.value === '') {
+        setIsEmpty(true);
+        return;
+      } else if (
+        dispatchNote &&
+        dateInputRef.current?.value !== '' &&
+        acceptedProducts.length != 0
+      )
+        acceptedProducts.map((product) => {
+          if (product.count === null) {
+            setIsEmpty(true);
+            return;
+          } else {
+            setIsEmpty(false);
+            return;
+          }
+        });
+    } else if (
+      selectedSupplier === null ||
+      newPurchase.products.length === 0 ||
+      !selectedWarehouse ||
+      dateInputRef.current?.value === ''
+    ) {
+      setIsEmpty(true);
+      return;
+    } else if (
+      newPurchase.products.length > 0 &&
+      dateInputRef.current?.value !== ''
+    )
+      newPurchase.products.map((product) => {
+        if (product.quantity === 0 || !product.quantity.toString()) {
+          setIsEmpty(true);
+          return;
+        } else {
+          setIsEmpty(false);
+          return;
+        }
+      });
+  }, [
+    newPurchase,
+    manageStockMode,
+    selectedWarehouse,
+    dispatchNote,
+    acceptedProducts,
+    returnedProduct,
+  ]);
 
   useEffect(() => {
     setLoading(true);
 
-    if (supplierList.length === 0 && manageStockMode === 'purchase') {
+    if (
+      supplierList.length === 0 &&
+      (manageStockMode === 'purchase' || manageStockMode === 'force-change')
+    ) {
       const fetchSupplierList = async () => {
         const supplierQuery = query(collection(db, 'supplier'));
         const res = await getDocs(supplierQuery);
@@ -79,7 +178,6 @@ export const ManageStockPage = () => {
         setErrorMessage('An error occured while fetching supplier data');
       });
     }
-
     const fetchProductList = async (
       supplier_id: string,
       the_warehouse: string
@@ -113,20 +211,27 @@ export const ManageStockPage = () => {
     setLoading(false);
   }, [manageStockMode, selectedSupplier, selectedWarehouse]);
 
+  useEffect(() => {
+    if (!initialLoad) navigate('/');
+
+    setInitialLoad(false);
+  }, [warehousePosition]);
+
   const handleSubmit = async () => {
     if (
       manageStockMode === '' ||
       selectedWarehouse === '' ||
-      (manageStockMode === 'purchase' && newPurchase.products.length === 0) ||
-      (manageStockMode === 'purchase' && selectedSupplier === null) ||
-      (manageStockMode === 'purchase' && newPurchase.purchase_price === '') ||
+      ((manageStockMode === 'purchase' || manageStockMode === 'force-change') &&
+        newPurchase.products.length === 0) ||
+      ((manageStockMode === 'purchase' || manageStockMode === 'force-change') &&
+        selectedSupplier === null) ||
+      ((manageStockMode === 'purchase' || manageStockMode === 'force-change') &&
+        newPurchase.purchase_price === 0 &&
+        manageStockMode != 'force-change' &&
+        !returnedProduct) ||
       (manageStockMode === 'from_other_warehouse' && dispatchNote === '') ||
       (manageStockMode === 'from_other_warehouse' &&
         acceptedProducts.length != products.length) ||
-      (manageStockMode === 'from_other_warehouse' &&
-        acceptedProducts.some(
-          (acceptedProduct) => acceptedProduct.count === ''
-        )) ||
       newPurchase.created_at === ''
     ) {
       setErrorMessage('Please fill all the required fields');
@@ -137,53 +242,71 @@ export const ManageStockPage = () => {
     }
 
     setLoading(true);
+    const currentDateandTime = new Date();
+    if (!newPurchase.created_at) return Promise.reject('Date not found');
+    let theTime = '';
+    // If invoice date is the same as current date, take the current time
+    if (newPurchase.created_at === format(currentDateandTime, 'yyyy-MM-dd'))
+      theTime = format(currentDateandTime, 'HH:mm:ss');
+    else theTime = '23:59:59';
 
-    if (manageStockMode === 'purchase')
-      await runTransaction(db, (transaction) => {
+    if (manageStockMode === 'purchase' || manageStockMode === 'force-change')
+      await runTransaction(db, async (transaction) => {
         if (newPurchase.products.length === 0 || selectedSupplier === null)
           return Promise.reject();
 
         const productsPromises = newPurchase.products.map(async (product) => {
           if (!product.id) return Promise.reject();
           const productRef = doc(db, 'product', product.id);
+          const updateStock = increment(product.quantity);
 
           transaction.update(productRef, {
-            count: product.quantity,
+            count: updateStock,
+          });
+
+          const productDetail = products.find(
+            (product) => product.id === product.id
+          );
+
+          if (!productDetail) return Promise.reject('Product detail not found');
+
+          const newStockHistoryDocRef = doc(collection(db, 'stock_history'));
+          transaction.set(newStockHistoryDocRef, {
+            product: product.id,
+            product_name:
+              productDetail.brand +
+              ' ' +
+              productDetail.motor_type +
+              ' ' +
+              productDetail.part +
+              ' ' +
+              productDetail.available_color,
+            count: product.quantity + productDetail.count,
+            old_count: productDetail.count,
+            difference: product.quantity,
+            warehouse_position: selectedWarehouse,
+            type: 'purchase',
+            created_at: newPurchase.created_at,
+            time: theTime,
           });
         });
 
-        // Wait for all promises in the map to resolve
-        Promise.all(productsPromises).catch(() => console.log('error'));
+        // If not returned product, create new purchase history
+        if (!returnedProduct && manageStockMode === 'purchase') {
+          const newPurchaseHistoryDocRef = doc(
+            collection(db, 'purchase_history')
+          );
 
-        const newPurchaseHistoryDocRef = doc(
-          collection(db, 'purchase_history')
-        );
-
-        transaction.set(newPurchaseHistoryDocRef, {
-          supplier: selectedSupplier.id,
-          created_at: newPurchase.created_at,
-          purchase_price: newPurchase.purchase_price,
-          payment_status: newPurchase.payment_status,
-          products: newPurchase.products.map((product, index) => ({
-            id: product.id,
-            name:
-              products[index].brand +
-              ' ' +
-              products[index].motor_type +
-              ' ' +
-              products[index].part +
-              ' ' +
-              products[index].available_color,
-            quantity: product.quantity,
-          })),
-        });
-
-        const newStockHistoryDocRef = doc(collection(db, 'stock_history'));
-        const newStockHistoryPromises = newPurchase.products.map(
-          (product, index) => {
-            transaction.set(newStockHistoryDocRef, {
-              product: product.id,
-              product_name:
+          transaction.set(newPurchaseHistoryDocRef, {
+            supplier: selectedSupplier.id,
+            created_at: newPurchase.created_at,
+            time: theTime,
+            purchase_price: newPurchase.purchase_price,
+            payment_status: newPurchase.payment_status,
+            warehouse_position: products[0].warehouse_position,
+            products: newPurchase.products.map((product, index) => ({
+              id: product.id,
+              name:
                 products[index].brand +
                 ' ' +
                 products[index].motor_type +
@@ -191,20 +314,28 @@ export const ManageStockPage = () => {
                 products[index].part +
                 ' ' +
                 products[index].available_color,
-              count: product.quantity,
-              old_count: products[index].count,
-              difference: (
-                Number(product.quantity) - Number(products[index].count)
-              ).toString(),
-              warehouse_position: selectedWarehouse,
-              type: 'purchase',
-              created_at: newPurchase.created_at,
-            });
-          }
-        );
+              quantity: product.quantity,
+            })),
+          });
+        }
+        if (returnedProduct && manageStockMode === 'purchase') {
+          // Construct a query to find matching returned products
+          newPurchase.products.map(async (newProduct) => {
+            const returnedProductRef = doc(
+              db,
+              'returned_product',
+              newProduct.id
+            );
 
+            const updateStock = increment(-1 * newProduct.quantity);
+
+            transaction.update(returnedProductRef, {
+              count: updateStock,
+            });
+          });
+        }
         // Wait for all promises in the map to resolve
-        Promise.all(newStockHistoryPromises).catch(() => console.log('error'));
+        Promise.all(productsPromises).catch(() => console.log('error'));
 
         return Promise.resolve();
       });
@@ -213,41 +344,39 @@ export const ManageStockPage = () => {
       await runTransaction(db, async (transaction) => {
         const promises = acceptedProducts.map(async (acceptedProduct) => {
           if (!acceptedProduct.id) return Promise.reject();
-          const productQuery = query(
-            collection(db, 'product'),
-            where('warehouse_position', '==', 'Gudang Jadi'),
-            where('available_color', '==', acceptedProduct.available_color),
-            where('brand', '==', acceptedProduct.brand),
-            where('motor_type', '==', acceptedProduct.motor_type),
-            where('part', '==', acceptedProduct.part),
-            where('supplier', '==', acceptedProduct.supplier)
-          );
 
-          const productQuerySnapshot = await getDocs(productQuery);
+          delete acceptedProduct.status;
+          delete acceptedProduct.dispatch_note_id;
+          const theOldCount =
+            products.find((product) => product.id === acceptedProduct.id)
+              ?.count ?? 0;
 
-          if (productQuerySnapshot.empty) {
-            // Create new product
-            const newProductDocRef = doc(collection(db, 'product'));
-
-            delete acceptedProduct.status;
-            delete acceptedProduct.dispatch_note_id;
-
-            transaction.set(newProductDocRef, {
+          // Update product count
+          const updateStock = increment(acceptedProduct.count);
+          const productRef = doc(db, 'product', acceptedProduct.id);
+          transaction.set(
+            productRef,
+            {
               brand: acceptedProduct.brand,
               motor_type: acceptedProduct.motor_type,
               part: acceptedProduct.part,
               available_color: acceptedProduct.available_color,
               sell_price: acceptedProduct.sell_price,
-              count: acceptedProduct.count,
-              created_at: newPurchase.created_at,
+              count: updateStock,
               supplier: acceptedProduct.supplier,
               warehouse_position: 'Gudang Jadi',
-            });
+            },
+            {
+              merge: true,
+            }
+          );
 
-            const newStockHistoryDocRef = doc(collection(db, 'stock_history'));
-
-            transaction.set(newStockHistoryDocRef, {
-              product: newProductDocRef.id,
+          // Create new stock history
+          const newStockHistoryDocRef = doc(collection(db, 'stock_history'));
+          transaction.set(
+            newStockHistoryDocRef,
+            {
+              product: acceptedProduct.id,
               product_name:
                 acceptedProduct.brand +
                 ' ' +
@@ -256,56 +385,46 @@ export const ManageStockPage = () => {
                 acceptedProduct.part +
                 ' ' +
                 acceptedProduct.available_color,
-              count: acceptedProduct.count,
-              old_count: '0',
+              old_count: theOldCount,
               difference: acceptedProduct.count,
+              count: acceptedProduct.count + theOldCount,
               warehouse_position: selectedWarehouse,
               type: 'from_other_warehouse',
               created_at: newPurchase.created_at,
-            });
+              time: theTime,
+            },
+            {
+              merge: true,
+            }
+          );
 
-            checkBrokenProduct(
-              acceptedProduct,
-              products.find((product) => product.id === acceptedProduct.id)
-            ).catch(() => console.log('error'));
-            deleteDispatchNote();
+          const actualProduct = products.find(
+            (product) => product.id === acceptedProduct.id
+          );
+          if (!actualProduct) return Promise.reject('Product not found');
+          if (acceptedProduct.count < actualProduct.count) {
+            const brokenProductRef = doc(
+              collection(db, 'broken_product'),
+              acceptedProduct.id
+            );
 
-            return Promise.resolve();
+            const updateCount = increment(
+              actualProduct.count - acceptedProduct.count
+            );
+
+            transaction.set(
+              brokenProductRef,
+              {
+                ...acceptedProduct,
+                count: updateCount,
+                warehouse_position: 'Gudang Jadi',
+              },
+              {
+                merge: true,
+              }
+            );
           }
 
-          const product = productQuerySnapshot.docs[0];
-          const productData = product.data() as Product;
-
-          transaction.update(product.ref, {
-            count:
-              parseInt(acceptedProduct.count) + parseInt(productData.count),
-          });
-
-          const newStockHistoryDocRef = doc(collection(db, 'stock_history'));
-
-          transaction.set(newStockHistoryDocRef, {
-            product: acceptedProduct.id,
-            product_name:
-              acceptedProduct.brand +
-              ' ' +
-              acceptedProduct.motor_type +
-              ' ' +
-              acceptedProduct.part +
-              ' ' +
-              acceptedProduct.available_color,
-            count:
-              parseInt(acceptedProduct.count) + parseInt(productData.count),
-            old_count: productData.count,
-            difference: acceptedProduct.count,
-            warehouse_position: selectedWarehouse,
-            type: 'from_other_warehouse',
-            created_at: newPurchase.created_at,
-          });
-
-          checkBrokenProduct(
-            acceptedProduct,
-            products.find((product) => product.id === acceptedProduct.id)
-          ).catch(() => console.log('error'));
           deleteDispatchNote();
 
           return Promise.resolve();
@@ -318,70 +437,47 @@ export const ManageStockPage = () => {
       });
 
     setNewPurchase(newPurchaseInitialState);
+    setSelectedSupplier(null);
+    setSelectedWarehouse('');
+    if (selectedSupplierRef.current) selectedSupplierRef.current.value = '';
+    if (selectedWarehouseRef.current) selectedWarehouseRef.current.value = '';
+    if (dateInputRef.current) dateInputRef.current.value = '';
+    setReturnedProduct(false);
+    setProducts([]);
+    setAcceptedProducts([]);
+    setDispatchNote('');
+    setReturnedProduct(false);
+    setModalOpen(false);
+    setManageStockMode('');
 
     setLoading(false);
-    navigate(-1);
+    successNotify();
   };
 
   const deleteDispatchNote = () => {
     if (!dispatchNote) return;
 
-    const docRef = doc(db, 'dispatch_note', dispatchNote);
+    const onDispatchProductRef = collection(db, 'on_dispatch');
+    const onDispatchProductQuery = query(
+      onDispatchProductRef,
+      where('dispatch_note_id', '==', dispatchNote)
+    );
 
-    deleteDoc(docRef).catch((error) => {
+    getDocs(onDispatchProductQuery)
+      .then((res) => {
+        res.forEach((doc) => {
+          deleteDoc(doc.ref).catch((error) => {
+            console.error('Error removing document: ', error);
+          });
+        });
+      })
+      .catch(() => console.log('error'));
+
+    const dispatchNoteRef = doc(db, 'dispatch_note', dispatchNote);
+
+    deleteDoc(dispatchNoteRef).catch((error) => {
       console.error('Error removing document: ', error);
     });
-  };
-
-  const checkBrokenProduct = async (
-    acceptedProduct: Product & {
-      dispatch_note_id?: string;
-      id?: string;
-      status?: string;
-    },
-    product: Product | undefined
-  ) => {
-    if (!product) return;
-    // If (arrivedProduct.count < product.data().count)
-    // Add the difference to broken product database
-    if (parseInt(acceptedProduct.count) < parseInt(product.count)) {
-      // Check if the product is already in broken product database
-      const brokenProductQuery = query(
-        collection(db, 'broken_product'),
-        where('available_color', '==', acceptedProduct.available_color),
-        where('brand', '==', acceptedProduct.brand),
-        where('motor_type', '==', acceptedProduct.motor_type),
-        where('part', '==', acceptedProduct.part),
-        where('supplier', '==', acceptedProduct.supplier)
-      );
-
-      const brokenProductQuerySnapshot = await getDocs(brokenProductQuery);
-
-      if (brokenProductQuerySnapshot.empty) {
-        delete acceptedProduct.status;
-        delete acceptedProduct.dispatch_note_id;
-        delete acceptedProduct.id;
-
-        await addDoc(collection(db, 'broken_product'), {
-          available_color: acceptedProduct.available_color,
-          brand: acceptedProduct.brand,
-          motor_type: acceptedProduct.motor_type,
-          part: acceptedProduct.part,
-          supplier: acceptedProduct.supplier,
-          count: parseInt(product.count) - parseInt(acceptedProduct.count),
-        });
-      } else {
-        // Update broken product count
-        const brokenProduct = brokenProductQuerySnapshot.docs[0];
-
-        await updateDoc(brokenProduct.ref, {
-          count:
-            parseInt(product.count) -
-            parseInt(acceptedProduct.count) +
-            parseInt((brokenProduct.data() as Product).count),
-        });
-      }
-    }
   };
 
   const handleFetchDispatchNote = async () => {
@@ -414,16 +510,17 @@ export const ManageStockPage = () => {
   return (
     <PageLayout>
       <h1 className="text-4xl font-extrabold tracking-tight text-gray-900 md:text-5xl pt-4">
-        Manage Stock
+        Kelola Stock
       </h1>
       <form
         onSubmit={(e) => {
           e.preventDefault();
           handleSubmit().catch(() => {
-            setErrorMessage('An error occured while submitting data');
+            failNotify();
+            setLoading(false);
           });
         }}
-        className={`w-2/3 py-14 my-10 flex flex-col gap-3 relative${
+        className={`w-2/3 py-14 my-10 flex flex-col gap-3 relative ${
           loading ? 'p-2' : ''
         }`}
       >
@@ -435,18 +532,19 @@ export const ManageStockPage = () => {
         <div className="flex justify-between">
           <div className="w-1/3 flex items-center">
             <label htmlFor={'change-of-stock-mode'} className="text-md">
-              Change of stock mode
+              Mode Perubahan Stock
             </label>
           </div>
           <div className="w-2/3">
             <select
-              defaultValue={''}
+              value={manageStockMode}
               disabled={loading}
               name="change-of-stock-mode"
               onChange={(e) => {
                 if (
                   e.target.value === 'purchase' ||
-                  e.target.value === 'from_other_warehouse'
+                  e.target.value === 'from_other_warehouse' ||
+                  e.target.value === 'force-change'
                 )
                   setManageStockMode(e.target.value);
 
@@ -463,24 +561,27 @@ export const ManageStockPage = () => {
               className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
             >
               <option value={''} disabled>
-                Choose change of stock mode
+                Pilih Mode
               </option>
-              <option value="purchase">Purchase</option>
-              <option value="from_other_warehouse">
-                From raw material warehouse
-              </option>
+              <option value="purchase">Pembelian</option>
+              {warehousePosition !== 'Gudang Bahan' && (
+                <option value="from_other_warehouse">Dari Gudang Bahan</option>
+              )}
+              {user?.role.toLowerCase() === 'owner' && (
+                <option value="force-change">Ubah Paksa</option>
+              )}
             </select>
           </div>
         </div>
         <div className="flex justify-between">
           <div className="w-1/3 flex items-center">
             <label htmlFor={'warehouse-id'} className="text-md">
-              Choose warehouse
+              Pilih Gudang
             </label>
           </div>
           <div className="w-2/3">
             <select
-              value={selectedWarehouse != '' ? selectedWarehouse : ''}
+              value={selectedWarehouse}
               disabled={loading}
               name="warehouse-id"
               onChange={(e) => {
@@ -500,9 +601,10 @@ export const ManageStockPage = () => {
               className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
             >
               <option value={''} disabled>
-                Choose warehouse
+                Pilih Gudang
               </option>
-              {manageStockMode === 'purchase' ? (
+              {manageStockMode === 'purchase' ||
+              manageStockMode === 'force-change' ? (
                 <>
                   <option key={'gudang_bahan'} value="Gudang Bahan">
                     Gudang Bahan
@@ -522,11 +624,12 @@ export const ManageStockPage = () => {
           </div>
         </div>
         {
-          manageStockMode === 'purchase' ? (
+          manageStockMode === 'purchase' ||
+          manageStockMode === 'force-change' ? (
             <div className="flex justify-between">
               <div className="w-1/3 flex items-center">
                 <label htmlFor={'supplier-id'} className="text-md">
-                  Choose supplier
+                  Pilih Supplier
                 </label>
               </div>
               <div className="w-2/3">
@@ -547,7 +650,7 @@ export const ManageStockPage = () => {
                   className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
                 >
                   <option value={''} disabled>
-                    Choose supplier
+                    Pilih Supplier
                   </option>
                   {supplierList.map((supplier) => (
                     <option key={supplier.id} value={supplier.id}>
@@ -561,7 +664,7 @@ export const ManageStockPage = () => {
             <div className="flex items-center relative">
               <InputField
                 loading={loading}
-                label="Dispatch note"
+                label="Surat Jalan"
                 labelFor="dispatch-note"
                 value={dispatchNote}
                 onChange={(e) => {
@@ -588,7 +691,7 @@ export const ManageStockPage = () => {
               products.map((product, index) => (
                 <li key={index}>
                   <p className="flex justify-start">
-                    {product.count +
+                    {product.count.toString() +
                       'x ' +
                       product.brand +
                       ' ' +
@@ -602,7 +705,7 @@ export const ManageStockPage = () => {
                     <div className="w-full flex justify-between items-center">
                       <div className="w-4/5">
                         <label htmlFor={'quantity'} className="text-md">
-                          Passed quality check
+                          Lolos quality check
                         </label>
                       </div>
                       <div className="w-1/5">
@@ -617,7 +720,7 @@ export const ManageStockPage = () => {
                             ) {
                               setErrorMessage(
                                 'Not enough stock in warehouse. Stock in warehouse: ' +
-                                  product.count
+                                  product.count.toString()
                               );
                               // Set e target value with the value without the last character
                               e.target.value = e.target.value.slice(0, -1);
@@ -638,7 +741,7 @@ export const ManageStockPage = () => {
                                   if (acceptedProduct.id === product.id)
                                     return {
                                       ...acceptedProduct,
-                                      count: e.target.value,
+                                      count: Number(e.target.value),
                                     };
                                   return acceptedProduct;
                                 })
@@ -650,7 +753,7 @@ export const ManageStockPage = () => {
                               ...acceptedProducts,
                               {
                                 ...product,
-                                count: e.target.value,
+                                count: Number(e.target.value),
                               },
                             ]);
                           }}
@@ -662,8 +765,9 @@ export const ManageStockPage = () => {
               ))}
           </ul>
         )}
-        {manageStockMode === 'purchase' && (
-          <div>
+        {(manageStockMode === 'purchase' ||
+          manageStockMode === 'force-change') && (
+          <>
             <div className="flex justify-between">
               <div className="w-1/3 flex items-center">
                 <label htmlFor={'product-id'} className="text-md">
@@ -676,101 +780,121 @@ export const ManageStockPage = () => {
                   type="button"
                   onClick={() => setModalOpen(() => !modalOpen)}
                 >
-                  Choose product(s)
+                  Pilih Product(s)
                 </button>
               </div>
             </div>
-            {
-              <ul className="my-[2rem] space-y-[1rem] font-regular">
-                {newPurchase.products.length > 0 &&
-                  newPurchase.products.map((product, index) => (
-                    <li key={index} className="flex flex-row gap-2">
-                      <p className="flex justify-start w-4/5">{product.name}</p>
-                      <div className="w-1/5 flex justify-between items-center">
-                        <input
-                          disabled={loading}
-                          placeholder="Quantity"
-                          type="number"
-                          name="quantity"
-                          className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
-                          onChange={(e) => {
-                            if (
-                              Number(e.target.value) < 0 ||
-                              e.target.value === ''
-                            ) {
-                              setErrorMessage('Quantity must be positive');
-                              // Set e target value with the value without the last character
-                              e.target.value = e.target.value.slice(0, -1);
-                              setTimeout(() => {
-                                setErrorMessage(null);
-                              }, 3000);
-                              return;
-                            }
+            {newPurchase.products.length > 0 && (
+              <ul className="space-y-[1rem] font-regular">
+                {newPurchase.products.map((product, index) => (
+                  <li key={index} className="flex flex-row gap-2">
+                    <p className="flex justify-start items-center w-4/5 gap-2">
+                      <AiFillRightCircle /> {product.name}
+                    </p>
+                    <div className="w-1/5 flex justify-between items-center">
+                      <input
+                        disabled={loading}
+                        placeholder="Quantity"
+                        type="number"
+                        name="quantity"
+                        className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
+                        onChange={(e) => {
+                          if (
+                            Number(e.target.value) < 0 ||
+                            e.target.value === ''
+                          ) {
+                            setErrorMessage('Quantity must be positive');
+                            // Set e target value with the value without the last character
+                            e.target.value = e.target.value.slice(0, -1);
+                            setTimeout(() => {
+                              setErrorMessage(null);
+                            }, 3000);
+                            return;
+                          }
 
-                            // If the product is already in acceptedProduct, update the count
-                            if (
-                              acceptedProducts.find(
-                                (acceptedProduct) =>
-                                  acceptedProduct.id === product.id
-                              )
-                            ) {
-                              setAcceptedProducts(() =>
-                                acceptedProducts.map((acceptedProduct) => {
-                                  if (acceptedProduct.id === product.id)
-                                    return {
-                                      ...acceptedProduct,
-                                      count: e.target.value,
-                                    };
-                                  return acceptedProduct;
-                                })
-                              );
-                              return;
-                            }
+                          // If the product is already in acceptedProduct, update the count
+                          if (
+                            acceptedProducts.find(
+                              (acceptedProduct) =>
+                                acceptedProduct.id === product.id
+                            )
+                          ) {
+                            setAcceptedProducts(() =>
+                              acceptedProducts.map((acceptedProduct) => {
+                                if (acceptedProduct.id === product.id)
+                                  return {
+                                    ...acceptedProduct,
+                                    count: Number(e.target.value),
+                                  };
+                                return acceptedProduct;
+                              })
+                            );
+                            return;
+                          }
 
-                            // If the product is not in acceptedProduct, add it
-                            setNewPurchase(() => ({
-                              ...newPurchase,
-                              products: newPurchase.products.map(
-                                (product, i) => {
-                                  if (i === index)
-                                    return {
-                                      ...product,
-                                      quantity: e.target.value,
-                                    };
-                                  return product;
-                                }
-                              ),
-                            }));
-                          }}
-                        />
-                      </div>
-                    </li>
-                  ))}
+                          // If the product is not in acceptedProduct, add it
+                          setNewPurchase(() => ({
+                            ...newPurchase,
+                            products: newPurchase.products.map((product, i) => {
+                              if (i === index)
+                                return {
+                                  ...product,
+                                  quantity: Number(e.target.value),
+                                };
+                              return product;
+                            }),
+                          }));
+                        }}
+                      />
+                    </div>
+                  </li>
+                ))}
               </ul>
-            }
-            <InputField
-              loading={loading}
-              label="Purchase price"
-              labelFor="purchase-price"
-              value={newPurchase.purchase_price}
-              onChange={(e) => {
-                if (
-                  !/^[0-9]*(\.[0-9]*)?$/.test(e.target.value) &&
-                  e.target.value !== ''
-                )
-                  return;
-                setNewPurchase(() => ({
-                  ...newPurchase,
-                  purchase_price: e.target.value,
-                }));
-              }}
-            />
-          </div>
+            )}
+            {manageStockMode !== 'force-change' && (
+              <div className="flex justify-between py-2">
+                <div className="w-1/3 flex items-center">
+                  <label htmlFor={'returned-product'} className="text-md">
+                    Product Return?
+                  </label>
+                </div>
+                <div className="w-2/3 flex items-center">
+                  <input
+                    checked={returnedProduct}
+                    disabled={loading}
+                    type="checkbox"
+                    name="returned-product"
+                    className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
+                    onChange={() => setReturnedProduct(() => !returnedProduct)}
+                  />
+                </div>
+              </div>
+            )}
+            {!returnedProduct && manageStockMode !== 'force-change' && (
+              <InputField
+                loading={loading}
+                label="Harga Beli"
+                labelFor="purchase-price"
+                value={newPurchase.purchase_price}
+                onChange={(e) => {
+                  if (
+                    !/^[0-9]*(\.[0-9]*)?$/.test(e.target.value) &&
+                    e.target.value !== ''
+                  )
+                    return;
+                  setNewPurchase(() => ({
+                    ...newPurchase,
+                    purchase_price: Number(e.target.value),
+                  }));
+                }}
+              />
+            )}
+          </>
         )}
         <div className="flex justify-between">
           <div className="w-1/3 flex items-center">
             <label htmlFor={'date-id'} className="text-md">
-              Purchase date
+              Tanggal Pembelian
             </label>
           </div>
           <div className="w-2/3">
@@ -791,9 +915,13 @@ export const ManageStockPage = () => {
         </div>
         <div className="flex flex-row-reverse gap-2 justify-start">
           <button
-            disabled={loading}
+            disabled={isEmpty}
             type="submit"
-            className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5"
+            style={{
+              backgroundColor: isEmpty ? 'gray' : 'blue',
+              // Add other styles as needed
+            }}
+            className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2 focus:outline-none"
           >
             Submit
           </button>
@@ -854,7 +982,7 @@ export const ManageStockPage = () => {
                         product.part +
                         ' ' +
                         product.available_color,
-                      quantity: '0',
+                      quantity: 0,
                     },
                   ],
                 }));
@@ -890,6 +1018,18 @@ export const ManageStockPage = () => {
           </tr>
         )}
       </TableModal>
+      <ToastContainer
+        position="top-right"
+        autoClose={2000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="light"
+      />
     </PageLayout>
   );
 };

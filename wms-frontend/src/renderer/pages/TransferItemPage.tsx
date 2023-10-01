@@ -1,4 +1,3 @@
-import { db } from 'firebase';
 import {
   addDoc,
   and,
@@ -10,26 +9,30 @@ import {
   runTransaction,
   where,
 } from 'firebase/firestore';
-import React, { FormEvent, useState } from 'react';
+import React, { FormEvent, useEffect, useState } from 'react';
 import { AiOutlineLoading3Quarters } from 'react-icons/ai';
 import { BiSolidTrash } from 'react-icons/bi';
 import { useNavigate } from 'react-router-dom';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import { InputField } from 'renderer/components/InputField';
 import { SingleTableItem } from 'renderer/components/TableComponents/SingleTableItem';
 import { TableModal } from 'renderer/components/TableComponents/TableModal';
+import { db } from 'renderer/firebase';
 import { DispatchNote } from 'renderer/interfaces/DispatchNote';
 import { Product } from 'renderer/interfaces/Product';
 import { PageLayout } from 'renderer/layout/PageLayout';
-
+import { useAuth } from 'renderer/providers/AuthProvider';
 const newDispatchNoteInitialStates: DispatchNote = {
   painter: '',
-  created_at: '',
+  date: '',
   dispatch_items: [],
 };
 
 export const TransferItemPage = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
+  const { warehousePosition } = useAuth();
   const [modalOpen, setModalOpen] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [dispatchNote, setDispatchNote] = useState<DispatchNote>(
@@ -38,11 +41,44 @@ export const TransferItemPage = () => {
   const [selectedProducts, setSelectedProducts] = useState<Product[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const dateInputRef = React.useRef<HTMLInputElement>(null);
+  const successNotify = () => toast.success('Barang berhasil ditransfer');
+  const failNotify = (e?: string) =>
+    toast.error(e ?? 'Barang gagal ditransfer');
+  const [isEmpty, setIsEmpty] = useState(false);
+
+  useEffect(() => {
+    if (dispatchNote.dispatch_items.length === 0) {
+      if (dispatchNote.date === '' || dispatchNote.painter === '') {
+        setIsEmpty(true);
+        return;
+      } else if (dispatchNote.date != '' && dispatchNote.painter != '') {
+        setIsEmpty(true);
+        return;
+      }
+    } else if (
+      dispatchNote.dispatch_items.length != 0 &&
+      dispatchNote.date != '' &&
+      dispatchNote.painter != ''
+    )
+      dispatchNote.dispatch_items.map((item) => {
+        if (item.color != '' && item.amount != 0) {
+          setIsEmpty(false);
+          return;
+        } else {
+          setIsEmpty(true);
+          return;
+        }
+      });
+  }, [dispatchNote]);
+
+  useEffect(() => {
+    if (warehousePosition === 'Gudang Jadi') navigate('/');
+  }, [warehousePosition]);
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
 
-    if (!dispatchNote.created_at || !dispatchNote.painter) {
+    if (!dispatchNote.date || !dispatchNote.painter) {
       setErrorMessage('Please fill all fields');
       setTimeout(() => {
         setErrorMessage(null);
@@ -61,7 +97,7 @@ export const TransferItemPage = () => {
     // Check if color and amount is filled
     if (
       dispatchNote.dispatch_items.some(
-        (item) => item.color === '' || item.amount === ''
+        (item) => item.color === '' || item.amount === 0
       )
     ) {
       setErrorMessage('Please fill all fields');
@@ -75,13 +111,10 @@ export const TransferItemPage = () => {
     if (
       dispatchNote.dispatch_items.some(
         (item) =>
-          parseInt(item.amount) <= 0 ||
-          isNaN(parseInt(item.amount)) ||
-          parseInt(item.amount) >
-            parseInt(
-              selectedProducts.find((p) => p.id === item.product_id)?.count ??
-                '0'
-            )
+          item.amount <= 0 ||
+          isNaN(item.amount) ||
+          item.amount >
+            (selectedProducts.find((p) => p.id === item.product_id)?.count ?? 0)
       )
     ) {
       setErrorMessage('Invalid amount');
@@ -103,8 +136,7 @@ export const TransferItemPage = () => {
             (p) => p.id === item.product_id
           );
           if (!currentProduct) return Promise.reject();
-          const difference =
-            parseInt(currentProduct.count) - parseInt(item.amount);
+          const difference = currentProduct.count - item.amount;
           transaction.update(
             doc(db, 'product', item.product_id),
             'count',
@@ -126,10 +158,13 @@ export const TransferItemPage = () => {
             dispatch_note_id: dispatchNoteDoc.id,
           });
         }
-
+        setLoading(false);
+        successNotify();
         return Promise.resolve();
       }).catch((error) => {
-        console.error('Transaction failed: ', error);
+        setLoading(false);
+        const errorMessage = error as unknown as string;
+        failNotify(errorMessage);
       });
 
       // Clear form
@@ -187,11 +222,11 @@ export const TransferItemPage = () => {
 
   return (
     <PageLayout>
-      <h1 className="text-4xl font-extrabold tracking-tight text-gray-900 md:text-5xl">
-        Transfer Item
+      <h1 className="text-4xl font-extrabold tracking-tight text-gray-900 md:text-5xl pt-4">
+        Transfer Barang
       </h1>
       <form
-        className={`w-2/3 py-14 my-10 flex flex-col gap-3 relative${
+        className={`w-2/3 py-14 my-10 flex flex-col gap-3 relative ${
           loading ? 'p-2' : ''
         }`}
       >
@@ -202,7 +237,7 @@ export const TransferItemPage = () => {
         )}
 
         <InputField
-          label="Painter"
+          label="Tukang Cat"
           labelFor="painter"
           loading={loading}
           value={dispatchNote.painter}
@@ -217,7 +252,7 @@ export const TransferItemPage = () => {
         <div className="flex justify-between">
           <div className="w-1/3 flex items-center">
             <label htmlFor={'date-id'} className="text-md">
-              Date
+              Tanggal
             </label>
           </div>
           <div className="w-2/3">
@@ -230,7 +265,7 @@ export const TransferItemPage = () => {
               onChange={(e) => {
                 setDispatchNote(() => ({
                   ...dispatchNote,
-                  created_at: e.target.value,
+                  date: e.target.value,
                 }));
               }}
             />
@@ -275,7 +310,7 @@ export const TransferItemPage = () => {
                       </button>
                     </div>
                     <InputField
-                      label="Color"
+                      label="Warna"
                       labelFor="color"
                       loading={loading}
                       value={item.color}
@@ -293,7 +328,7 @@ export const TransferItemPage = () => {
                       }}
                     />
                     <InputField
-                      label="Amount"
+                      label="Jumlah"
                       labelFor="amount"
                       loading={loading}
                       value={item.amount}
@@ -304,7 +339,8 @@ export const TransferItemPage = () => {
                           ...dispatchNote,
                           dispatch_items: dispatchNote.dispatch_items.map(
                             (i, idx) => {
-                              if (idx === index) i.amount = e.target.value;
+                              if (idx === index)
+                                i.amount = Number(e.target.value);
 
                               return i;
                             }
@@ -324,19 +360,23 @@ export const TransferItemPage = () => {
           className="py-2 px-5 text-sm font-medium text-red-500 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-red-700 focus:z-10 focus:ring-4 focus:ring-gray-200"
           onClick={() => setModalOpen(true)}
         >
-          + Add Products
+          + Pilih Product(s)
         </button>
 
         <div className="flex flex-row-reverse gap-2 justify-start">
           <button
-            disabled={loading}
+            disabled={isEmpty}
             type="submit"
+            style={{
+              backgroundColor: isEmpty ? 'gray' : 'blue',
+              // Add other styles as needed
+            }}
             className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2 focus:outline-none"
             onClick={(e) => {
               handleSubmit(e).catch((error) => console.error(error));
             }}
           >
-            Submit
+            Transfer Barang
           </button>
           <button
             disabled={loading}
@@ -357,9 +397,9 @@ export const TransferItemPage = () => {
         modalOpen={modalOpen}
         handleSearch={handleSearch}
         setModalOpen={setModalOpen}
-        title={'Choose Product'}
+        title={'Pilih Product'}
         headerList={
-          products.length > 0 ? ['', 'Product name', 'Available amount'] : []
+          products.length > 0 ? ['', 'Nama Product', 'Jumlah Tersedia'] : []
         }
       >
         {products.length > 0 ? (
@@ -388,7 +428,7 @@ export const TransferItemPage = () => {
                       {
                         product_id: product.id,
                         color: '',
-                        amount: '',
+                        amount: 0,
                       },
                     ],
                   });
@@ -422,6 +462,18 @@ export const TransferItemPage = () => {
           </tr>
         )}
       </TableModal>
+      <ToastContainer
+        position="top-right"
+        autoClose={2000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="light"
+      />
     </PageLayout>
   );
 };

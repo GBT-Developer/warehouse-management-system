@@ -1,13 +1,15 @@
 import { collection, getDocs, query } from '@firebase/firestore';
-import { db } from 'firebase';
 import { and, doc, getDoc, or, updateDoc, where } from 'firebase/firestore';
 import { FormEvent, useEffect, useState } from 'react';
 import { AiOutlineLoading3Quarters } from 'react-icons/ai';
 import { IoRemoveCircleOutline } from 'react-icons/io5';
 import { useNavigate, useParams } from 'react-router-dom';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import { InputField } from 'renderer/components/InputField';
 import { SingleTableItem } from 'renderer/components/TableComponents/SingleTableItem';
 import { TableModal } from 'renderer/components/TableComponents/TableModal';
+import { db } from 'renderer/firebase';
 import { Customer } from 'renderer/interfaces/Customer';
 import { SpecialPrice } from 'renderer/interfaces/SpecialPrice';
 import { PageLayout } from 'renderer/layout/PageLayout';
@@ -30,6 +32,11 @@ function EditCustomerPage() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [selectedProducts, setSelectedProducts] = useState<SpecialPrice[]>([]);
   const [products, setProducts] = useState<SpecialPrice[]>([]);
+
+  const successNotify = () =>
+    toast.success('Customer Data Successfully Updated');
+  const failNotify = (e?: string) =>
+    toast.error(e ?? 'Failed to update customer data');
 
   useEffect(() => {
     const fetchData = async () => {
@@ -62,7 +69,7 @@ function EditCustomerPage() {
       !newCustomer.address ||
       !newCustomer.phone_number
     ) {
-      setErrorMessage('Please fill all the fields');
+      setErrorMessage('Tolong isi semua kolom');
       setTimeout(() => {
         setErrorMessage(null);
       }, 3000);
@@ -71,15 +78,15 @@ function EditCustomerPage() {
 
     // Check data type
     if (Number.isNaN(Number(newCustomer.phone_number))) {
-      setErrorMessage('Please input a valid number');
+      setErrorMessage('Nomor telepon harus berupa angka');
       setTimeout(() => {
         setErrorMessage(null);
       }, 3000);
       return;
     }
 
-    if (newCustomer.SpecialPrice.some((sp) => sp.price === '')) {
-      setErrorMessage('Please enter prices for all selected products');
+    if (newCustomer.SpecialPrice.some((sp) => sp.price === 0)) {
+      setErrorMessage('Harga khusus tidak boleh 0');
       setTimeout(() => {
         setErrorMessage(null);
       }, 3000);
@@ -98,9 +105,11 @@ function EditCustomerPage() {
         SpecialPrice: selectedProducts,
       });
       setLoading(false);
-      navigate(-1);
+      successNotify();
     } catch (error) {
-      console.error('Error updating document:', error);
+      setLoading(false);
+      const errorMessage = error as string;
+      failNotify(errorMessage);
     }
   }
 
@@ -140,7 +149,7 @@ function EditCustomerPage() {
     querySnapshot.forEach((theProduct) => {
       const data = theProduct.data() as SpecialPrice;
       data.product_id = theProduct.id;
-      data.price = theProduct.get('sell_price') as string;
+      data.price = theProduct.get('sell_price') as number;
       productData.push(data);
     });
 
@@ -165,7 +174,7 @@ function EditCustomerPage() {
         )}
         <InputField
           loading={loading}
-          label="Name"
+          label="Nama"
           labelFor="name"
           value={newCustomer.name}
           placeholder="i.e. John Doe"
@@ -175,7 +184,7 @@ function EditCustomerPage() {
         />
         <InputField
           loading={loading}
-          label="Address"
+          label="Alamat"
           labelFor="address"
           value={newCustomer.address}
           placeholder="i.e. Jl.Soekarno-Hatta No. 123"
@@ -185,7 +194,7 @@ function EditCustomerPage() {
         />
         <InputField
           loading={loading}
-          label="Contact Number"
+          label="Nomor Telepon"
           labelFor="phone_number"
           value={newCustomer.phone_number}
           placeholder="Phone number or landline number"
@@ -195,7 +204,7 @@ function EditCustomerPage() {
         />
 
         <hr className="my-4" />
-        <h2 className="text-2xl font-bold">Special Price</h2>
+        <h2 className="text-2xl font-bold">Harga Khusus</h2>
         <ul className="my-3 space-y-3 font-regular">
           {selectedProducts.map((product, index) => (
             <li key={index}>
@@ -217,7 +226,7 @@ function EditCustomerPage() {
                       disabled={loading}
                       id={'price'}
                       name={'price'}
-                      type="text"
+                      type={'number'}
                       className={`placeholder:text-xs placeholder:font-light bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 p-2 w-full
                       `}
                       value={
@@ -237,7 +246,9 @@ function EditCustomerPage() {
                         const index = newSpecialPriceProducts.findIndex(
                           (sp) => sp.product_id === product.product_id
                         );
-                        newSpecialPriceProducts[index].price = e.target.value;
+                        newSpecialPriceProducts[index].price = Number(
+                          e.target.value
+                        );
                         setNewCustomer(() => {
                           return {
                             ...newCustomer,
@@ -276,7 +287,7 @@ function EditCustomerPage() {
           className="py-2 px-5 text-sm font-medium text-red-500 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-red-700 focus:z-10 focus:ring-4 focus:ring-gray-200"
           onClick={() => setModalOpen(true)}
         >
-          + Add Products
+          + Pilih Product(s)
         </button>
 
         <div className="flex flex-row-reverse gap-2 justify-start">
@@ -308,10 +319,10 @@ function EditCustomerPage() {
         modalOpen={modalOpen}
         handleSearch={handleSearch}
         setModalOpen={setModalOpen}
-        title={'Choose Product'}
+        title={'Pilih Product'}
         headerList={
           products.length > 0
-            ? ['', 'Product name', 'Sell Price', 'Warehouse']
+            ? ['', 'Nama Product', 'Harga Jual', 'Posisi Gudang']
             : []
         }
       >
@@ -372,6 +383,18 @@ function EditCustomerPage() {
           </tr>
         )}
       </TableModal>
+      <ToastContainer
+        position="top-right"
+        autoClose={2000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="light"
+      />
     </PageLayout>
   );
 }

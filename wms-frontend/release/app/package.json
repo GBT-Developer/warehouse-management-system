@@ -1,12 +1,11 @@
 {
   "name": "warehouse-management-system",
-  "version": "4.6.0",
-  "description": "A foundation for scalable desktop apps",
-  "license": "MIT",
+  "version": "0.1.0",
+  "description": "A warehuose management system application",
   "author": {
-    "name": "WMS Boilerplate Maintainers",
-    "email": "electronreactboilerplate@gmail.com",
-    "url": "https://github.com/electron-react-boilerplate"
+    "name": "GBT Developers",
+    "email": "goodbyetu00@gmail.com",
+    "url": "https://github.com/GBT-Developer/warehouse-management-system"
   },
   "main": "./dist/main/main.js",
   "scripts": {

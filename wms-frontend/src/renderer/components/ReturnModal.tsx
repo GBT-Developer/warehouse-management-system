@@ -1,7 +1,7 @@
-import { db } from 'firebase';
 import { doc, getDoc } from 'firebase/firestore';
 import { useEffect, useState } from 'react';
 import { AiOutlineLoading3Quarters } from 'react-icons/ai';
+import { db } from 'renderer/firebase';
 import { Product } from 'renderer/interfaces/Product';
 
 interface ReturnModalProps {
@@ -91,29 +91,40 @@ export const ReturnModal = ({
                     </p>
                   </div>
                 )}
-                <p>
-                  <span className="font-bold">Product Name:</span>{' '}
-                  {product &&
-                    product.brand +
-                      ' ' +
-                      product.motor_type +
-                      ' ' +
-                      product.motor_type}
-                </p>
-                <p>
-                  <span className="font-bold">Color:</span>{' '}
-                  {product?.available_color
-                    .split(' ')
-                    .map((word) => word[0].toUpperCase() + word.slice(1))
-                    .join(' ')}
-                </p>
-                <p>
-                  <span className="font-bold">Count:</span> {product?.count}
-                </p>
-                <p>
-                  <span className="font-bold">Supplier:</span>{' '}
-                  {product?.supplier?.company_name}
-                </p>
+                <div className="flex">
+                  <p className="w-2/5 font-bold">Nama Produkt:</p>
+                  <p className="w-3/5">
+                    {product &&
+                      product.brand +
+                        ' ' +
+                        product.motor_type +
+                        ' ' +
+                        product.part}
+                  </p>
+                </div>
+                <div className="flex">
+                  <p className="w-2/5 font-bold">Warna:</p>
+                  <p className="w-3/5">
+                    {product?.available_color
+                      .split(' ')
+                      .map((word) => word[0].toUpperCase() + word.slice(1))
+                      .join(' ')}
+                  </p>
+                </div>
+                <div className="flex">
+                  <p className="w-2/5 font-bold">Jumlah Barang:</p>
+                  <p className="w-3/5">{product?.count}</p>
+                </div>
+                {product?.supplier?.company_name && (
+                  <div className="flex">
+                    <p className="w-2/5 font-bold">Supplier:</p>
+                    <p className="w-3/5">{product.supplier.company_name}</p>
+                  </div>
+                )}
+                <div className="flex">
+                  <p className="w-2/5 font-bold">Posisi Gudang:</p>
+                  <p className="w-3/5">{product?.warehouse_position}</p>
+                </div>
                 {children}
                 <div className="flex justify-end gap-2 mt-3">
                   <button

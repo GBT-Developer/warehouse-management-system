@@ -1,31 +1,44 @@
-import { db } from 'firebase';
 import {
+  QueryStartAtConstraint,
   collection,
   deleteDoc,
   doc,
   getDocs,
+  limit,
+  orderBy,
   query,
+  startAfter,
   updateDoc,
   where,
 } from 'firebase/firestore';
 import React, { useEffect, useState } from 'react';
+import { AiOutlineLoading3Quarters } from 'react-icons/ai';
 import { BiSolidTrash } from 'react-icons/bi';
+import { IoChevronBackOutline } from 'react-icons/io5';
 import { useNavigate, useParams } from 'react-router-dom';
 import { SingleTableItem } from 'renderer/components/TableComponents/SingleTableItem';
 import { TableHeader } from 'renderer/components/TableComponents/TableHeader';
 import { TableTitle } from 'renderer/components/TableComponents/TableTitle';
+import { db } from 'renderer/firebase';
 import { PurchaseHistory } from 'renderer/interfaces/PurchaseHistory';
 import { PageLayout } from 'renderer/layout/PageLayout';
+import { useAuth } from 'renderer/providers/AuthProvider';
 
 export default function PurchaseHistoryPage() {
   const [loading, setLoading] = useState(false);
   const param = useParams();
+  const { warehousePosition } = useAuth();
   const [purchaseList, setPurchaseList] = useState<PurchaseHistory[]>([]);
   const [search, setSearch] = useState('');
   const [showProductsMap, setShowProductsMap] = useState<
     Record<string, boolean>
   >({});
   const navigate = useNavigate();
+  const [nextPosts_loading, setNextPostsLoading] = useState(false);
+  const [nextPosts_empty, setNextPostsEmpty] = useState(false);
+  const [nextQuery, setNextQuery] = useState<QueryStartAtConstraint | null>(
+    null
+  );
 
   const toggleShowProducts = (purchaseId: string) => {
     setShowProductsMap((prevState) => ({
@@ -43,9 +56,31 @@ export default function PurchaseHistoryPage() {
 
         const q = query(
           collection(db, 'purchase_history'),
-          where('supplier', '==', param.id)
+          where('supplier', '==', param.id),
+          warehousePosition !== 'Semua Gudang'
+            ? where('warehouse_position', '==', warehousePosition)
+            : where('warehouse_position', 'in', [
+                'Gudang Bahan',
+                'Gudang Jadi',
+              ]),
+          orderBy('created_at', 'desc'),
+          limit(50)
         );
         const querySnapshot = await getDocs(q);
+
+        if (querySnapshot.empty) {
+          setPurchaseList([]);
+          setLoading(false);
+          setNextQuery(null);
+          setNextPostsEmpty(true);
+          setNextPostsLoading(false);
+
+          return;
+        }
+
+        setNextQuery(
+          startAfter(querySnapshot.docs[querySnapshot.docs.length - 1])
+        );
 
         const historyData: PurchaseHistory[] = [];
         querySnapshot.forEach((doc) => {
@@ -64,23 +99,80 @@ export default function PurchaseHistoryPage() {
     fetchData().catch((error) => {
       console.log(error);
     });
-  }, [param.id]);
+  }, [param.id, warehousePosition]);
+
+  const fetchMoreData = async () => {
+    try {
+      if (nextQuery === null) return;
+      setNextPostsLoading(true);
+      const q = query(
+        collection(db, 'purchase_history'),
+        where('supplier', '==', param.id),
+        warehousePosition !== 'Semua Gudang'
+          ? where('warehouse_position', '==', warehousePosition)
+          : where('warehouse_position', 'in', ['Gudang Bahan', 'Gudang Jadi']),
+        orderBy('created_at', 'desc'),
+        nextQuery,
+        limit(50)
+      );
+
+      const querySnapshot = await getDocs(q);
+
+      if (querySnapshot.empty) {
+        setNextPostsEmpty(true);
+        setNextQuery(null);
+        setNextPostsLoading(false);
+        setNextPostsEmpty(true);
+        return;
+      }
+
+      setNextQuery(() =>
+        startAfter(querySnapshot.docs[querySnapshot.docs.length - 1])
+      );
+
+      const invoiceData: PurchaseHistory[] = [];
+      querySnapshot.forEach((theInvoice) => {
+        const data = theInvoice.data() as PurchaseHistory;
+        data.id = theInvoice.id;
+        invoiceData.push(data);
+      });
+
+      setPurchaseList((prev) => [...prev, ...invoiceData]);
+      setNextPostsLoading(false);
+    } catch (error) {
+      console.error('Error fetching data:', error);
+    }
+  };
 
   return (
     <PageLayout>
       <div className="w-full h-full bg-transparent overflow-hidden">
         <div className="relative shadow-md sm:rounded-lg overflow-auto h-full flex flex-col justify-between">
           <TableTitle setSearch={setSearch}>
-            <h1 className="text-4xl font-extrabold tracking-tight text-gray-900 md:text-5xl">
-              Purchase Report
-            </h1>
+            <div className="flex w-2/3 flex-col md:flex-row">
+              <button
+                type="button"
+                className="pr-6 font-2xl  text-gray-600 focus:ring-4 focus:ring-gray-300 rounded-lg text-sm w-[max-content] flex justify-center gap-2 text-center items-center"
+                onClick={() => navigate(-1)}
+              >
+                <IoChevronBackOutline size={40} /> {/* Icon */}
+              </button>
+              <h1 className="text-4xl font-extrabold tracking-tight text-gray-900 md:text-5xl">
+                Purchase Report
+              </h1>
+            </div>
           </TableTitle>
-          <div className="overflow-y-auto h-full py-11">
+          <div className="overflow-y-auto h-full relative">
+            {loading && (
+              <div className="absolute flex justify-center items-center py-2 px-3 top-0 left-0 w-full h-full bg-gray-50 rounded-lg z-0 bg-opacity-50">
+                <AiOutlineLoading3Quarters className="animate-spin flex justify-center text-4xl" />
+              </div>
+            )}
             <table className="w-full text-sm text-left text-gray-500">
               <TableHeader>
-                <th className="py-3">Invoice ID</th>
-                <th className="py-3">Date</th>
-                <th className="py-3">Purchase Price</th>
+                <th className="py-3">Nomor Invoice</th>
+                <th className="py-3">Tanggal</th>
+                <th className="py-3">Harga Beli</th>
                 <th className="py-3">Status</th>
                 <th className="py-3"></th>
               </TableHeader>
@@ -93,6 +185,15 @@ export default function PurchaseHistoryPage() {
                       .toLowerCase()
                       .includes(search.toLowerCase());
                   })
+                  .sort((a, b) => {
+                    return a.time > b.time ? -1 : 1;
+                  })
+                  .sort((a, b) => {
+                    return (
+                      new Date(b.created_at).getTime() -
+                      new Date(a.created_at).getTime()
+                    );
+                  })
                   .map((purchase_history, index) => (
                     <React.Fragment key={index}>
                       <tr
@@ -102,13 +203,16 @@ export default function PurchaseHistoryPage() {
                           toggleShowProducts(purchase_history.id);
                         }}
                       >
-                        <SingleTableItem>{purchase_history.id}</SingleTableItem>
                         <SingleTableItem>
                           {purchase_history.created_at}
                         </SingleTableItem>
+                        <SingleTableItem>{purchase_history.id}</SingleTableItem>
                         <SingleTableItem>
                           <span className="font-medium text-md">
-                            {purchase_history.purchase_price}
+                            {new Intl.NumberFormat('id-ID', {
+                              style: 'currency',
+                              currency: 'IDR',
+                            }).format(purchase_history.purchase_price)}
                           </span>
                         </SingleTableItem>
                         <SingleTableItem>
@@ -145,10 +249,10 @@ export default function PurchaseHistoryPage() {
                               } border border-gray-300 text-gray-900 text-sm rounded-lg outline-none block w-fit p-2.5`}
                             >
                               <option className="bg-gray-50" value="unpaid">
-                                Unpaid
+                                Belum
                               </option>
                               <option className="bg-gray-50" value="paid">
-                                Paid
+                                Lunas
                               </option>
                             </select>
                           </form>
@@ -203,14 +307,27 @@ export default function PurchaseHistoryPage() {
                   ))}
               </tbody>
             </table>
+            {nextPosts_empty ? (
+              <div className="flex justify-center items-center py-6 px-3 w-full bg-gray-50 rounded-lg z-0 bg-opacity-50">
+                <p className="text-gray-500 text-sm">No more data</p>
+              </div>
+            ) : (
+              <div className="flex justify-center items-center py-6 px-3 w-full bg-gray-50 rounded-lg z-0 bg-opacity-50">
+                <button
+                  className="text-gray-500 text-sm hover:underline"
+                  onClick={() => fetchMoreData()}
+                >
+                  {nextPosts_loading ? (
+                    <div className="flex justify-center items-center">
+                      <AiOutlineLoading3Quarters className="animate-spin flex justify-center text-4xl" />
+                    </div>
+                  ) : (
+                    'Load more'
+                  )}
+                </button>
+              </div>
+            )}
           </div>
-          <button
-            type="button"
-            className="px-4 py-2 font-medium text-white bg-gray-600  focus:ring-4 focus:ring-gray-300 rounded-lg text-sm h-[max-content] w-[max-content] flex justify-center gap-2 text-center items-center"
-            onClick={() => navigate(-1)}
-          >
-            Back
-          </button>
         </div>
       </div>
     </PageLayout>

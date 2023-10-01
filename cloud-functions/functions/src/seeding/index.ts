@@ -7,13 +7,26 @@ export const seedUser = async (num_of_user: number) => {
   const users = await firebaseAdmin.auth().listUsers();
   if (users.users.length < num_of_user) {
     for (let i = 0; i < num_of_user; i++) {
+      const theEmail = faker.internet.email();
+      const thePassword = faker.internet.password();
+      const theDisplayName = faker.person.fullName();
       await firebaseAdmin.auth().createUser({
-        email: faker.internet.email(),
+        email: theEmail,
         emailVerified: false,
-        password: faker.internet.password(),
-        displayName: faker.person.fullName(),
+        password: thePassword,
+        displayName: theDisplayName,
         disabled: false,
       });
+
+      const roles = ["Gudang Jadi", "Gudang Bahan"];
+      await firebaseAdmin
+        .firestore()
+        .collection("user")
+        .add({
+          email: theEmail,
+          display_name: theDisplayName,
+          role: roles[faker.number.int({ min: 0, max: roles.length - 1 })],
+        });
     }
   } else {
     functions.logger.info("Enough user already");
@@ -21,14 +34,14 @@ export const seedUser = async (num_of_user: number) => {
 };
 
 const createRootUser = async () => {
-  firebaseAdmin
+  await firebaseAdmin
     .auth()
     .getUserByEmail("test@gmail.com")
     .then(() => {
       functions.logger.info("Root user already exists");
     })
-    .catch(() => {
-      firebaseAdmin
+    .catch(async () => {
+      await firebaseAdmin
         .auth()
         .createUser({
           email: "test@gmail.com",
@@ -37,12 +50,17 @@ const createRootUser = async () => {
           displayName: "Test",
           disabled: false,
         })
-        .then((userRecord) => {
-          // Set custom claims
-          firebaseAdmin
-            .auth()
-            .setCustomUserClaims(userRecord.uid, { owner: true });
-          functions.logger.info("Root user created");
+        .then(async (theUser) => {
+          await firebaseAdmin.firestore().runTransaction(async (t) => {
+            t.set(
+              firebaseAdmin.firestore().collection("user").doc(theUser.uid),
+              {
+                email: "test@gmail.com",
+                display_name: "Test",
+                role: "Owner",
+              }
+            );
+          });
         })
         .catch((error) => {
           functions.logger.error(error);
@@ -98,6 +116,7 @@ export const seedProduct = async (
         name: string;
         quantity: number;
         sell_price: string;
+        warehouse_pos: string;
       }[]
     >();
 
@@ -111,6 +130,10 @@ export const seedProduct = async (
       const productBrand = faker.commerce.productName();
       const productMotorType = faker.vehicle.type();
       const productPart = faker.vehicle.model();
+      const warehouse =
+        warehouse_positions[
+          faker.number.int({ min: 0, max: warehouse_positions.length - 1 })
+        ];
       const sell_price = faker.commerce.price({
         min: 50000,
         max: 1000000,
@@ -123,18 +146,17 @@ export const seedProduct = async (
           brand: productBrand,
           motor_type: productMotorType,
           part: productPart,
-          count: the_count.toString(),
-          sell_price: sell_price,
-          warehouse_position:
-            warehouse_positions[
-              faker.number.int({ min: 0, max: warehouse_positions.length - 1 })
-            ],
+          count: the_count,
+          sell_price: parseInt(sell_price),
+          purchase_price: parseFloat(sell_price) * 0.8,
+          warehouse_position: warehouse,
           supplier: Array.from(suppliers.keys())[the_supplier_id],
         })
         .then(async (product) => {
           const id = product.id;
           const name = `${productBrand} ${productMotorType} ${productPart} ${productColor}`;
           const quantity = the_count;
+          const warehouse_pos = warehouse;
           const supplier_id = Array.from(suppliers.keys())[the_supplier_id];
 
           let product_supplier_list = productSupplierList.get(supplier_id);
@@ -148,6 +170,7 @@ export const seedProduct = async (
             name,
             quantity,
             sell_price,
+            warehouse_pos,
           });
 
           productSupplierList.set(supplier_id, product_supplier_list);
@@ -162,6 +185,7 @@ export const seedProduct = async (
           .reduce((acc, curr) => acc + parseInt(curr.sell_price), 0)
           .toString(),
         payment_status: "Paid",
+        warehouse_position: product_supplier_list[0].warehouse_pos,
         products: product_supplier_list,
       });
     });
@@ -178,6 +202,7 @@ export const seedBrokenProduct = async (
   const broken_products = await db.collection("broken_product").get();
 
   if (broken_products.size < num_of_product) {
+    const warehouse_positions = ["Gudang Jadi", "Gudang Bahan"];
     for (let i = 0; i < num_of_product; i++) {
       const the_count = faker.number.int({ min: 1, max: 10 });
       const the_supplier_id = faker.number.int({
@@ -191,16 +216,23 @@ export const seedBrokenProduct = async (
           brand: faker.commerce.productName(),
           motor_type: faker.vehicle.type(),
           part: faker.vehicle.model(),
-          count: the_count.toString(),
-          supplier: {
-            id: Array.from(suppliers.keys())[the_supplier_id],
-            company_name: Array.from(suppliers.values())[the_supplier_id],
-          },
+          count: the_count,
+          supplier: Array.from(suppliers.keys())[the_supplier_id],
+          sell_price: parseInt(
+            faker.commerce.price({
+              min: 50000,
+              max: 1000000,
+            })
+          ),
+          warehouse_position:
+            warehouse_positions[
+              faker.number.int({ min: 0, max: warehouse_positions.length - 1 })
+            ],
         })
         .catch((error) => console.log(error));
     }
   } else {
-    functions.logger.info("Enough product already");
+    functions.logger.info("Enough broken product already");
   }
 };
 const productPicker = async (num_of_products: number) => {
@@ -215,8 +247,9 @@ const productPicker = async (num_of_products: number) => {
     part: string;
     available_color: string;
     warehouse_position: string;
-    price: string;
-    sell_price: string;
+    sell_price: number;
+    purchase_price: number;
+    count: number;
   }[] = [];
   // Fetch random products
   for (let i = 0; i < num_of_products; i++) {
@@ -238,7 +271,9 @@ const productPicker = async (num_of_products: number) => {
       part: string;
       available_color: string;
       warehouse_position: string;
-      sell_price: string;
+      sell_price: number;
+      purchase_price: number;
+      count: number;
     };
 
     productsList.push({
@@ -249,8 +284,9 @@ const productPicker = async (num_of_products: number) => {
       part: product_data.part,
       available_color: product_data.available_color,
       warehouse_position: product_data.warehouse_position,
-      price: (parseFloat(product_data.sell_price) * 0.8).toFixed(2),
       sell_price: product_data.sell_price,
+      purchase_price: product_data.sell_price * 0.8,
+      count: product_data.count,
     });
 
     // Remove the product from the list
@@ -285,7 +321,7 @@ export const seedCustomer = async (num_of_customer: number) => {
             part: product.part,
             available_color: product.available_color,
             warehouse_position: product.warehouse_position,
-            price: product.price,
+            purchase_price: product.purchase_price,
             sell_price: product.sell_price,
           };
         }),
@@ -293,5 +329,81 @@ export const seedCustomer = async (num_of_customer: number) => {
     }
   } else {
     functions.logger.info("Enough customer already");
+  }
+};
+
+export const seedTransaction = async (num_of_transaction: number) => {
+  const db = firebaseAdmin.firestore();
+  const transactions = await db.collection("invoice").get();
+
+  if (transactions.size < num_of_transaction) {
+    let totalSales = 0;
+    let daily_sales: Record<string, number> = {};
+    for (let i = 0; i < num_of_transaction; i++) {
+      const numOfProducts = faker.number.int({ min: 1, max: 5 });
+      const products = await productPicker(numOfProducts);
+      const totalPrice = products.reduce(
+        (acc, curr) => acc + curr.sell_price,
+        0
+      );
+      // Generate date of this month
+      const purchaseDate = faker.date
+        .between({
+          from: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
+          to: new Date(),
+        })
+        .toISOString(); // ex: 2021-03-10T07:00:00.000Z
+      // Take the date
+      const date = purchaseDate.split("T")[0]; // ex: 2021-03-10
+      // Get the time of the day, format: HH:MM:SS
+      const time = purchaseDate.split("T")[1].split(".")[0]; // ex: 07:00:00
+      // Take the day
+      const day = date.split("-")[2]; // ex: 10
+      totalSales += totalPrice;
+      const hasPrice = daily_sales[day];
+      if (hasPrice) {
+        daily_sales[day] += totalPrice;
+      } else {
+        daily_sales[day] = totalPrice;
+      }
+      await db.collection("invoice").add({
+        customer_id: "",
+        customer_name: faker.person.fullName(),
+        date: purchaseDate.split("T")[0],
+        time: time,
+        payment_method: "Cash",
+        warehouse_position: products[0].warehouse_position,
+        total_price: totalPrice,
+        items: products.map((product) => {
+          return {
+            available_color: product.available_color,
+            brand: product.brand,
+            count: faker.number.int({ min: 1, max: 5 }),
+            id: product.product_id,
+            is_returned: false,
+            motor_type: product.motor_type,
+            part: product.part,
+            purchase_price: product.purchase_price,
+            sell_price: product.sell_price,
+            warehouse_position: product.warehouse_position,
+          };
+        }),
+      });
+    }
+    await db
+      .collection("invoice")
+      .doc("--stats--")
+      .set({
+        total_sales: totalSales,
+        transaction_count: num_of_transaction,
+        daily_sales: daily_sales,
+        month: parseInt(
+          new Date().toLocaleDateString("en-US", {
+            month: "numeric",
+          })
+        ),
+      });
+  } else {
+    functions.logger.info("Enough transaction already");
   }
 };

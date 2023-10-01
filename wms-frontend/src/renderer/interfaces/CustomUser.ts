@@ -1,5 +1,6 @@
-import { User } from 'firebase/auth';
-
-export interface CustomUser extends User {
-  owner: string;
+export interface CustomUser {
+  id?: string;
+  display_name: string;
+  email: string;
+  role: string;
 }

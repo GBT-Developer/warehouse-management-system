@@ -1,4 +1,4 @@
-import { db } from 'firebase';
+import { format } from 'date-fns';
 import {
   collection,
   doc,
@@ -9,12 +9,16 @@ import {
 import { FormEvent, useEffect, useRef, useState } from 'react';
 import { AiOutlineLoading3Quarters } from 'react-icons/ai';
 import { useNavigate } from 'react-router-dom';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import { AreaField } from 'renderer/components/AreaField';
 import { InputField } from 'renderer/components/InputField';
+import { db } from 'renderer/firebase';
 import { Product } from 'renderer/interfaces/Product';
 import { PurchaseHistory } from 'renderer/interfaces/PurchaseHistory';
 import { Supplier } from 'renderer/interfaces/Supplier';
 import { PageLayout } from 'renderer/layout/PageLayout';
+import { useAuth } from 'renderer/providers/AuthProvider';
 
 const newProductInitialState = {
   brand: '',
@@ -22,9 +26,10 @@ const newProductInitialState = {
   part: '',
   available_color: '',
   warehouse_position: '',
-  count: '',
-  sell_price: '',
-};
+  count: 0,
+  sell_price: 0,
+  purchase_price: 0,
+} as Product;
 
 const newSupplierInitialState = {
   company_name: '',
@@ -37,18 +42,23 @@ const newSupplierInitialState = {
 
 const newPurchaseInitialState = {
   created_at: '',
-  purchase_price: '0',
+  purchase_price: 0,
   supplier: null,
   payment_status: 'unpaid',
+  warehouse_position: '',
   products: [],
+  time: '',
 } as PurchaseHistory;
 
 export const NewProductPage = () => {
   const [newProduct, setNewProduct] = useState<Product>(newProductInitialState);
   const navigate = useNavigate();
+  const [initialLoad, setInitialLoad] = useState(true);
+  const { warehousePosition } = useAuth();
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const warehouseOptionRef = useRef<HTMLSelectElement>(null);
   const supplierOptionRef = useRef<HTMLSelectElement>(null);
+  const dateRef = useRef<HTMLInputElement>(null);
   const [loading, setLoading] = useState(false);
   const [suppliers, setSupplier] = useState<Supplier[]>([]);
   const [showSupplierForm, setShowSupplierForm] = useState(false);
@@ -58,7 +68,10 @@ export const NewProductPage = () => {
   const [newPurchase, setNewPurchase] = useState<PurchaseHistory>(
     newPurchaseInitialState
   );
-
+  const successNotify = () => toast.success('Product berhasil ditambahkan');
+  const failNotify = (e?: string) =>
+    toast.error(e ?? 'Product gagal ditambahkan');
+  const [isEmpty, setIsEmpty] = useState(false);
   // Take product from firebase
   useEffect(() => {
     const fetchData = async () => {
@@ -84,6 +97,41 @@ export const NewProductPage = () => {
     });
   }, []);
 
+  // Check all of the input empty or not
+  useEffect(() => {
+    if (
+      newProduct.brand === '' ||
+      newProduct.motor_type === '' ||
+      newProduct.part === '' ||
+      newProduct.available_color === '' ||
+      newProduct.count === 0 ||
+      newProduct.purchase_price === 0 ||
+      newProduct.sell_price === 0
+    ) {
+      setIsEmpty(true);
+      return;
+    } else if (
+      newProduct.available_color != '' &&
+      newProduct.brand != '' &&
+      newProduct.count != 0 &&
+      newProduct.motor_type != '' &&
+      newProduct.part != '' &&
+      newProduct.purchase_price != 0 &&
+      newProduct.sell_price != 0 &&
+      newProduct.warehouse_position != '' &&
+      newPurchase.created_at != '' &&
+      newProduct.supplier != null
+    ) {
+      setIsEmpty(false);
+      return;
+    }
+  }, [newProduct, newPurchase]);
+  useEffect(() => {
+    if (!initialLoad) navigate('/');
+
+    setInitialLoad(false);
+  }, [warehousePosition]);
+
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     // If one or more fields are empty, return early
@@ -93,32 +141,30 @@ export const NewProductPage = () => {
       ) ||
       newProduct.warehouse_position === ''
     ) {
-      console.log(newProduct);
-      setErrorMessage('Please fill all the fields');
+      setErrorMessage('Tolong isi semua kolom');
       setTimeout(() => {
         setErrorMessage(null);
       }, 3000);
       return;
     }
-
     if (
       Number.isNaN(Number(newProduct.sell_price)) ||
-      Number.isNaN(Number(newPurchase.purchase_price)) ||
+      Number.isNaN(Number(newProduct.purchase_price)) ||
       Number.isNaN(Number(newProduct.count)) ||
       Number(newProduct.sell_price) <= 0 ||
-      Number(newPurchase.purchase_price) <= 0 ||
+      Number(newProduct.purchase_price) <= 0 ||
       Number(newProduct.count) <= 0
     ) {
-      setErrorMessage('Please input a valid number');
+      setErrorMessage('Harga jual, harga beli, dan jumlah harus angka');
       setTimeout(() => {
         setErrorMessage(null);
       }, 3000);
       return;
     }
-
-    setLoading(true);
+    setIsEmpty(false);
 
     await runTransaction(db, (transaction) => {
+      setLoading(true);
       let newSupplierRef = null;
 
       if (showSupplierForm) {
@@ -133,9 +179,21 @@ export const NewProductPage = () => {
       });
 
       const newPurchaseRef = doc(collection(db, 'purchase_history'));
+      const currentDateandTime = new Date();
+      if (!newPurchase.created_at) return Promise.reject('Date not found');
+      let theTime = '';
+      // If invoice date is the same as current date, take the current time
+      if (newPurchase.created_at === format(currentDateandTime, 'yyyy-MM-dd'))
+        theTime = format(currentDateandTime, 'HH:mm:ss');
+      else theTime = '23:59:59';
+
       transaction.set(newPurchaseRef, {
         ...newPurchase,
+        created_at: newPurchase.created_at,
+        time: theTime,
+        purchase_price: newProduct.purchase_price,
         payment_status: newPurchase.payment_status,
+        warehouse_position: newProduct.warehouse_position,
         supplier: newSupplierRef ? newSupplierRef.id : newProduct.supplier?.id,
         products: [
           {
@@ -145,19 +203,29 @@ export const NewProductPage = () => {
           },
         ],
       });
-
+      setLoading(false);
+      successNotify();
+      setNewProduct(newProductInitialState);
+      setNewSupplier(newSupplierInitialState);
+      setNewPurchase(newPurchaseInitialState);
+      //make the supplier select empty
+      if (supplierOptionRef.current) supplierOptionRef.current.value = '';
+      //make the warehouse select empty
+      if (warehouseOptionRef.current) warehouseOptionRef.current.value = '';
+      //make the date input empty
+      if (dateRef.current) dateRef.current.value = '';
       return Promise.resolve(newProductRef);
     }).catch((error) => {
-      console.log(error);
+      setLoading(false);
+      const errorMessage = error as unknown as string;
+      failNotify(errorMessage);
     });
-
-    setLoading(false);
   }
 
   return (
     <PageLayout>
       <h1 className="text-4xl font-extrabold tracking-tight text-gray-900 md:text-5xl">
-        Add new product
+        Tambah Product Baru
       </h1>
       <form
         onSubmit={(e) => {
@@ -165,7 +233,7 @@ export const NewProductPage = () => {
             console.log(error);
           });
         }}
-        className={`w-2/3 py-14 my-10 flex flex-col gap-3 relative${
+        className={`w-2/3 py-14 my-10 flex flex-col gap-3 relative ${
           loading ? 'p-2' : ''
         }`}
       >
@@ -177,7 +245,7 @@ export const NewProductPage = () => {
         <InputField
           loading={loading}
           labelFor="brand"
-          label="Brand"
+          label="Merek"
           value={newProduct.brand}
           onChange={(e) =>
             setNewProduct({ ...newProduct, brand: e.target.value })
@@ -186,7 +254,7 @@ export const NewProductPage = () => {
         <InputField
           loading={loading}
           labelFor="type"
-          label="Motorcycle Type"
+          label="Tipe Motor"
           value={newProduct.motor_type}
           onChange={(e) =>
             setNewProduct({ ...newProduct, motor_type: e.target.value })
@@ -204,7 +272,7 @@ export const NewProductPage = () => {
         <InputField
           loading={loading}
           labelFor="available_color"
-          label="Available Color"
+          label="Warna Tersedia"
           value={newProduct.available_color}
           onChange={(e) =>
             setNewProduct({ ...newProduct, available_color: e.target.value })
@@ -213,38 +281,56 @@ export const NewProductPage = () => {
         <InputField
           loading={loading}
           labelFor="count"
-          label="Product Count"
+          label="Jumlah Barang"
           value={newProduct.count}
           onChange={(e) => {
-            setNewProduct({ ...newProduct, count: e.target.value });
+            if (
+              !/^[0-9]*(\.[0-9]*)?$/.test(e.target.value) &&
+              e.target.value !== ''
+            )
+              return;
+            setNewProduct({ ...newProduct, count: Number(e.target.value) });
           }}
         />
         <InputField
           loading={loading}
           labelFor="purchase_price"
-          label="Purchase Price"
-          value={newPurchase.purchase_price}
-          onChange={(e) =>
-            setNewPurchase({
-              ...newPurchase,
-              purchase_price: e.target.value,
-            })
-          }
+          label="Harga Beli"
+          value={newProduct.purchase_price}
+          onChange={(e) => {
+            if (
+              !/^[0-9]*(\.[0-9]*)?$/.test(e.target.value) &&
+              e.target.value !== ''
+            )
+              return;
+            setNewProduct({
+              ...newProduct,
+              purchase_price: Number(e.target.value),
+            });
+          }}
         />
         <InputField
           loading={loading}
           labelFor="sell_price"
-          label="Sell Price"
+          label="Harga Jual"
           value={newProduct.sell_price}
-          onChange={(e) =>
-            setNewProduct({ ...newProduct, sell_price: e.target.value })
-          }
+          onChange={(e) => {
+            if (
+              !/^[0-9]*(\.[0-9]*)?$/.test(e.target.value) &&
+              e.target.value !== ''
+            )
+              return;
+            setNewProduct({
+              ...newProduct,
+              sell_price: Number(e.target.value),
+            });
+          }}
         />
         <div>
           <div className="flex justify-between">
             <div className="w-1/3 py-1.5">
               <label htmlFor={'warehouse'} className="text-md">
-                Warehouse Position
+                Posisi Gudang
               </label>
             </div>
             <div className="w-2/3">
@@ -263,10 +349,14 @@ export const NewProductPage = () => {
                 className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
               >
                 <option value={''} disabled>
-                  Choose Warehouse
+                  Pilih Gudang
                 </option>
-                <option value="Gudang Jadi">Gudang Jadi</option>
-                <option value="Gudang Bahan">Gudang Bahan</option>
+                {warehousePosition !== 'Gudang Bahan' && (
+                  <option value="Gudang Jadi">Gudang Jadi</option>
+                )}
+                {warehousePosition !== 'Gudang Jadi' && (
+                  <option value="Gudang Bahan">Gudang Bahan</option>
+                )}
               </select>
             </div>
           </div>
@@ -275,12 +365,13 @@ export const NewProductPage = () => {
         <div className="flex justify-between">
           <div className="w-1/3 flex items-center">
             <label htmlFor={'date-id'} className="text-md">
-              Purchase date
+              Tanggal Pembelian
             </label>
           </div>
           <div className="w-2/3">
             <input
               disabled={loading}
+              ref={dateRef}
               type="date"
               name="date"
               className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
@@ -326,7 +417,7 @@ export const NewProductPage = () => {
                 className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
               >
                 <option value={''} disabled>
-                  Choose Supplier
+                  Pilih Supplier
                 </option>
                 {suppliers.map((supplier) => (
                   <option key={supplier.id} value={supplier.id}>
@@ -430,11 +521,15 @@ export const NewProductPage = () => {
         )}
         <div className="flex flex-row-reverse gap-2 justify-start">
           <button
-            disabled={loading}
+            disabled={isEmpty}
             type="submit"
+            style={{
+              backgroundColor: isEmpty ? 'gray' : 'blue',
+              // Add other styles as needed
+            }}
             className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5"
           >
-            Submit
+            Add New
           </button>
           <button
             disabled={loading}
@@ -449,6 +544,18 @@ export const NewProductPage = () => {
           <p className="text-red-500 text-sm ">{errorMessage}</p>
         )}
       </form>
+      <ToastContainer
+        position="top-right"
+        autoClose={2000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="light"
+      />
     </PageLayout>
   );
 };

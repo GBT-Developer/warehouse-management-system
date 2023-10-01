@@ -1,7 +1,5 @@
-import { db } from 'firebase';
 import {
   collection,
-  collectionGroup,
   doc,
   getDoc,
   getDocs,
@@ -13,10 +11,14 @@ import { useEffect, useRef, useState } from 'react';
 import { AiFillEdit, AiOutlineLoading3Quarters } from 'react-icons/ai';
 import { GiCancel } from 'react-icons/gi';
 import { GoTriangleDown, GoTriangleUp } from 'react-icons/go';
+import { IoChevronBackOutline } from 'react-icons/io5';
 import { useNavigate, useParams } from 'react-router-dom';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import { InputField } from 'renderer/components/InputField';
 import { SingleTableItem } from 'renderer/components/TableComponents/SingleTableItem';
 import { TableHeader } from 'renderer/components/TableComponents/TableHeader';
+import { db } from 'renderer/firebase';
 import { Product } from 'renderer/interfaces/Product';
 import { StockHistory } from 'renderer/interfaces/StockHistory';
 import { Supplier } from 'renderer/interfaces/Supplier';
@@ -32,7 +34,9 @@ export default function ProductDetailPage() {
   const [suppliers, setSupplier] = useState<Supplier[]>([]);
   const [stockHistory, setStockHistory] = useState<StockHistory[]>([]);
   const navigate = useNavigate();
-
+  const successNotify = () => toast.success('Detail Product berhasil diubah');
+  const failNotify = (e?: string) =>
+    toast.error(e ?? 'Detail Product gagal diubah');
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -72,7 +76,7 @@ export default function ProductDetailPage() {
 
         // Fetch stock history
         const stockHistoryQuery = query(
-          collectionGroup(db, 'stock_history'),
+          collection(db, 'stock_history'),
           where('product', '==', productRef.id)
         );
         const stockHistoryQuerySnapshot = await getDocs(stockHistoryQuery);
@@ -142,22 +146,33 @@ export default function ProductDetailPage() {
     setLoading(true);
 
     updateDoc(productRef, updatedProduct).catch((error) => {
-      console.error('Error updating document: ', error);
+      console.log(error);
+      failNotify();
     });
 
     setLoading(false);
+    successNotify();
     setEditToggle(false);
   }
 
   return (
     <PageLayout>
       <div className="flex w-2/3 flex-col md:flex-row items-center justify-between space-y-3 md:space-y-0 md:space-x-4 py-4 mb-[2rem]">
-        <h1 className="text-4xl font-extrabold tracking-tight text-gray-900 md:text-5xl">
-          Product Detail
-        </h1>
+        <div className="flex w-2/3 flex-col md:flex-row">
+          <button
+            type="button"
+            className="pr-6 font-2xl  text-gray-600 focus:ring-4 focus:ring-gray-300 rounded-lg text-sm w-[max-content] flex justify-center gap-2 text-center items-center"
+            onClick={() => navigate(-1)}
+          >
+            <IoChevronBackOutline size={40} /> {/* Icon */}
+          </button>
+          <h1 className="text-4xl font-extrabold tracking-tight text-gray-900 md:text-5xl">
+            Detail Product
+          </h1>
+        </div>
         <button
           type="button"
-          className="px-4 py-2 font-medium text-white bg-gray-600  focus:ring-4 focus:ring-gray-300 rounded-lg text-sm h-[max-content] w-[max-content] flex justify-center gap-2 text-center items-center"
+          className="px-4 py-2 font-medium text-black bg-white border border-gray-300 rounded-lg text-sm h-[max-content] w-[max-content] flex justify-center gap-2 text-center items-center"
           onClick={() => setEditToggle(!editToggle)}
         >
           {editToggle ? (
@@ -189,7 +204,7 @@ export default function ProductDetailPage() {
             <InputField
               loading={loading || !editToggle}
               labelFor="brand"
-              label="Brand"
+              label="Merek"
               value={product?.brand ?? ''}
               onChange={(e) => {
                 if (product === undefined) return;
@@ -202,7 +217,7 @@ export default function ProductDetailPage() {
             <InputField
               loading={loading || !editToggle}
               labelFor="type"
-              label="Motorcyle Type"
+              label="Tipe Motor"
               value={product?.motor_type ?? ''}
               onChange={(e) => {
                 if (product === undefined) return;
@@ -228,7 +243,7 @@ export default function ProductDetailPage() {
             <InputField
               loading={loading || !editToggle}
               labelFor="available_color"
-              label="Available Color"
+              label="Warna Tersedia"
               value={product?.available_color ?? ''}
               onChange={(e) => {
                 if (product === undefined) return;
@@ -241,11 +256,11 @@ export default function ProductDetailPage() {
             <InputField
               loading={true}
               labelFor="count"
-              label="Product Count"
+              label="Jumlah Product"
               value={product?.count ?? ''}
               onChange={(e) => {
                 if (product === undefined) return;
-                setProduct({ ...product, count: e.target.value });
+                setProduct({ ...product, count: Number(e.target.value) });
               }}
               additionalStyle={`${
                 editToggle ? '' : 'border-none outline-none bg-inherit'
@@ -254,11 +269,16 @@ export default function ProductDetailPage() {
             <InputField
               loading={loading || !editToggle}
               labelFor="sell_price"
-              label="Sell Price"
+              label="Harga Jual"
               value={product?.sell_price ?? ''}
               onChange={(e) => {
+                if (
+                  !/^[0-9]*(\.[0-9]*)?$/.test(e.target.value) &&
+                  e.target.value !== ''
+                )
+                  return;
                 if (product === undefined) return;
-                setProduct({ ...product, sell_price: e.target.value });
+                setProduct({ ...product, sell_price: Number(e.target.value) });
               }}
               additionalStyle={`${
                 editToggle ? '' : 'border-none outline-none bg-inherit'
@@ -268,7 +288,7 @@ export default function ProductDetailPage() {
               <div className="flex justify-between">
                 <div className="w-1/3 flex items-center">
                   <label htmlFor={'warehouse'} className="text-md">
-                    Warehouse Position
+                    Posisi Gudang
                   </label>
                 </div>
                 <div className="w-2/3">
@@ -349,21 +369,14 @@ export default function ProductDetailPage() {
                 )}
               </div>
             </div>
-            <div className="flex gap-2 w-full justify-between mt-4">
-              <button
-                type="button"
-                className="px-4 py-2 font-medium text-white bg-gray-600  focus:ring-4 focus:ring-gray-300 rounded-lg text-sm h-[max-content] w-[max-content] flex justify-center gap-2 text-center items-center"
-                onClick={() => navigate(-1)}
-              >
-                Back
-              </button>
+            <div className="flex gap-2 w-full justify-end mt-4">
               {editToggle && (
                 <button
                   disabled={loading}
                   type="submit"
                   className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2 focus:outline-none"
                 >
-                  Submit
+                  Save Changes
                 </button>
               )}
             </div>
@@ -371,15 +384,14 @@ export default function ProductDetailPage() {
           <hr />
           <div className="flex flex-col gap-5">
             <div className="w-full">
-              <p className="text-2xl font-medium">Stock History</p>
+              <p className="text-2xl font-medium">Riwayat Stock</p>
             </div>
-            <table className="w-full text-sm text-left text-gray-500 dark:text-gray-400">
+            <table className="w-full text-sm text-left text-gray-500">
               <TableHeader>
-                <td className=" py-3">Date</td>
-                <td className=" py-3">Old count</td>
-                <td className=" py-3">New count</td>
-                <td className=" py-3">Difference</td>
-                <td className=" py-3">Type</td>
+                <td className=" py-3">Tanggal</td>
+                <td className=" py-3">Jumlah Lama</td>
+                <td className=" py-3">Jumlah Baru</td>
+                <td className=" py-3">Selisih</td>
               </TableHeader>
               <tbody className="overflow-y-auto">
                 {stockHistory.map((stock_history: StockHistory, index) => (
@@ -390,7 +402,7 @@ export default function ProductDetailPage() {
                     <SingleTableItem>{stock_history.old_count}</SingleTableItem>
                     <SingleTableItem>{stock_history.count}</SingleTableItem>
                     <SingleTableItem>
-                      <div className="flex items-center gap-[1.75rem]">
+                      <div className="flex items-center justify-between">
                         {stock_history.difference}
                         {Number(stock_history.difference) > 0 ? (
                           <GoTriangleUp size={23} className="text-green-500" />
@@ -409,6 +421,18 @@ export default function ProductDetailPage() {
           <p className="text-red-500 text-sm ">{errorMessage}</p>
         )}
       </div>
+      <ToastContainer
+        position="top-right"
+        autoClose={2000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="light"
+      />
     </PageLayout>
   );
 }

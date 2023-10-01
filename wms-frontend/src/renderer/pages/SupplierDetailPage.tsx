@@ -1,11 +1,14 @@
-import { db } from 'firebase';
 import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import { useEffect, useState } from 'react';
 import { AiFillEdit, AiOutlineLoading3Quarters } from 'react-icons/ai';
 import { GiCancel } from 'react-icons/gi';
+import { IoChevronBackOutline } from 'react-icons/io5';
 import { useNavigate, useParams } from 'react-router-dom';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import { AreaField } from 'renderer/components/AreaField';
 import { InputField } from 'renderer/components/InputField';
+import { db } from 'renderer/firebase';
 import { Supplier } from 'renderer/interfaces/Supplier';
 import { PageLayout } from 'renderer/layout/PageLayout';
 export default function SupplierDetailPage() {
@@ -15,7 +18,10 @@ export default function SupplierDetailPage() {
   const [supplier, setSupplier] = useState<Supplier>();
   const [editToggle, setEditToggle] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-
+  const successNotify = () =>
+    toast.success('Supplier data successfully updated');
+  const failNotify = (e?: string) =>
+    toast.error(e ?? 'Failed to update supplier data');
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -61,7 +67,7 @@ export default function SupplierDetailPage() {
       Number.isNaN(Number(supplier.bank_number)) ||
       Number.isNaN(Number(supplier.phone_number))
     ) {
-      setErrorMessage('Harga atau jumlah barang tidak valid');
+      setErrorMessage('Harga atau nomor rekening tidak valid');
       setTimeout(() => {
         setErrorMessage(null);
       }, 3000);
@@ -84,21 +90,32 @@ export default function SupplierDetailPage() {
     setLoading(true);
 
     updateDoc(supplierRef, updatedSupplier).catch((error) => {
-      console.error('Error updating document: ', error);
+      setLoading(false);
+      const errorMessage = error as unknown as string;
+      failNotify(errorMessage);
     });
-
+    successNotify();
     setLoading(false);
     setEditToggle(false);
   }
   return (
     <PageLayout>
-      <div className="flex justify-between w-2/3">
-        <h1 className="mb-[4rem] text-4xl font-extrabold tracking-tight text-gray-900 md:text-5xl">
-          Supplier Detail
-        </h1>
+      <div className="flex w-2/3 flex-col md:flex-row items-center justify-between space-y-3 md:space-y-0 md:space-x-4 py-4 mb-[2rem]">
+        <div className="flex w-2/3 flex-col md:flex-row">
+          <button
+            type="button"
+            className="pr-6 font-2xl  text-gray-600 focus:ring-4 focus:ring-gray-300 rounded-lg text-sm w-[max-content] flex justify-center gap-2 text-center items-center"
+            onClick={() => navigate(-1)}
+          >
+            <IoChevronBackOutline size={40} /> {/* Icon */}
+          </button>
+          <h1 className="text-4xl font-extrabold tracking-tight text-gray-900 md:text-5xl">
+            Detail Supplier
+          </h1>
+        </div>
         <button
           type="button"
-          className="px-4 py-2 font-medium text-white bg-gray-600  focus:ring-4 focus:ring-gray-300 rounded-lg text-sm h-[max-content] w-[max-content] flex justify-center gap-2 text-center items-center"
+          className="px-4 py-2 font-medium text-black bg-white border border-gray-300 rounded-lg text-sm h-[max-content] w-[max-content] flex justify-center gap-2 text-center items-center"
           onClick={() => setEditToggle(!editToggle)}
         >
           {editToggle ? (
@@ -130,7 +147,7 @@ export default function SupplierDetailPage() {
             <InputField
               loading={loading || !editToggle}
               labelFor="company_name"
-              label="Company Name"
+              label="Nama Perusahaan"
               value={supplier?.company_name ?? ''}
               onChange={(e) => {
                 if (supplier === undefined) return;
@@ -143,7 +160,7 @@ export default function SupplierDetailPage() {
             <InputField
               loading={loading || !editToggle}
               labelFor="address"
-              label="Address"
+              label="Alamat"
               value={supplier?.address ?? ''}
               onChange={(e) => {
                 if (supplier === undefined) return;
@@ -156,7 +173,7 @@ export default function SupplierDetailPage() {
             <InputField
               loading={loading || !editToggle}
               labelFor="city"
-              label="City"
+              label="Kota"
               value={supplier?.city ?? ''}
               onChange={(e) => {
                 if (supplier === undefined) return;
@@ -169,7 +186,7 @@ export default function SupplierDetailPage() {
             <InputField
               loading={loading || !editToggle}
               labelFor="phone_number"
-              label="Contact Number"
+              label="Nomor Telepon"
               value={supplier?.phone_number ?? ''}
               onChange={(e) => {
                 if (supplier === undefined) return;
@@ -195,7 +212,7 @@ export default function SupplierDetailPage() {
             <InputField
               loading={loading || !editToggle}
               labelFor="bank_number"
-              label="Bank Number"
+              label="Nomor Rekening"
               value={supplier?.bank_number ?? ''}
               onChange={(e) => {
                 if (supplier === undefined) return;
@@ -208,7 +225,7 @@ export default function SupplierDetailPage() {
             <InputField
               loading={loading || !editToggle}
               labelFor="bank_owner"
-              label="Bank Owner"
+              label="Atas Nama"
               value={supplier?.bank_owner ?? ''}
               onChange={(e) => {
                 if (supplier === undefined) return;
@@ -220,7 +237,7 @@ export default function SupplierDetailPage() {
             />
             <AreaField
               loading={loading || !editToggle}
-              label="Remarks"
+              label="Catatan"
               labelFor="remarks"
               maxLength={300}
               rows={7}
@@ -234,21 +251,14 @@ export default function SupplierDetailPage() {
                 editToggle ? '' : 'border-none outline-none bg-inherit'
               }`}
             />
-            <div className="flex gap-2 w-full justify-between">
-              <button
-                type="button"
-                className="px-4 py-2 font-medium text-white bg-gray-600  focus:ring-4 focus:ring-gray-300 rounded-lg text-sm h-[max-content] w-[max-content] flex justify-center gap-2 text-center items-center"
-                onClick={() => navigate(-1)}
-              >
-                Back
-              </button>
+            <div className="flex gap-2 w-full justify-end mt-4">
               {editToggle && (
                 <button
                   disabled={loading}
                   type="submit"
                   className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2 focus:outline-none"
                 >
-                  Submit
+                  Save Changes
                 </button>
               )}
             </div>
@@ -258,6 +268,18 @@ export default function SupplierDetailPage() {
           <p className="text-red-500 text-sm ">{errorMessage}</p>
         )}
       </div>
+      <ToastContainer
+        position="top-right"
+        autoClose={2000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="light"
+      />
     </PageLayout>
   );
 }

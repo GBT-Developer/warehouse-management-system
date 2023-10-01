@@ -1,58 +1,60 @@
-import { db } from 'firebase';
+import { format } from 'date-fns';
 import {
-  addDoc,
+  FieldValue,
   and,
   collection,
   doc,
   getDocs,
+  increment,
   or,
   query,
   runTransaction,
   where,
 } from 'firebase/firestore';
-import { FormEvent, useEffect, useState } from 'react';
+import React, { FormEvent, useEffect, useState } from 'react';
 import { AiOutlineLoading3Quarters } from 'react-icons/ai';
 import { BiSolidTrash } from 'react-icons/bi';
 import { useNavigate } from 'react-router-dom';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import { InputField } from 'renderer/components/InputField';
 import { SingleTableItem } from 'renderer/components/TableComponents/SingleTableItem';
 import { TableModal } from 'renderer/components/TableComponents/TableModal';
+import { db } from 'renderer/firebase';
 import { Customer } from 'renderer/interfaces/Customer';
+import { Invoice } from 'renderer/interfaces/Invoice';
 import { Product } from 'renderer/interfaces/Product';
 import { PageLayout } from 'renderer/layout/PageLayout';
-
+import { useAuth } from 'renderer/providers/AuthProvider';
 export const TransactionPage = () => {
   const navigate = useNavigate();
+  const { warehousePosition } = useAuth();
+  const [initialLoad, setInitialLoad] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [customerList, setCustomerList] = useState<Customer[]>([]);
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(
     null
   );
-  const [invoice, setInvoice] = useState<{
-    customer_id: string;
-    customer_name: string;
-    total_price: string;
-    payment_method: string;
-    items: {
-      product_id: string;
-      amount: string;
-      price: string;
-      product_name: string;
-      warehouse_position: string;
-      is_returned: boolean;
-    }[];
-  }>({
+  const [invoice, setInvoice] = useState<Invoice>({
     customer_id: '',
     customer_name: '',
-    total_price: '',
+    date: '',
+    warehouse_position: '',
+    total_price: 0,
     payment_method: '',
     items: [],
+    time: '',
   });
   const [products, setProducts] = useState<Product[]>([]);
   const [selectedProducts, setSelectedProducts] = useState<Product[]>([]);
   const [modalOpen, setModalOpen] = useState(false);
-
+  const dateInputRef = React.useRef<HTMLInputElement>(null);
+  const [guestFormOpen, setGuestFormOpen] = useState(false);
+  const successNotify = () => toast.success('Transaksi berhasil dilakukan');
+  const failNotify = (e?: string) =>
+    toast.error(e ?? 'Transaksi gagal dilakukan');
+  const [isEmpty, setIsEmpty] = useState(false);
   useEffect(() => {
     const fetchCustomer = async () => {
       try {
@@ -86,13 +88,44 @@ export const TransactionPage = () => {
     });
   }, []);
 
-  const handleSubmit = async (e: FormEvent) => {
+  useEffect(() => {
+    if (!initialLoad) navigate('/');
+
+    setInitialLoad(false);
+  }, [warehousePosition]);
+  // Check all of the input empty or not
+  useEffect(() => {
+    if (invoice.items?.length === 0) {
+      if (invoice.date === '' && invoice.payment_method === '') {
+        setIsEmpty(true);
+        return;
+      } else if (invoice.date != '' && invoice.payment_method != '') {
+        setIsEmpty(true);
+        return;
+      }
+    } else if (
+      invoice.date != '' &&
+      invoice.payment_method != '' &&
+      invoice.items?.length != 0
+    )
+      invoice.items?.map((item) => {
+        if (item.count === 0) {
+          setIsEmpty(true);
+          return;
+        } else {
+          setIsEmpty(false);
+          return;
+        }
+      });
+  }, [invoice]);
+
+  const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
 
     if (
-      !selectedCustomer ||
-      invoice.items.length === 0 ||
-      invoice.payment_method === ''
+      invoice.items?.length === 0 ||
+      invoice.payment_method === '' ||
+      !invoice.date
     ) {
       setErrorMessage('Please fill all fields');
       setTimeout(() => {
@@ -105,50 +138,101 @@ export const TransactionPage = () => {
       setLoading(true);
       // Update product count
       runTransaction(db, (transaction) => {
+        if (!invoice.items) return Promise.reject();
         for (const item of invoice.items) {
-          const currentProduct = selectedProducts.find(
-            (p) => p.id === item.product_id
-          );
-          if (!currentProduct) return Promise.reject();
-
-          const difference =
-            parseInt(currentProduct.count) - parseInt(item.amount);
-
-          transaction.update(
-            doc(db, 'product', item.product_id),
-            'count',
-            difference.toString()
-          );
+          if (!item.id) return Promise.reject('Product id not found');
+          const decrementStock = increment(-1 * item.count);
+          const productRef = doc(db, 'product', item.id);
+          transaction.update(productRef, {
+            count: decrementStock,
+          });
         }
-        return Promise.resolve();
-      }).catch((error) => console.error('Transaction failed: ', error));
 
-      const invoiceRef = collection(db, 'invoice');
-      await addDoc(invoiceRef, {
-        customer_id: selectedCustomer.id,
-        customer_name: selectedCustomer.name,
-        total_price: invoice.items
-          .reduce(
-            (acc, item) => acc + parseInt(item.price) * parseInt(item.amount),
+        const incrementTransaction = increment(1);
+        const incrementTotalSales = increment(
+          invoice.items.reduce(
+            (acc, item) => acc + item.sell_price * item.count,
             0
           )
-          .toString(),
-        payment_method: invoice.payment_method,
-        items: invoice.items,
+        );
+        const statsRef = doc(db, 'invoice', '--stats--');
+        const dailySales = new Map<string, FieldValue>();
+        const datePriceMap = new Map<string, number>();
+        invoice.items.forEach((item) => {
+          if (!invoice.date) return;
+          const date = format(new Date(invoice.date), 'dd');
+          const total_price = item.sell_price * item.count;
+          const currentTotal = datePriceMap.get(date);
+          if (currentTotal) {
+            const currentIncrement = increment(total_price + currentTotal);
+            datePriceMap.set(date, currentTotal + total_price);
+            dailySales.set(date, currentIncrement);
+          } else {
+            const currentIncrement = increment(total_price);
+            datePriceMap.set(date, total_price);
+            dailySales.set(date, currentIncrement);
+          }
+        });
+        transaction.set(
+          statsRef,
+          {
+            transaction_count: incrementTransaction,
+            total_sales: incrementTotalSales,
+            daily_sales: Object.fromEntries(dailySales),
+          },
+          { merge: true }
+        );
+        const totalPrice = invoice.items.reduce(
+          (acc, item) => acc + item.sell_price * item.count,
+          0
+        );
+        const newInvoiceRef = doc(collection(db, 'invoice'));
+
+        const currentDateandTime = new Date();
+        if (!invoice.date) return Promise.reject('Date not found');
+        let theTime = '';
+        // If invoice date is the same as current date, take the current time
+        if (invoice.date === format(currentDateandTime, 'yyyy-MM-dd'))
+          theTime = format(currentDateandTime, 'HH:mm:ss');
+        else theTime = '23:59:59';
+
+        transaction.set(newInvoiceRef, {
+          customer_id: selectedCustomer?.id ?? '',
+          customer_name: selectedCustomer?.name ?? invoice.customer_name,
+          // Current date
+          date: invoice.date,
+          time: theTime,
+          total_price: totalPrice,
+          payment_method: invoice.payment_method,
+          warehouse_position: invoice.items[0].warehouse_position,
+          items: invoice.items,
+        });
+        setLoading(false);
+        successNotify();
+        return Promise.resolve();
+      }).catch((error) => {
+        const errorMessage = error as unknown as string;
+        failNotify(errorMessage);
       });
 
       // Clear invoice
       setInvoice({
         customer_id: '',
         customer_name: '',
-        total_price: '',
+        date: '',
+        warehouse_position: '',
+        total_price: 0,
         payment_method: '',
         items: [],
+        time: '',
       });
       setSelectedProducts([]);
       setSelectedCustomer(null);
       setProducts([]);
       setLoading(false);
+      setGuestFormOpen(false);
+      // Clear date input
+      if (dateInputRef.current) dateInputRef.current.value = '';
     } catch (error) {
       console.error('Error adding document: ', error);
     }
@@ -157,30 +241,35 @@ export const TransactionPage = () => {
   const handleSearch = async (search: string) => {
     const productsQuery = query(
       collection(db, 'product'),
-      or(
-        // Query as-is:
-        and(
-          where('brand', '>=', search),
-          where('brand', '<=', search + '\uf8ff')
-        ),
-        // Capitalize first letter:
-        and(
-          where(
-            'brand',
-            '>=',
-            search.charAt(0).toUpperCase() + search.slice(1)
+      and(
+        or(
+          // Query as-is:
+          and(
+            where('brand', '>=', search),
+            where('brand', '<=', search + '\uf8ff')
           ),
-          where(
-            'brand',
-            '<=',
-            search.charAt(0).toUpperCase() + search.slice(1) + '\uf8ff'
+          // Capitalize first letter:
+          and(
+            where(
+              'brand',
+              '>=',
+              search.charAt(0).toUpperCase() + search.slice(1)
+            ),
+            where(
+              'brand',
+              '<=',
+              search.charAt(0).toUpperCase() + search.slice(1) + '\uf8ff'
+            )
+          ),
+          // Lowercase:
+          and(
+            where('brand', '>=', search.toLowerCase()),
+            where('brand', '<=', search.toLowerCase() + '\uf8ff')
           )
         ),
-        // Lowercase:
-        and(
-          where('brand', '>=', search.toLowerCase()),
-          where('brand', '<=', search.toLowerCase() + '\uf8ff')
-        )
+        warehousePosition !== 'Semua Gudang'
+          ? where('warehouse_position', '==', warehousePosition)
+          : where('warehouse_position', 'in', ['Gudang Bahan', 'Gudang Jadi'])
       )
     );
     const querySnapshot = await getDocs(productsQuery);
@@ -195,15 +284,13 @@ export const TransactionPage = () => {
 
   return (
     <PageLayout>
-      <h1 className="text-4xl font-extrabold tracking-tight text-gray-900 md:text-5xl">
-        Transaction
+      <h1 className="text-4xl font-extrabold tracking-tight text-gray-900 md:text-5xl pt-4">
+        Transaksi
       </h1>
       <form
         onSubmit={(e) => {
           e.preventDefault();
-          handleSubmit(e).catch(() => {
-            setErrorMessage('An error occured while submitting data');
-          });
+          handleSubmit(e);
         }}
         className={`w-2/3 py-14 my-10 flex flex-col gap-3 relative ${
           loading ? 'p-2' : ''
@@ -217,7 +304,7 @@ export const TransactionPage = () => {
         <div className="flex justify-between">
           <div className="w-1/3 flex items-center">
             <label htmlFor={'supplier-id'} className="text-md">
-              Choose customer
+              Pilih customer
             </label>
           </div>
           <div className="w-2/3">
@@ -228,39 +315,61 @@ export const TransactionPage = () => {
               onChange={(e) => {
                 if (e.target.value === 'New Customer')
                   navigate('/input-customer');
-                console.log(e.target.value);
-                setSelectedCustomer(
-                  () =>
-                    customerList.find(
-                      (customer) => customer.id === e.target.value
-                    ) ?? null
-                );
-                setSelectedProducts([]);
-                setInvoice({
-                  ...invoice,
-                  customer_id: e.target.value,
-                  items: [],
-                });
+                if (e.target.value === 'Guest') {
+                  setSelectedCustomer(null);
+                  setGuestFormOpen(true);
+                } else {
+                  setGuestFormOpen(false);
+                  setSelectedCustomer(
+                    () =>
+                      customerList.find(
+                        (customer) => customer.id === e.target.value
+                      ) ?? null
+                  );
+                  setSelectedProducts([]);
+                  setInvoice({
+                    ...invoice,
+                    customer_id: e.target.value,
+                    items: [],
+                  });
+                }
               }}
               className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
             >
               <option value={''} disabled>
-                Choose customer
+                Pilih customer
               </option>
               {customerList.map((customer) => (
                 <option key={customer.id} value={customer.id}>
                   {customer.name}
                 </option>
               ))}
-              <option value="New Customer">New Customer</option>
+              <option value="New Customer">Customer Baru</option>
+              <option key="Guest" value="Guest">
+                Guest
+              </option>
             </select>{' '}
           </div>
         </div>
 
+        {guestFormOpen && (
+          <div className="flex flex-col gap-3">
+            <InputField
+              label="Guest Name"
+              labelFor="customer-name"
+              loading={loading}
+              value={invoice.customer_name ?? ''}
+              onChange={(e) => {
+                setInvoice({ ...invoice, customer_name: e.target.value });
+              }}
+            />
+          </div>
+        )}
+
         <hr />
 
         <ul className="my-3 space-y-3 font-regular">
-          {invoice.items.map((item, index) => (
+          {invoice.items?.map((item, index) => (
             <li key={index}>
               <div className="flex flex-row">
                 <div className="flex flex-col gap-2 w-full">
@@ -280,14 +389,10 @@ export const TransactionPage = () => {
                       onClick={() => {
                         setInvoice({
                           ...invoice,
-                          items: invoice.items.filter(
-                            (p) => p.product_id !== item.product_id
-                          ),
+                          items: invoice.items?.filter((p) => p.id !== item.id),
                         });
                         setSelectedProducts(
-                          selectedProducts.filter(
-                            (p) => p.id !== item.product_id
-                          )
+                          selectedProducts.filter((p) => p.id !== item.id)
                         );
                       }}
                     >
@@ -295,19 +400,18 @@ export const TransactionPage = () => {
                     </button>
                   </div>
                   <InputField
-                    label="Amount"
+                    label="Jumlah"
                     labelFor="amount"
                     loading={loading}
-                    value={item.amount}
+                    value={item.count}
                     onChange={(e) => {
                       if (isNaN(Number(e.target.value))) return;
                       if (
-                        parseInt(e.target.value) >
-                        parseInt(selectedProducts[index].count)
+                        parseInt(e.target.value) > selectedProducts[index].count
                       ) {
                         setErrorMessage(
-                          'Not enough stock in warehouse. Stock in warehouse: ' +
-                            selectedProducts[index].count
+                          'Stock di gudang tidak cukup. Stock di gudang: ' +
+                            selectedProducts[index].count.toString()
                         );
                         setTimeout(() => {
                           setErrorMessage(null);
@@ -316,8 +420,8 @@ export const TransactionPage = () => {
                       }
                       setInvoice({
                         ...invoice,
-                        items: invoice.items.map((i, idx) => {
-                          if (idx === index) i.amount = e.target.value;
+                        items: invoice.items?.map((i, idx) => {
+                          if (idx === index) i.count = Number(e.target.value);
 
                           return i;
                         }),
@@ -326,7 +430,10 @@ export const TransactionPage = () => {
                   />
                   <div className="flex justify-end">
                     <p className="text-md">
-                      Rp. {parseInt(item.price) * parseInt(item.amount)},00
+                      {new Intl.NumberFormat('id-ID', {
+                        style: 'currency',
+                        currency: 'IDR',
+                      }).format(item.sell_price * item.count)}
                     </p>
                   </div>
                 </div>
@@ -336,23 +443,27 @@ export const TransactionPage = () => {
         </ul>
 
         <div className="flex justify-end">
-          <p className="text-lg font-semibold">Total: &nbsp; Rp. &nbsp;</p>
+          <p className="text-lg font-semibold">Total Harga: &nbsp;</p>
           <p className="text-lg font-semibold">
-            {invoice.items.reduce(
-              (acc, item) => acc + parseInt(item.price) * parseInt(item.amount),
-              0
+            {new Intl.NumberFormat('id-ID', {
+              style: 'currency',
+              currency: 'IDR',
+            }).format(
+              invoice.items?.reduce(
+                (acc, item) => acc + item.sell_price * item.count,
+                0
+              ) ?? 0
             )}
-            ,00
           </p>
         </div>
 
         <button
           type="button"
           className="py-2 px-5 text-sm font-medium text-red-500 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-red-700 focus:z-10 focus:ring-4 focus:ring-gray-200 disabled:opacity-50 disabled:hover:bg-white disabled:hover:text-red-500"
-          disabled={!selectedCustomer}
+          disabled={!selectedCustomer && !guestFormOpen}
           onClick={() => setModalOpen(true)}
         >
-          Choose Products
+          + Pilih Product(s)
         </button>
 
         <hr />
@@ -360,7 +471,7 @@ export const TransactionPage = () => {
         <div className="w-full flex justify-between items-center">
           <div className="w-1/3">
             <label htmlFor={'payment-method'} className="text-md">
-              Payment Method
+              Methode Pembayaran
             </label>
           </div>
           <div className="w-2/3 flex justify-start">
@@ -406,11 +517,33 @@ export const TransactionPage = () => {
             </div>
           </div>
         </div>
-
+        <div className="flex justify-between">
+          <div className="w-1/3 flex items-center">
+            <label htmlFor={'date-id'} className="text-md">
+              Tanggal Transaksi
+            </label>
+          </div>
+          <div className="w-2/3">
+            <input
+              ref={dateInputRef}
+              disabled={loading}
+              type="date"
+              name="date"
+              className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
+              onChange={(e) => {
+                setInvoice(() => ({ ...invoice, date: e.target.value }));
+              }}
+            />
+          </div>
+        </div>
         <div className="flex flex-row-reverse gap-2 justify-start">
           <button
-            disabled={loading}
+            disabled={isEmpty}
             type="submit"
+            style={{
+              backgroundColor: isEmpty ? 'gray' : 'blue',
+              // Add other styles as needed
+            }}
             className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5"
           >
             Submit
@@ -428,7 +561,7 @@ export const TransactionPage = () => {
         title={'Choose Product'}
         headerList={
           products.length > 0
-            ? ['', 'Product name', 'Warehouse', 'Available amount', 'Price']
+            ? ['', 'Nama Product', 'Posisi Gudang', 'Jumlah Tersedia', 'Harga']
             : []
         }
       >
@@ -444,9 +577,7 @@ export const TransactionPage = () => {
                   );
                   setInvoice({
                     ...invoice,
-                    items: invoice.items.filter(
-                      (p) => p.product_id !== product.id
-                    ),
+                    items: invoice.items?.filter((p) => p.id !== product.id),
                   });
                 } else {
                   if (!product.id) return;
@@ -454,23 +585,21 @@ export const TransactionPage = () => {
                   setInvoice({
                     ...invoice,
                     items: [
-                      ...invoice.items,
+                      ...(invoice.items ?? []),
                       {
-                        product_id: product.id,
-                        amount: '1',
-                        price:
+                        id: product.id,
+                        count: 1,
+                        sell_price:
                           selectedCustomer?.SpecialPrice.find(
                             (p) => p.product_id === product.id
                           )?.price ?? product.sell_price,
-                        product_name:
-                          product.brand +
-                          ' ' +
-                          product.motor_type +
-                          ' ' +
-                          product.part +
-                          ' ' +
-                          product.available_color,
+                        brand: product.brand,
+                        motor_type: product.motor_type,
+                        part: product.part,
+                        available_color: product.available_color,
                         warehouse_position: product.warehouse_position,
+                        purchase_price: product.purchase_price,
+                        supplier: product.supplier,
                         is_returned: false,
                       },
                     ],
@@ -496,7 +625,12 @@ export const TransactionPage = () => {
               </SingleTableItem>
               <SingleTableItem>{product.warehouse_position}</SingleTableItem>
               <SingleTableItem>{product.count}</SingleTableItem>
-              <SingleTableItem>{product.sell_price}</SingleTableItem>
+              <SingleTableItem>
+                {new Intl.NumberFormat('id-ID', {
+                  style: 'currency',
+                  currency: 'IDR',
+                }).format(product.sell_price)}
+              </SingleTableItem>
             </tr>
           ))
         ) : (
@@ -507,6 +641,18 @@ export const TransactionPage = () => {
           </tr>
         )}
       </TableModal>
+      <ToastContainer
+        position="top-right"
+        autoClose={2000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="light"
+      />
     </PageLayout>
   );
 };

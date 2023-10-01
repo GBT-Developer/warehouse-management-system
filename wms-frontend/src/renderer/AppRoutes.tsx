@@ -1,4 +1,3 @@
-import { auth } from 'firebase';
 import { onAuthStateChanged } from 'firebase/auth';
 import React, { useEffect, useState } from 'react';
 import {
@@ -8,29 +7,33 @@ import {
   Routes,
   useLocation,
 } from 'react-router-dom';
+import { auth } from 'renderer/firebase';
 import { AdminListPage } from './pages/AdminListPage';
 import { BrokenProductListPage } from './pages/BrokenProductListPage';
 import { ChangePasswordPage } from './pages/ChangePasswordPage';
 import { CreateAdminPage } from './pages/CreateAdminPage';
 import CustomerListPage from './pages/CustomerListPage';
 import EditCustomerPage from './pages/EditCustomerPage';
+import HomePage from './pages/HomePage';
 import InputCustomerPage from './pages/InputCustomer';
 import InputSupplier from './pages/InputSupplier';
 import { AuthPage } from './pages/LoginPage';
 import { ManageProductPage } from './pages/ManageProductPage';
 import { ManageStockPage } from './pages/ManageStockPage';
 import { NewProductPage } from './pages/NewProductPage';
+import { OnDispatchListPage } from './pages/OnDispatchListPage';
+import OpnamePage from './pages/OpnamePage';
 import ProductDetailPage from './pages/ProductDetailPage';
-import ProfilePage from './pages/ProfilePage';
 import PurchaseReportPage from './pages/PurchaseReportPage';
 import ReturnPage from './pages/ReturnPage';
+import { ReturnedProductListPage } from './pages/ReturnedProductListPage';
 import StockHistoryPage from './pages/StockHistoryPage';
 import SupplierDetailPage from './pages/SupplierDetailPage';
 import SupplierList from './pages/SupplierList';
 import TransactionHistory from './pages/TransactionHistory';
 import { TransactionPage } from './pages/TransactionPage';
 import { TransferItemPage } from './pages/TransferItemPage';
-import { useAuth } from './providers/AuthProvider';
+import VoidListPage from './pages/VoidListPage';
 
 type RouteConfig = RouteProps & {
   isPrivate?: boolean;
@@ -50,28 +53,91 @@ export const routes: RouteConfig[] = [
   },
   {
     path: '/profile',
-    element: <ProfilePage />,
+    element: <HomePage />,
+  },
+  {
+    path: '/stock-history',
+    element: <StockHistoryPage />,
   },
   {
     path: '/manage-product',
     element: <ManageProductPage />,
   },
   {
-    path: '/broken-product-list-page',
-    element: <BrokenProductListPage />,
+    path: '/manage-product/new',
+    element: <NewProductPage />,
+  },
+  {
+    path: '/manage-product/:id/',
+    element: <ProductDetailPage />,
+  },
+  {
+    path: '/supplier-list',
+    element: <SupplierList />,
+  },
+  {
+    path: '/supplier-list/new',
+    element: <InputSupplier />,
+  },
+  {
+    path: '/supplier-list/detail/:id',
+    element: <SupplierDetailPage />,
+  },
+  {
+    path: '/supplier-list/report/:id',
+    element: <PurchaseReportPage />,
   },
   {
     path: '/manage-stock',
     element: <ManageStockPage />,
   },
   {
-    path: '/new-product-page',
-    element: <NewProductPage />,
+    path: 'on-dispatch',
+    element: <OnDispatchListPage />,
   },
-
   {
-    path: '/inputsupplier',
-    element: <InputSupplier />,
+    path: '/transfer-item',
+    element: <TransferItemPage />,
+  },
+  {
+    path: '/broken-product-list-page',
+    element: <BrokenProductListPage />,
+  },
+  {
+    path: 'void-list',
+    element: <VoidListPage />,
+  },
+  {
+    path: '/transaction-page',
+    element: <TransactionPage />,
+  },
+  {
+    path: '/transaction-history',
+    element: <TransactionHistory />,
+  },
+  {
+    path: '/return-page',
+    element: <ReturnPage />,
+  },
+  {
+    path: '/returned-products',
+    element: <ReturnedProductListPage />,
+  },
+  {
+    path: '/opname-page',
+    element: <OpnamePage />,
+  },
+  {
+    path: '/customer-list',
+    element: <CustomerListPage />,
+  },
+  {
+    path: '/customer-list/:id',
+    element: <EditCustomerPage />,
+  },
+  {
+    path: '/customer-list/new',
+    element: <InputCustomerPage />,
   },
   {
     path: '/createadminpage',
@@ -85,54 +151,6 @@ export const routes: RouteConfig[] = [
     path: '/changepassword',
     element: <ChangePasswordPage />,
   },
-  {
-    path: '/stockhistory',
-    element: <StockHistoryPage />,
-  },
-  {
-    path: '/supplierlist',
-    element: <SupplierList />,
-  },
-  {
-    path: '/transactionhistory',
-    element: <TransactionHistory />,
-  },
-  {
-    path: '/manage-product/:id/',
-    element: <ProductDetailPage />,
-  },
-  {
-    path: '/purchase-report/:id/',
-    element: <PurchaseReportPage />,
-  },
-  {
-    path: '/supplier-detail/:id',
-    element: <SupplierDetailPage />,
-  },
-  {
-    path: '/retourepage',
-    element: <ReturnPage />,
-  },
-  {
-    path: '/transfer-item',
-    element: <TransferItemPage />,
-  },
-  {
-    path: '/customer-list',
-    element: <CustomerListPage />,
-  },
-  {
-    path: '/input-customer',
-    element: <InputCustomerPage />,
-  },
-  {
-    path: '/edit-customer/:id',
-    element: <EditCustomerPage />,
-  },
-  {
-    path: '/transactionpage',
-    element: <TransactionPage />,
-  },
 ];
 
 export interface AuthRequiredProps {
@@ -144,8 +162,8 @@ export const AuthRequired = ({
   children,
   to = '/auth/login',
 }: AuthRequiredProps) => {
-  const { isLoggedIn } = useAuth();
   const { search } = useLocation();
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   // Add a loading state to handle initial Firebase authentication
   const [isLoading, setIsLoading] = useState(true);
@@ -154,6 +172,8 @@ export const AuthRequired = ({
     // Set isLoading to false when Firebase authentication is done
     const unsubscribe = onAuthStateChanged(auth, () => {
       setIsLoading(false);
+      if (auth.currentUser) setIsLoggedIn(true);
+      else setIsLoggedIn(false);
     });
 
     return unsubscribe;
@@ -163,8 +183,11 @@ export const AuthRequired = ({
 
   return (
     <>
-      {isLoggedIn && children}
-      {!isLoggedIn && <Navigate to={to} state={{ from: search }} replace />}
+      {isLoggedIn ? (
+        children
+      ) : (
+        <Navigate to={`${to}?redirect=${search}`} replace />
+      )}
     </>
   );
 };

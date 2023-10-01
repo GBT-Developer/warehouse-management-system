@@ -3,7 +3,7 @@ import { firebaseAdmin } from "../index";
 
 exports.deleteUser = onCall(async (request) => {
   // Only callable by owner
-  if (request.auth?.token.owner !== true) {
+  if (request.auth?.token.role !== "owner") {
     throw new HttpsError("permission-denied", "Only callable by owner");
   }
 
