@@ -167,7 +167,7 @@ export default function ProductDetailPage() {
             <IoChevronBackOutline size={40} /> {/* Icon */}
           </button>
           <h1 className="text-4xl font-extrabold tracking-tight text-gray-900 md:text-5xl">
-            Detail Product
+            Detail Produk
           </h1>
         </div>
         <button
@@ -182,7 +182,7 @@ export default function ProductDetailPage() {
             </>
           ) : (
             <>
-              Edit Product
+              Edit Produk
               <AiFillEdit />
             </>
           )}
@@ -243,7 +243,7 @@ export default function ProductDetailPage() {
             <InputField
               loading={loading || !editToggle}
               labelFor="available_color"
-              label="Warna Tersedia"
+              label="Warna"
               value={product?.available_color ?? ''}
               onChange={(e) => {
                 if (product === undefined) return;
@@ -256,7 +256,7 @@ export default function ProductDetailPage() {
             <InputField
               loading={true}
               labelFor="count"
-              label="Jumlah Product"
+              label="Jumlah Produk"
               value={product?.count ?? ''}
               onChange={(e) => {
                 if (product === undefined) return;

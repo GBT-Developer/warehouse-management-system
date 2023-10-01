@@ -251,7 +251,7 @@ export const BrokenProductListPage = () => {
 
             <table className="w-full text-sm text-left text-gray-500">
               <TableHeader>
-                <th className=" py-3">Nama Produkt</th>
+                <th className=" py-3">Nama Produk</th>
                 <th className=" py-3">Gudang Asal</th>
                 <th className=" py-3">Jumlah</th>
               </TableHeader>

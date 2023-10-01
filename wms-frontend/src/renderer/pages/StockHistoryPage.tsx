@@ -173,7 +173,7 @@ function StockHistoryPage() {
             <table className="w-full text-sm text-left text-gray-500">
               <TableHeader>
                 <th className=" py-3">Tanggal</th>
-                <th className=" py-3">Product</th>
+                <th className=" py-3">Nama Produk</th>
                 <th className=" py-3">Posisi Gudang</th>
                 <th className=" py-3">Jumlah Lama</th>
                 <th className=" py-3">Jumlah Baru</th>

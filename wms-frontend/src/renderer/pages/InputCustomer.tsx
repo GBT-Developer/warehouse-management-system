@@ -307,7 +307,7 @@ function InputCustomerPage() {
         )}
       </form>
       <TableModal
-        placeholder="Search by product brand"
+        placeholder="Cari berdasarkan merek produk"
         modalOpen={modalOpen}
         handleSearch={handleSearch}
         setModalOpen={setModalOpen}

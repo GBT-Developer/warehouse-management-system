@@ -771,7 +771,7 @@ export const ManageStockPage = () => {
             <div className="flex justify-between">
               <div className="w-1/3 flex items-center">
                 <label htmlFor={'product-id'} className="text-md">
-                  Products
+                  Produk
                 </label>
               </div>
               <div className="w-2/3">
@@ -780,7 +780,7 @@ export const ManageStockPage = () => {
                   type="button"
                   onClick={() => setModalOpen(() => !modalOpen)}
                 >
-                  Pilih Product(s)
+                  Pilih Produk
                 </button>
               </div>
             </div>
@@ -944,7 +944,7 @@ export const ManageStockPage = () => {
         title={'Choose Product'}
         headerList={
           products.length > 0
-            ? ['', 'Product name', 'Warehouse', 'Available amount']
+            ? ['', 'Nama Produk', 'Posisi Gudang', 'Jumlah Tersedia']
             : []
         }
       >
@@ -1013,7 +1013,7 @@ export const ManageStockPage = () => {
         ) : (
           <tr className="border-b">
             <SingleTableItem>
-              <p className="flex justify-center">No products found</p>
+              <p className="flex justify-center">Produkt tidak ditemukan</p>
             </SingleTableItem>
           </tr>
         )}

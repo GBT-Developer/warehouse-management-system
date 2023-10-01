@@ -314,7 +314,7 @@ export const TransactionPage = () => {
               name="supplier-id"
               onChange={(e) => {
                 if (e.target.value === 'New Customer')
-                  navigate('/input-customer');
+                  navigate('/customer-list/new');
                 if (e.target.value === 'Guest') {
                   setSelectedCustomer(null);
                   setGuestFormOpen(true);
@@ -463,7 +463,7 @@ export const TransactionPage = () => {
           disabled={!selectedCustomer && !guestFormOpen}
           onClick={() => setModalOpen(true)}
         >
-          + Pilih Product(s)
+          + Pilih Produk
         </button>
 
         <hr />
@@ -554,11 +554,11 @@ export const TransactionPage = () => {
         )}
       </form>
       <TableModal
-        placeholder="Search by product brand"
+        placeholder="Cari berdasarkan merek produk"
         modalOpen={modalOpen}
         setModalOpen={setModalOpen}
         handleSearch={handleSearch}
-        title={'Choose Product'}
+        title={'Pilih Produk'}
         headerList={
           products.length > 0
             ? ['', 'Nama Product', 'Posisi Gudang', 'Jumlah Tersedia', 'Harga']
@@ -636,7 +636,7 @@ export const TransactionPage = () => {
         ) : (
           <tr className="border-b">
             <SingleTableItem>
-              <p className="flex justify-center">No products found</p>
+              <p className="flex justify-center">Produk tidak ditemukan</p>
             </SingleTableItem>
           </tr>
         )}

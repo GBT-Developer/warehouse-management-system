@@ -836,7 +836,7 @@ export default function ReturnPage() {
                 disabled={loading}
                 onClick={() => setModalOpen(true)}
               >
-                + Pilih Product(s)
+                + Pilih Produk
               </button>
 
               <hr />
@@ -948,14 +948,14 @@ export default function ReturnPage() {
       )}
 
       <TableModal
-        placeholder="Search by product brand"
+        placeholder="Cari berdasarkan merek produk"
         modalOpen={modalOpen}
         setModalOpen={setModalOpen}
         handleSearch={handleSearch}
-        title={'Choose Product'}
+        title={'Pilih Produk'}
         headerList={
           products.length > 0
-            ? ['', 'Nama Product', 'Posisi Gudang', 'Jumlah Tersedia', 'Harga']
+            ? ['', 'Nama Produk', 'Posisi Gudang', 'Jumlah Tersedia', 'Harga']
             : []
         }
       >
@@ -1032,7 +1032,7 @@ export default function ReturnPage() {
         ) : (
           <tr className="border-b">
             <SingleTableItem>
-              <p className="flex justify-center">No products found</p>
+              <p className="flex justify-center">Produk tidak ditemukan</p>
             </SingleTableItem>
           </tr>
         )}

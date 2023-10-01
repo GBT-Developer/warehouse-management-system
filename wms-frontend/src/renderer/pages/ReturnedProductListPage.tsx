@@ -221,7 +221,7 @@ export const ReturnedProductListPage = () => {
 
             <table className="w-full text-sm text-left text-gray-500">
               <TableHeader>
-                <th className=" py-3">Nama Product</th>
+                <th className=" py-3">Nama Produk</th>
                 <th className=" py-3">Supplier</th>
                 <th className=" py-3">Jumlah</th>
               </TableHeader>

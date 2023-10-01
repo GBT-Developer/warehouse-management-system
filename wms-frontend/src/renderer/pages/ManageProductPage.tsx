@@ -127,7 +127,7 @@ export const ManageProductPage = () => {
         <div className="relative shadow-md sm:rounded-lg overflow-auto h-full flex flex-col justify-between">
           <TableTitle setSearch={setSearch}>
             <h1 className="text-4xl font-extrabold tracking-tight text-gray-900 md:text-5xl">
-              Kelola Product
+              Kelola Produk
             </h1>
           </TableTitle>
           <div className="overflow-y-auto h-full relative">
@@ -139,7 +139,7 @@ export const ManageProductPage = () => {
 
             <table className="w-full text-sm text-left text-gray-500">
               <TableHeader>
-                <th className=" py-3">Nama Product</th>
+                <th className=" py-3">Nama Produk</th>
                 <th className=" py-3">Jumlah</th>
                 <th className=" py-3">Harga Jual</th>
                 <th className=" py-3">Posisi Gudang</th>

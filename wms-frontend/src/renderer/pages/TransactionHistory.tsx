@@ -148,7 +148,7 @@ export default function TransactionHistory() {
             )}
             <table className="w-full text-sm text-left text-gray-500">
               <TableHeader>
-                <th className=" py-3">Tangga</th>
+                <th className=" py-3">Tanggal</th>
                 <th className=" py-3">Nomor Invoice</th>
                 <th className=" py-3">Nama Customer</th>
                 <th className=" py-3">Posisi Gudang</th>

@@ -333,8 +333,25 @@ export const TransferItemPage = () => {
                       loading={loading}
                       value={item.amount}
                       onChange={(e) => {
-                        if (!/^[0-9]+$/.test(e.target.value)) return;
-
+                        if (
+                          !/^[0-9]*(\.[0-9]*)?$/.test(e.target.value) &&
+                          e.target.value !== ''
+                        )
+                          return;
+                        if (isNaN(Number(e.target.value))) return;
+                        if (
+                          parseInt(e.target.value) >
+                          selectedProducts[index].count
+                        ) {
+                          setErrorMessage(
+                            'Stock di gudang tidak cukup. Stock di gudang: ' +
+                              selectedProducts[index].count.toString()
+                          );
+                          setTimeout(() => {
+                            setErrorMessage(null);
+                          }, 3000);
+                          return;
+                        }
                         setDispatchNote({
                           ...dispatchNote,
                           dispatch_items: dispatchNote.dispatch_items.map(
@@ -360,7 +377,7 @@ export const TransferItemPage = () => {
           className="py-2 px-5 text-sm font-medium text-red-500 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-red-700 focus:z-10 focus:ring-4 focus:ring-gray-200"
           onClick={() => setModalOpen(true)}
         >
-          + Pilih Product(s)
+          + Pilih Produk
         </button>
 
         <div className="flex flex-row-reverse gap-2 justify-start">
@@ -393,7 +410,7 @@ export const TransferItemPage = () => {
       </form>
 
       <TableModal
-        placeholder="Search by product brand"
+        placeholder="Cari berdasarkan merek produk"
         modalOpen={modalOpen}
         handleSearch={handleSearch}
         setModalOpen={setModalOpen}
@@ -457,7 +474,7 @@ export const TransferItemPage = () => {
         ) : (
           <tr className="border-b">
             <SingleTableItem>
-              <p className="flex justify-center">No products found</p>
+              <p className="flex justify-center">Produk tidak ditemukan</p>
             </SingleTableItem>
           </tr>
         )}
