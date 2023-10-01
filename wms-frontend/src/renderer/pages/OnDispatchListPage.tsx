@@ -99,7 +99,7 @@ export const OnDispatchListPage = () => {
                 <th className=" py-3">Tanggal</th>
                 <th className=" py-3">Nomor Surat Jalan</th>
                 <th className=" py-3">Nama Tukang Cat</th>
-                <th className=" py-3">Jumlah Product</th>
+                <th className=" py-3">Jumlah Produk</th>
               </TableHeader>
               <tbody>
                 {dispatchNoteList.length === 0 ? (

@@ -319,7 +319,7 @@ function EditCustomerPage() {
         modalOpen={modalOpen}
         handleSearch={handleSearch}
         setModalOpen={setModalOpen}
-        title={'Pilih Product'}
+        title={'Pilih Produk'}
         headerList={
           products.length > 0
             ? ['', 'Nama Product', 'Harga Jual', 'Posisi Gudang']

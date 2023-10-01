@@ -249,7 +249,7 @@ export const ManageProductPage = () => {
               className=" text-blue-700 bg-white hover:bg-white  focus:ring-4 focus:ring-white font-medium rounded-lg text-lg px-10 py-3 focus:outline-none hover:-translate-y-1 shadow-md"
               onClick={() => navigate('/manage-product/new')}
             >
-              + New
+              + Tambah
             </button>
           </div>
         </div>
