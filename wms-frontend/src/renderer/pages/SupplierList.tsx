@@ -20,7 +20,7 @@ import { PageLayout } from 'renderer/layout/PageLayout';
 export default function SupplierList() {
   const [supplierList, setSupplierList] = useState<Supplier[]>([]);
   const [search, setSearch] = useState('');
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const [nextPosts_loading, setNextPostsLoading] = useState(false);
   const [nextPosts_empty, setNextPostsEmpty] = useState(false);

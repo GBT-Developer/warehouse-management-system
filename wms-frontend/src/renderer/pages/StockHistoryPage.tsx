@@ -1,7 +1,6 @@
 import {
   QueryStartAtConstraint,
   collection,
-  collectionGroup,
   getDocs,
   limit,
   orderBy,
@@ -22,7 +21,7 @@ import { useAuth } from 'renderer/providers/AuthProvider';
 
 function StockHistoryPage() {
   const [search, setSearch] = useState('');
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const { warehousePosition } = useAuth();
   const [stockHistory, setStockHistory] = useState<StockHistory[]>([]);
   const [nextPosts_loading, setNextPostsLoading] = useState(false);
@@ -102,7 +101,7 @@ function StockHistoryPage() {
     }
     setNextPostsLoading(true);
     const q = query(
-      collectionGroup(db, 'stock_history'),
+      collection(db, 'stock_history'),
       warehousePosition !== 'Both'
         ? where('warehouse_position', '==', warehousePosition)
         : where('warehouse_position', 'in', ['Gudang Bahan', 'Gudang Jadi']),
