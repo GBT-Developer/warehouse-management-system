@@ -322,20 +322,26 @@ export default function OpnamePage() {
                 )}
               </tbody>
             </table>
-            <div className="flex justify-center w-full pt-5">
-              <button
-                className={
-                  'bg-gray-300 hover:bg-gray-400 text-white px-6 py-1 rounded text-sm'
-                }
-                hidden={nextPosts_empty}
-                disabled={nextPosts_loading}
-                onClick={() => {
-                  fetchMoreData().catch(() => console.log('error'));
-                }}
-              >
-                {nextPosts_loading ? 'Loading...' : 'Load More'}
-              </button>
-            </div>
+            {nextPosts_empty ? (
+              <div className="flex justify-center items-center py-6 px-3 w-full bg-gray-50 rounded-lg z-0 bg-opacity-50">
+                <p className="text-gray-500 text-sm">No more data</p>
+              </div>
+            ) : (
+              <div className="flex justify-center items-center py-6 px-3 w-full bg-gray-50 rounded-lg z-0 bg-opacity-50">
+                <button
+                  className="text-gray-500 text-sm hover:underline"
+                  onClick={() => fetchMoreData()}
+                >
+                  {nextPosts_loading ? (
+                    <div className="flex justify-center items-center">
+                      <AiOutlineLoading3Quarters className="animate-spin flex justify-center text-4xl" />
+                    </div>
+                  ) : (
+                    'Load more'
+                  )}
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </div>
