@@ -20,6 +20,7 @@ import { BrowserWindow, app, shell } from 'electron';
 import log from 'electron-log';
 import { autoUpdater } from 'electron-updater';
 import path from 'path';
+import MenuBuilder from './menu';
 import { resolveHtmlPath } from './util';
 
 dotenv.config();
@@ -33,6 +34,8 @@ class AppUpdater {
   constructor() {
     log.transports.file.level = 'info';
     autoUpdater.logger = log;
+    autoUpdater.autoDownload = true;
+    autoUpdater.autoInstallOnAppQuit = true;
     autoUpdater.checkForUpdatesAndNotify().catch(console.log);
   }
 }
@@ -103,6 +106,9 @@ const createWindow = async () => {
     shell.openExternal(edata.url);
     return { action: 'deny' };
   });
+
+  const menuBuilder = new MenuBuilder(mainWindow);
+  menuBuilder.buildMenu();
 
   // Remove this if your app does not use auto updates
   new AppUpdater();
