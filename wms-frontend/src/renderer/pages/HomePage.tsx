@@ -102,9 +102,10 @@ function HomePage() {
         });
 
         invoices.forEach((invoice) => {
-          invoice.items?.forEach((item) => {
-            totalPurchasePrice += item.sell_price * item.count;
-          });
+          if (invoice.total_price && invoice.total_price > 0)
+            invoice.items?.forEach((item) => {
+              totalPurchasePrice += item.sell_price * item.count;
+            });
         });
 
         setPurchasePrice(totalPurchasePrice);
@@ -144,7 +145,7 @@ function HomePage() {
 
           <div className="flex py-10 gap-10">
             <div className="w-1/2">
-              <p className="font-semibold">Today's Revenue</p>
+              <p className="font-semibold">Pemasukan Hari Ini</p>
               <div className="flex flex-col w-full pt-2 justify-center">
                 <div className="flex gap-7 items-center justify-between">
                   <p className="font-bold text-5xl overflow-hidden overflow-ellipsis">
@@ -158,16 +159,16 @@ function HomePage() {
                   </p>
                 </div>
                 <p className="text-sm text-gray-500">
-                  {invoiceList.length} Orders
+                  {invoiceList.length} Transaksi
                 </p>
               </div>
             </div>
 
             <div className="w-1/2">
-              <p className="font-semibold">Unpaid Invoices</p>
+              <p className="font-semibold">Pembelian Belum Lunas ke Supplier</p>
               <div className="flex flex-col w-full pt-2 justify-center">
                 <div className="flex gap-7 items-center justify-between">
-                  <p className="font-bold text-5xl">
+                  <p className="font-bold text-5xl overflow-hidden overflow-ellipsis">
                     {new Intl.NumberFormat('id-ID', {
                       style: 'currency',
                       currency: 'IDR',
@@ -192,8 +193,8 @@ function HomePage() {
           <hr className="bg-gray-300" />
 
           <div className="flex py-10 gap-[0.75rem] h-full px-2 overflow-hidden">
-            <div className="w-full h-full shadow-lg rounded-md py-6 px-4 overflow-y-scroll">
-              <p className="font-semibold pb-8">Recent Orders</p>
+            <div className="w-1/2 h-full shadow-lg rounded-md py-6 px-4 overflow-y-scroll no-scrollbar">
+              <p className="font-semibold pb-8">Transaksi Hari Ini</p>
               <table className="w-full text-sm">
                 <tbody className="text-gray-500">
                   {invoiceList.map((invoice) => {
@@ -214,10 +215,8 @@ function HomePage() {
               </table>
             </div>
 
-            <hr className="w-[1px] h-full border-none inline-block bg-white" />
-
-            <div className="w-full h-full shadow-lg rounded-md py-6 px-4">
-              <p className="font-semibold pb-8">Unpaid Invoices</p>
+            <div className="w-1/2 h-full shadow-lg rounded-md py-6 px-4 overflow-y-scroll no-scrollbar">
+              <p className="font-semibold pb-8">Pembelian Belum Lunas</p>
               <table className="w-full text-sm">
                 <tbody className="text-gray-500">
                   {purchaseHistory.map((purchase) => {
