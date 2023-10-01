@@ -101,7 +101,7 @@ export const AuthPage = () => {
             className="text-sm text-blue-700 hover:underline ml-auto"
             href="https://google.com"
           >
-            Lupa Password?
+            Masa lupa password sih?
           </a>
           <button
             type="submit"
