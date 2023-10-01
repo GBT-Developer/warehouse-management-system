@@ -16,6 +16,7 @@ import { TableTitle } from 'renderer/components/TableComponents/TableTitle';
 import { db } from 'renderer/firebase';
 import { Supplier } from 'renderer/interfaces/Supplier';
 import { PageLayout } from 'renderer/layout/PageLayout';
+import { useAuth } from 'renderer/providers/AuthProvider';
 
 export default function SupplierList() {
   const [supplierList, setSupplierList] = useState<Supplier[]>([]);
@@ -27,6 +28,8 @@ export default function SupplierList() {
   const [nextQuery, setNextQuery] = useState<QueryStartAtConstraint | null>(
     null
   );
+  const { user } = useAuth();
+
   // Take product from firebase
   useEffect(() => {
     const fetchData = async () => {
@@ -224,15 +227,17 @@ export default function SupplierList() {
               </div>
             )}
           </div>
-          <div className=" absolute bottom-[2.5rem] right-[2.5rem]">
-            <button
-              type="submit"
-              className=" text-blue-700 bg-white hover:bg-white  focus:ring-4 focus:ring-white font-medium rounded-lg text-lg px-10 py-3 focus:outline-none hover:-translate-y-1 shadow-md"
-              onClick={() => navigate('/supplier-list/new')}
-            >
-              + New
-            </button>
-          </div>
+          {user?.role.toLowerCase() === 'owner' && (
+            <div className=" absolute bottom-[2.5rem] right-[2.5rem]">
+              <button
+                type="submit"
+                className=" text-blue-700 bg-white hover:bg-white  focus:ring-4 focus:ring-white font-medium rounded-lg text-lg px-10 py-3 focus:outline-none hover:-translate-y-1 shadow-md"
+                onClick={() => navigate('/supplier-list/new')}
+              >
+                + New
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </PageLayout>
