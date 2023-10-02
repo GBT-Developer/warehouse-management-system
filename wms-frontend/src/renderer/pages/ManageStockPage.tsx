@@ -114,7 +114,7 @@ export const ManageStockPage = () => {
         acceptedProducts.length != 0
       )
         acceptedProducts.map((product) => {
-          if (product.count === null) {
+          if (product.count === 0) {
             setIsEmpty(true);
             return;
           } else {
@@ -265,7 +265,7 @@ export const ManageStockPage = () => {
           });
 
           const productDetail = products.find(
-            (product) => product.id === product.id
+            (the_product) => the_product.id === product.id
           );
 
           if (!productDetail) return Promise.reject('Product detail not found');
@@ -318,9 +318,9 @@ export const ManageStockPage = () => {
             })),
           });
         }
-        if (returnedProduct && manageStockMode === 'purchase') {
+        if (returnedProduct && manageStockMode === 'purchase')
           // Construct a query to find matching returned products
-          newPurchase.products.map(async (newProduct) => {
+          newPurchase.products.map((newProduct) => {
             const returnedProductRef = doc(
               db,
               'returned_product',
@@ -333,7 +333,7 @@ export const ManageStockPage = () => {
               count: updateStock,
             });
           });
-        }
+
         // Wait for all promises in the map to resolve
         Promise.all(productsPromises).catch(() => console.log('error'));
 
