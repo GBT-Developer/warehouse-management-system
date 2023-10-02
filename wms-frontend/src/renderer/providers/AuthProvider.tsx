@@ -7,7 +7,6 @@ import {
 } from 'firebase/auth';
 import { doc, getDoc, runTransaction } from 'firebase/firestore';
 import React, { useContext, useEffect, useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { auth, db, secondaryAuth } from 'renderer/firebase';
@@ -59,8 +58,6 @@ export interface AuthProviderProps {
   children: React.ReactNode;
 }
 export const AuthProvider = ({ children }: AuthProviderProps) => {
-  const navigate = useNavigate();
-
   const [accessToken, setAccessToken] = useState<string | null>(null); // Store token in memory
   const [user, setUser] = useState<CustomUser | null>(null);
   const [warehouse, setWarehouse] = useState<string>('');
@@ -68,7 +65,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   useEffect(() => {
     // Firebase auth state change listener
     const unsubscribe = onAuthStateChanged(auth, (newUser) => {
-      if (newUser) {
+      if (newUser)
         newUser
           .getIdToken()
           .then(async (newToken) => {
@@ -81,7 +78,8 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
             const userRef = doc(db, 'user', user_id);
             const userSnapshot = await getDoc(userRef);
-            const userData = userSnapshot.data() as CustomUser;
+            const userData = userSnapshot.data() as CustomUser | undefined;
+            if (!userData) throw new Error('No user found');
             userData.id = userSnapshot.id;
 
             const theUser = {
@@ -93,18 +91,19 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
             setUser(() => theUser);
             setWarehouse(
-              theUser.role === 'Owner' ? 'Semua Gudang' : theUser.role
+              theUser.role.toLowerCase() === 'owner'
+                ? 'Semua Gudang'
+                : theUser.role
             );
           })
           .catch(() => {
             setAccessToken(null);
             setUser(null);
-            navigate('/');
+            onLogout();
           });
-      } else {
+      else {
         setAccessToken(null);
         setUser(null);
-        navigate('/');
       }
     });
 
