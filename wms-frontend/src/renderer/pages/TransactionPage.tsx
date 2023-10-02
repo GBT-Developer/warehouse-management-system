@@ -561,7 +561,7 @@ export const TransactionPage = () => {
         title={'Pilih Produk'}
         headerList={
           products.length > 0
-            ? ['', 'Nama Product', 'Posisi Gudang', 'Jumlah Tersedia', 'Harga']
+            ? ['', 'Nama Produk', 'Posisi Gudang', 'Jumlah Tersedia', 'Harga']
             : []
         }
       >

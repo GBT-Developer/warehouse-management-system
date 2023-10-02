@@ -68,7 +68,7 @@ export const NewProductPage = () => {
   const [newPurchase, setNewPurchase] = useState<PurchaseHistory>(
     newPurchaseInitialState
   );
-  const successNotify = () => toast.success('Product berhasil ditambahkan');
+  const successNotify = () => toast.success('Produk berhasil ditambahkan');
   const failNotify = (e?: string) =>
     toast.error(e ?? 'Product gagal ditambahkan');
   const [isEmpty, setIsEmpty] = useState(false);
@@ -475,7 +475,7 @@ export const NewProductPage = () => {
             <InputField
               loading={loading}
               labelFor="contact_person"
-              label="Contact Person"
+              label="Narahubung"
               value={newSupplier.contact_person}
               placeholder='i.e "John Doe"'
               onChange={(e) =>

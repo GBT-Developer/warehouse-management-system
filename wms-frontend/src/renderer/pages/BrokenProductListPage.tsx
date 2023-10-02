@@ -34,7 +34,7 @@ export const BrokenProductListPage = () => {
   const [errorMessage, setErrorMessage] = useState('');
   const { warehousePosition } = useAuth();
   const [painterName, setPainterName] = useState('');
-  const successNotify = () => toast.success('Product berhasil dikembalikan');
+  const successNotify = () => toast.success('Produk berhasil dikembalikan');
   const failNotify = (e?: string) =>
     toast.error(e ?? 'Product gagal dikembalikan');
   const [lastBrandKey, setLastBrandKey] = useState(null);
@@ -360,7 +360,7 @@ export const BrokenProductListPage = () => {
             )}
             <ReturnModal
               confirmHandler={returnHandler}
-              confirmationMsg="Apakah anda yakin ingin mengembalikan product ini?"
+              confirmationMsg="Apakah anda yakin ingin mengembalikan produk ini?"
               modalOpen={modalOpen}
               setModalOpen={setModalOpen}
               product_id={activeProduct?.id}

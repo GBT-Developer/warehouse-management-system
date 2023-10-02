@@ -34,7 +34,7 @@ export default function ProductDetailPage() {
   const [suppliers, setSupplier] = useState<Supplier[]>([]);
   const [stockHistory, setStockHistory] = useState<StockHistory[]>([]);
   const navigate = useNavigate();
-  const successNotify = () => toast.success('Detail Product berhasil diubah');
+  const successNotify = () => toast.success('Detail Produk berhasil diubah');
   const failNotify = (e?: string) =>
     toast.error(e ?? 'Detail Product gagal diubah');
   useEffect(() => {
@@ -270,7 +270,16 @@ export default function ProductDetailPage() {
               loading={loading || !editToggle}
               labelFor="sell_price"
               label="Harga Jual"
-              value={product?.sell_price ?? ''}
+              value={
+                editToggle
+                  ? product?.sell_price ?? ''
+                  : product
+                  ? new Intl.NumberFormat('id-ID', {
+                      style: 'currency',
+                      currency: 'IDR',
+                    }).format(product.sell_price)
+                  : ''
+              }
               onChange={(e) => {
                 if (
                   !/^[0-9]*(\.[0-9]*)?$/.test(e.target.value) &&

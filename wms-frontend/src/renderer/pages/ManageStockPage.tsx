@@ -794,7 +794,7 @@ export const ManageStockPage = () => {
                     <div className="w-1/5 flex justify-between items-center">
                       <input
                         disabled={loading}
-                        placeholder="Quantity"
+                        placeholder="Jumlah"
                         type="number"
                         name="quantity"
                         className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
@@ -855,7 +855,7 @@ export const ManageStockPage = () => {
               <div className="flex justify-between py-2">
                 <div className="w-1/3 flex items-center">
                   <label htmlFor={'returned-product'} className="text-md">
-                    Product Return?
+                    Produk Retur?
                   </label>
                 </div>
                 <div className="w-2/3 flex items-center">

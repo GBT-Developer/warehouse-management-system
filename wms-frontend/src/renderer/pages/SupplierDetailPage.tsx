@@ -199,7 +199,7 @@ export default function SupplierDetailPage() {
             <InputField
               loading={loading || !editToggle}
               labelFor="contact_person"
-              label="Contact Person"
+              label="Narahubung"
               value={supplier?.contact_person ?? ''}
               onChange={(e) => {
                 if (supplier === undefined) return;
