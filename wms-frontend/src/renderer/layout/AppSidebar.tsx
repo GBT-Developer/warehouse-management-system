@@ -14,6 +14,7 @@ import {
   MdInventory2,
   MdOutlineAssignmentReturn,
   MdOutlinePeopleAlt,
+  MdWork,
 } from 'react-icons/md';
 import { PiPasswordLight, PiUserListLight } from 'react-icons/pi';
 import { TbPackageExport, TbTruckReturn } from 'react-icons/tb';
@@ -339,15 +340,26 @@ export const AppSidebar = () => {
         <p className="text-sm font-bold text-gray-500 ">Administrasi</p>
         <ul className="my-3 space-y-2 font-regular">
           {user?.role.toLocaleLowerCase() === 'owner' && (
-            <SidebarItem
-              icon={<PiUserListLight />}
-              onClick={() => {
-                navigate('/adminlistpage');
-              }}
-              selected={location.pathname.includes('/adminlistpage')}
-            >
-              List Admin
-            </SidebarItem>
+            <>
+              <SidebarItem
+                icon={<PiUserListLight />}
+                onClick={() => {
+                  navigate('/adminlistpage');
+                }}
+                selected={location.pathname.includes('/adminlistpage')}
+              >
+                List Admin
+              </SidebarItem>
+              <SidebarItem
+                icon={<MdWork />}
+                onClick={() => {
+                  navigate('/company-detail');
+                }}
+                selected={location.pathname.includes('/company-detail')}
+              >
+                Detail Perusahaan
+              </SidebarItem>
+            </>
           )}
           <SidebarItem
             icon={<PiPasswordLight />}

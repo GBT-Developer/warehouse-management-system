@@ -11,6 +11,7 @@ import { auth } from 'renderer/firebase';
 import { AdminListPage } from './pages/AdminListPage';
 import { BrokenProductListPage } from './pages/BrokenProductListPage';
 import { ChangePasswordPage } from './pages/ChangePasswordPage';
+import CompanyDetail from './pages/CompanyDetail';
 import { CreateAdminPage } from './pages/CreateAdminPage';
 import CustomerListPage from './pages/CustomerListPage';
 import EditCustomerPage from './pages/EditCustomerPage';
@@ -150,6 +151,10 @@ export const routes: RouteConfig[] = [
   {
     path: '/changepassword',
     element: <ChangePasswordPage />,
+  },
+  {
+    path: '/company-detail',
+    element: <CompanyDetail />,
   },
 ];
 
