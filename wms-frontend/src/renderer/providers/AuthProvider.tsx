@@ -11,6 +11,7 @@ import { useNavigate } from 'react-router-dom';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { auth, db, secondaryAuth } from 'renderer/firebase';
+import { CompanyInfo } from 'renderer/interfaces/CompanyInfo';
 import { CustomUser } from 'renderer/interfaces/CustomUser';
 
 export interface LoginData {
@@ -36,6 +37,7 @@ export interface AuthContext {
     setCurrentWarehouse: (newWarehousePosition: string) => void;
   };
   warehousePosition: string;
+  companyInfo: CompanyInfo | null;
 }
 
 export const initialAuthContext = {
@@ -49,6 +51,7 @@ export const initialAuthContext = {
     setCurrentWarehouse: () => undefined,
   },
   warehousePosition: '',
+  companyInfo: null,
 };
 
 export const authContext = React.createContext<AuthContext | null>(
@@ -64,6 +67,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [accessToken, setAccessToken] = useState<string | null>(null); // Store token in memory
   const [user, setUser] = useState<CustomUser | null>(null);
   const [warehouse, setWarehouse] = useState<string>('');
+  const [companyInfo, setCompanyInfo] = useState<CompanyInfo | null>(null);
 
   useEffect(() => {
     // Firebase auth state change listener
@@ -79,6 +83,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
             if (!user_id) throw new Error('No user id found in token');
 
+            // Retrieving user role
             const userRef = doc(db, 'user', user_id);
             const userSnapshot = await getDoc(userRef);
             const userData = userSnapshot.data() as CustomUser;
@@ -91,19 +96,31 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
               role: userData.role,
             } as CustomUser;
 
+            // Retrieving company info
+            const companyRef = doc(db, 'company_info', 'my_company');
+            const companySnapshot = await getDoc(companyRef);
+            const companyData = companySnapshot.data() as
+              | CompanyInfo
+              | undefined;
+            if (!companyData) throw new Error('No company info found');
+            companyData.id = companySnapshot.id;
+
             setUser(() => theUser);
             setWarehouse(
               theUser.role === 'Owner' ? 'Semua Gudang' : theUser.role
             );
+            setCompanyInfo(() => companyData);
           })
           .catch(() => {
             setAccessToken(null);
             setUser(null);
+            setCompanyInfo(null);
             navigate('/');
           });
       } else {
         setAccessToken(null);
         setUser(null);
+        setCompanyInfo(null);
         navigate('/');
       }
     });
@@ -237,6 +254,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         setCurrentWarehouse: onChangeWarehouse,
       },
       warehousePosition: warehouse,
+      companyInfo,
     }),
     [
       accessToken,

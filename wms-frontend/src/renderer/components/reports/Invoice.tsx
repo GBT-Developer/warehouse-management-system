@@ -7,7 +7,7 @@ import {
   View,
 } from '@react-pdf/renderer';
 import { Invoice } from 'renderer/interfaces/Invoice';
-import { InvoiceProps } from '../../pages/PdfViewer';
+import { InvoiceProps } from '../PdfViewer';
 import InvoiceItemsTable from './InvoiceItemsTable';
 import InvoiceSigningArea from './InvoiceSigningArea';
 
@@ -50,16 +50,36 @@ const Invoice = ({ invoice, companyInfo, destinationName }: InvoiceProps) => (
               gap: 12,
             }}
           >
-            <View
-              style={{
-                display: 'flex',
-                flexDirection: 'row',
-                justifyContent: 'flex-start',
-                alignItems: 'center',
-              }}
-            >
-              <Image style={styles.logo} src={companyInfo.logo} />
-            </View>
+            {companyInfo && companyInfo.logo ? (
+              <View
+                style={{
+                  display: 'flex',
+                  flexDirection: 'row',
+                  justifyContent: 'flex-start',
+                  alignItems: 'center',
+                }}
+              >
+                <Image style={styles.logo} src={companyInfo.logo} />
+              </View>
+            ) : (
+              <View
+                style={{
+                  display: 'flex',
+                  flexDirection: 'row',
+                  justifyContent: 'flex-start',
+                  alignItems: 'center',
+                }}
+              >
+                <Text
+                  style={{
+                    fontSize: 20,
+                    fontWeight: 700,
+                  }}
+                >
+                  {companyInfo?.name ?? ''}
+                </Text>
+              </View>
+            )}
             <View
               style={{
                 display: 'flex',
@@ -69,8 +89,8 @@ const Invoice = ({ invoice, companyInfo, destinationName }: InvoiceProps) => (
                 gap: 3,
               }}
             >
-              <Text>{companyInfo.address}</Text>
-              <Text>{companyInfo.phoneNumber}</Text>
+              <Text>{companyInfo?.address}</Text>
+              <Text>{companyInfo?.phone_number}</Text>
             </View>
           </View>
           <View

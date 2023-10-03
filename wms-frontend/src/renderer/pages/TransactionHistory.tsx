@@ -16,13 +16,13 @@ import { BiSolidTrash } from 'react-icons/bi';
 import { PiFilePdfBold } from 'react-icons/pi';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { PdfViewer } from 'renderer/components/PdfViewer';
 import { SingleTableItem } from 'renderer/components/TableComponents/SingleTableItem';
 import { TableHeader } from 'renderer/components/TableComponents/TableHeader';
 import { TableTitle } from 'renderer/components/TableComponents/TableTitle';
 import { db } from 'renderer/firebase';
 import { Invoice } from 'renderer/interfaces/Invoice';
 import { PageLayout } from 'renderer/layout/PageLayout';
-import { PdfViewer } from 'renderer/pages/PdfViewer';
 import { useAuth } from 'renderer/providers/AuthProvider';
 
 export default function TransactionHistory() {
