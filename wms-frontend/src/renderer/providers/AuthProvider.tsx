@@ -6,11 +6,12 @@ import {
   signOut,
 } from 'firebase/auth';
 import { doc, getDoc, runTransaction } from 'firebase/firestore';
+import { getBlob, ref } from 'firebase/storage';
 import React, { useContext, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import { auth, db, secondaryAuth } from 'renderer/firebase';
+import { auth, db, secondaryAuth, storage } from 'renderer/firebase';
 import { CompanyInfo } from 'renderer/interfaces/CompanyInfo';
 import { CustomUser } from 'renderer/interfaces/CustomUser';
 
@@ -35,6 +36,7 @@ export interface AuthContext {
     logout: () => void;
     register: (registerData: RegisterData) => Promise<CustomUser | undefined>;
     setCurrentWarehouse: (newWarehousePosition: string) => void;
+    setCurrentCompanyInfo: (newCompanyInfo: CompanyInfo) => void;
   };
   warehousePosition: string;
   companyInfo: CompanyInfo | null;
@@ -49,6 +51,7 @@ export const initialAuthContext = {
     logout: () => undefined,
     register: () => Promise.resolve(undefined),
     setCurrentWarehouse: () => undefined,
+    setCurrentCompanyInfo: () => undefined,
   },
   warehousePosition: '',
   companyInfo: null,
@@ -99,11 +102,17 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
             // Retrieving company info
             const companyRef = doc(db, 'company_info', 'my_company');
             const companySnapshot = await getDoc(companyRef);
-            const companyData = companySnapshot.data() as
-              | CompanyInfo
-              | undefined;
-            if (!companyData) throw new Error('No company info found');
+            const companyData = companySnapshot.data() as CompanyInfo;
             companyData.id = companySnapshot.id;
+            const spaceRef = ref(storage, companyData.logo ?? '');
+
+            getBlob(spaceRef)
+              .then((url) => {
+                companyData.logo = URL.createObjectURL(url);
+              })
+              .catch(() => {
+                companyData.logo = '';
+              });
 
             setUser(() => theUser);
             setWarehouse(
@@ -115,7 +124,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
             setAccessToken(null);
             setUser(null);
             setCompanyInfo(null);
-            navigate('/');
+            signOut(auth);
           });
       } else {
         setAccessToken(null);
@@ -242,6 +251,13 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     []
   );
 
+  const onChangeCompanyInfo = React.useCallback(
+    (newCompanyInfo: CompanyInfo) => {
+      setCompanyInfo(() => newCompanyInfo);
+    },
+    []
+  );
+
   const authValue = useMemo(
     () => ({
       accessToken,
@@ -252,6 +268,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         logout: onLogout,
         register: onRegister,
         setCurrentWarehouse: onChangeWarehouse,
+        setCurrentCompanyInfo: onChangeCompanyInfo,
       },
       warehousePosition: warehouse,
       companyInfo,
@@ -264,6 +281,8 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       onRegister,
       onChangeWarehouse,
       warehouse,
+      onChangeCompanyInfo,
+      companyInfo,
     ]
   );
 
