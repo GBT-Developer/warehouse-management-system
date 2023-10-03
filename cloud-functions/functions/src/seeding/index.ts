@@ -68,6 +68,25 @@ const createRootUser = async () => {
     });
 };
 
+export const seedCompanyInfo = async () => {
+  const db = firebaseAdmin.firestore();
+  const company_info = await db.collection("company_info").get();
+
+  if (company_info.size === 0) {
+    await db.runTransaction(async (t) => {
+      const company_info_ref = db.collection("company_info").doc("my_company");
+      t.set(company_info_ref, {
+        name: "PT. Permata Motor",
+        address: "Jl. Raya Ciputat No. 1",
+        phone_number: "081234567890",
+        logo: "company_info/company_logo",
+      });
+    });
+  } else {
+    functions.logger.info("Company info already exists");
+  }
+};
+
 export const seedSupplier = async (
   num_of_supplier: number
 ): Promise<Map<string, string>> => {
