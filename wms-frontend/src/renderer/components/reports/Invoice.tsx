@@ -7,6 +7,7 @@ import {
   View,
 } from '@react-pdf/renderer';
 import { Invoice } from 'renderer/interfaces/Invoice';
+import { InvoiceProps } from '../../pages/PdfViewer';
 import InvoiceItemsTable from './InvoiceItemsTable';
 import InvoiceSigningArea from './InvoiceSigningArea';
 
@@ -29,18 +30,8 @@ const styles = StyleSheet.create({
   },
 });
 
-interface InvoiceProps {
-  invoice: Invoice;
-  companyInfo: {
-    address: string;
-    phoneNumber: string;
-    logo: string;
-  };
-  destinationName: string;
-}
-
 const Invoice = ({ invoice, companyInfo, destinationName }: InvoiceProps) => (
-  <Document>
+  <Document title={`Invoice ${invoice.id ?? ''}`}>
     <Page size="A4" style={styles.page}>
       <View>
         <View
