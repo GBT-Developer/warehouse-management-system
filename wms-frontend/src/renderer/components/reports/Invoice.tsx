@@ -24,8 +24,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   logo: {
-    width: 74,
-    height: 66,
+    width: 150,
     padding: 2,
   },
 });
