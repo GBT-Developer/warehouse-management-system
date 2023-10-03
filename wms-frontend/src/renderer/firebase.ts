@@ -2,11 +2,7 @@
 import { initializeApp } from 'firebase/app';
 import { connectAuthEmulator, getAuth } from 'firebase/auth';
 import { connectFirestoreEmulator, getFirestore } from 'firebase/firestore';
-import {
-  connectFunctionsEmulator,
-  getFunctions,
-  httpsCallable,
-} from 'firebase/functions';
+import { connectStorageEmulator, getStorage } from 'firebase/storage';
 
 const firebaseConfig = {
   apiKey: window.process.env.FIREBASE_API_KEY,
@@ -24,12 +20,11 @@ export const auth = getAuth(app);
 const secondaryApp = initializeApp(firebaseConfig, 'Secondary');
 export const secondaryAuth = getAuth(secondaryApp);
 export const db = getFirestore(app);
-export const functions = getFunctions(app, 'asia-southeast2');
-export const callable = (name: string) => httpsCallable(functions, name);
+export const storage = getStorage(app);
 
 if (window.process.env.NODE_ENV === 'development') {
   connectFirestoreEmulator(db, 'localhost', 8080);
   connectAuthEmulator(auth, 'http://localhost:9099');
   connectAuthEmulator(secondaryAuth, 'http://localhost:9099');
-  connectFunctionsEmulator(functions, 'localhost', 5001);
+  connectStorageEmulator(storage, 'localhost', 9199);
 }
