@@ -1,5 +1,6 @@
 import { faker } from "@faker-js/faker";
 import * as functions from "firebase-functions";
+import * as path from "path";
 import { firebaseAdmin } from "../index";
 
 export const seedUser = async (num_of_user: number) => {
@@ -81,6 +82,17 @@ export const seedCompanyInfo = async () => {
         phone_number: "081234567890",
         logo: "company_info/company_logo",
       });
+    });
+
+    const currentDir = path.resolve(__dirname);
+    const fileName = path.resolve(currentDir, "../../One_piece_logo.png");
+
+    const bucket = firebaseAdmin.storage().bucket();
+    await bucket.upload(fileName, {
+      destination: "company_info/company_logo",
+      metadata: {
+        contentType: "image/png",
+      },
     });
   } else {
     functions.logger.info("Company info already exists");
