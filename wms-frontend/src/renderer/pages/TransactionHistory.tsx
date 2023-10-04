@@ -187,7 +187,13 @@ export default function TransactionHistory() {
                         }}
                       >
                         <SingleTableItem>
-                          {mapInvoiceHistory.date}
+                          <span className="font-medium text-md">
+                            {mapInvoiceHistory.date}
+                            <br />
+                            <span className="text-sm font-normal">
+                              {mapInvoiceHistory.time}
+                            </span>
+                          </span>
                         </SingleTableItem>
                         <SingleTableItem>
                           {mapInvoiceHistory.id}

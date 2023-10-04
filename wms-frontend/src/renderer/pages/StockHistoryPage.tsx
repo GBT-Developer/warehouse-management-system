@@ -220,7 +220,13 @@ function StockHistoryPage() {
                     .map((stock_history: StockHistory, index) => (
                       <tr key={index} className="border-b">
                         <SingleTableItem>
-                          {stock_history.created_at}
+                          <span className="font-medium text-md">
+                            {stock_history.created_at}
+                            <br />
+                            <span className="text-sm font-normal">
+                              {stock_history.time}
+                            </span>
+                          </span>
                         </SingleTableItem>
                         <SingleTableItem>
                           {stock_history.product_name}
