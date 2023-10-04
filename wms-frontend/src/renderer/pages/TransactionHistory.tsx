@@ -318,11 +318,6 @@ export default function TransactionHistory() {
               modalOpen={modalOpen}
               setModalOpen={setModalOpen}
               invoice={clickedInvoice}
-              companyInfo={{
-                address: 'Jl. Raya Cikarang Cibarusah No. 27',
-                phoneNumber: '0812-1234-5678',
-                logo: 'https://i.ibb.co/7t2tQwF/logo.png',
-              }}
               destinationName={clickedInvoice.customer_name ?? ''}
             />
           )}
