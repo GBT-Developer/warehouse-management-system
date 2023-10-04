@@ -960,75 +960,77 @@ export default function ReturnPage() {
         }
       >
         {products.length > 0 ? (
-          products.map((product, index) => (
-            <tr
-              key={index}
-              className="hover:bg-gray-100 cursor-pointer"
-              onClick={() => {
-                if (selectedProducts.some((p) => p.id === product.id)) {
-                  setSelectedProducts(
-                    selectedProducts.filter((p) => p.id !== product.id)
-                  );
-                  setNewTransaction({
-                    ...newTransaction,
-                    items: newTransaction.items?.filter(
-                      (p) => p.id !== product.id
-                    ),
-                  });
-                  setSelectedNewItems(
-                    selectedNewItems.filter((p) => p.id !== product.id)
-                  );
-                } else {
-                  if (!product.id) return;
-                  const specialPrice = getSpecialPriceForProduct(product.id);
-                  setSelectedProducts([...selectedProducts, product]);
-                  setSelectedNewItems([
-                    ...selectedNewItems,
-                    {
-                      id: product.id,
-                      count: 1,
-                      sell_price:
-                        specialPrice !== null
-                          ? specialPrice
-                          : product.sell_price,
-                      brand: product.brand,
-                      motor_type: product.motor_type,
-                      part: product.part,
-                      available_color: product.available_color,
-                      purchase_price: product.purchase_price,
-                      warehouse_position: product.warehouse_position,
-                      is_returned: false,
-                    },
-                  ]);
-                }
-              }}
-            >
-              <SingleTableItem>
-                <input
-                  type="checkbox"
-                  checked={selectedProducts.includes(product)}
-                  readOnly
-                />
-              </SingleTableItem>
-              <SingleTableItem key={index}>
-                {product.brand +
-                  ' ' +
-                  product.motor_type +
-                  ' ' +
-                  product.part +
-                  ' ' +
-                  product.available_color}
-              </SingleTableItem>
-              <SingleTableItem>{product.warehouse_position}</SingleTableItem>
-              <SingleTableItem>{product.count}</SingleTableItem>
-              <SingleTableItem>
-                {new Intl.NumberFormat('id-ID', {
-                  style: 'currency',
-                  currency: 'IDR',
-                }).format(product.sell_price)}
-              </SingleTableItem>
-            </tr>
-          ))
+          products
+            .filter((product) => product.count > 0) // Filter out products with count <= 0
+            .map((product, index) => (
+              <tr
+                key={index}
+                className="hover:bg-gray-100 cursor-pointer"
+                onClick={() => {
+                  if (selectedProducts.some((p) => p.id === product.id)) {
+                    setSelectedProducts(
+                      selectedProducts.filter((p) => p.id !== product.id)
+                    );
+                    setNewTransaction({
+                      ...newTransaction,
+                      items: newTransaction.items?.filter(
+                        (p) => p.id !== product.id
+                      ),
+                    });
+                    setSelectedNewItems(
+                      selectedNewItems.filter((p) => p.id !== product.id)
+                    );
+                  } else {
+                    if (!product.id) return;
+                    const specialPrice = getSpecialPriceForProduct(product.id);
+                    setSelectedProducts([...selectedProducts, product]);
+                    setSelectedNewItems([
+                      ...selectedNewItems,
+                      {
+                        id: product.id,
+                        count: 1,
+                        sell_price:
+                          specialPrice !== null
+                            ? specialPrice
+                            : product.sell_price,
+                        brand: product.brand,
+                        motor_type: product.motor_type,
+                        part: product.part,
+                        available_color: product.available_color,
+                        purchase_price: product.purchase_price,
+                        warehouse_position: product.warehouse_position,
+                        is_returned: false,
+                      },
+                    ]);
+                  }
+                }}
+              >
+                <SingleTableItem>
+                  <input
+                    type="checkbox"
+                    checked={selectedProducts.includes(product)}
+                    readOnly
+                  />
+                </SingleTableItem>
+                <SingleTableItem key={index}>
+                  {product.brand +
+                    ' ' +
+                    product.motor_type +
+                    ' ' +
+                    product.part +
+                    ' ' +
+                    product.available_color}
+                </SingleTableItem>
+                <SingleTableItem>{product.warehouse_position}</SingleTableItem>
+                <SingleTableItem>{product.count}</SingleTableItem>
+                <SingleTableItem>
+                  {new Intl.NumberFormat('id-ID', {
+                    style: 'currency',
+                    currency: 'IDR',
+                  }).format(product.sell_price)}
+                </SingleTableItem>
+              </tr>
+            ))
         ) : (
           <tr className="border-b">
             <SingleTableItem>

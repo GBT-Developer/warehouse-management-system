@@ -420,57 +420,59 @@ export const TransferItemPage = () => {
         }
       >
         {products.length > 0 ? (
-          products.map((product, index) => (
-            <tr
-              key={index}
-              className="border-b hover:shadow-md cursor-pointer"
-              onClick={() => {
-                if (selectedProducts.find((p) => p === product)) {
-                  setSelectedProducts(
-                    selectedProducts.filter((p) => p !== product)
-                  );
-                  setDispatchNote({
-                    ...dispatchNote,
-                    dispatch_items: dispatchNote.dispatch_items.filter(
-                      (i) => i.product_id !== product.id
-                    ),
-                  });
-                } else {
-                  if (!product.id) return;
-                  setSelectedProducts([...selectedProducts, product]);
-                  setDispatchNote({
-                    ...dispatchNote,
-                    dispatch_items: [
-                      ...dispatchNote.dispatch_items,
-                      {
-                        product_id: product.id,
-                        color: '',
-                        amount: 0,
-                      },
-                    ],
-                  });
-                }
-              }}
-            >
-              <SingleTableItem>
-                <input
-                  type="checkbox"
-                  checked={selectedProducts.includes(product)}
-                  readOnly
-                />
-              </SingleTableItem>
-              <SingleTableItem key={index}>
-                {product.brand +
-                  ' ' +
-                  product.motor_type +
-                  ' ' +
-                  product.part +
-                  ' ' +
-                  product.available_color}
-              </SingleTableItem>
-              <SingleTableItem>{product.count}</SingleTableItem>
-            </tr>
-          ))
+          products
+            .filter((product) => product.count > 0) // Filter out products with count <= 0
+            .map((product, index) => (
+              <tr
+                key={index}
+                className="border-b hover:shadow-md cursor-pointer"
+                onClick={() => {
+                  if (selectedProducts.find((p) => p === product)) {
+                    setSelectedProducts(
+                      selectedProducts.filter((p) => p !== product)
+                    );
+                    setDispatchNote({
+                      ...dispatchNote,
+                      dispatch_items: dispatchNote.dispatch_items.filter(
+                        (i) => i.product_id !== product.id
+                      ),
+                    });
+                  } else {
+                    if (!product.id) return;
+                    setSelectedProducts([...selectedProducts, product]);
+                    setDispatchNote({
+                      ...dispatchNote,
+                      dispatch_items: [
+                        ...dispatchNote.dispatch_items,
+                        {
+                          product_id: product.id,
+                          color: '',
+                          amount: 0,
+                        },
+                      ],
+                    });
+                  }
+                }}
+              >
+                <SingleTableItem>
+                  <input
+                    type="checkbox"
+                    checked={selectedProducts.includes(product)}
+                    readOnly
+                  />
+                </SingleTableItem>
+                <SingleTableItem key={index}>
+                  {product.brand +
+                    ' ' +
+                    product.motor_type +
+                    ' ' +
+                    product.part +
+                    ' ' +
+                    product.available_color}
+                </SingleTableItem>
+                <SingleTableItem>{product.count}</SingleTableItem>
+              </tr>
+            ))
         ) : (
           <tr className="border-b">
             <SingleTableItem>
