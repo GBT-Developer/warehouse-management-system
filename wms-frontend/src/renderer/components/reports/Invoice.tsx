@@ -6,10 +6,16 @@ import {
   Text,
   View,
 } from '@react-pdf/renderer';
+import { CompanyInfo } from 'renderer/interfaces/CompanyInfo';
 import { Invoice } from 'renderer/interfaces/Invoice';
-import { InvoiceProps } from '../PdfViewer';
 import InvoiceItemsTable from './InvoiceItemsTable';
 import InvoiceSigningArea from './InvoiceSigningArea';
+
+export interface InvoiceProps {
+  invoice: Invoice;
+  companyInfo: CompanyInfo | null;
+  destinationName: string;
+}
 
 const styles = StyleSheet.create({
   page: {

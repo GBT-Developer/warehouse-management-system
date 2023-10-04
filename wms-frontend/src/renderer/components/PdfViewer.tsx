@@ -1,13 +1,6 @@
 import { PDFViewer } from '@react-pdf/renderer';
-import { CompanyInfo } from 'renderer/interfaces/CompanyInfo';
 import { useAuth } from 'renderer/providers/AuthProvider';
 import Invoice from './reports/Invoice';
-
-export interface InvoiceProps {
-  invoice: Invoice;
-  companyInfo: CompanyInfo | null;
-  destinationName: string;
-}
 
 export const PdfViewer = ({
   invoice,
@@ -15,7 +8,9 @@ export const PdfViewer = ({
   modalOpen,
   setModalOpen,
   setInvoice,
-}: InvoiceProps & {
+}: {
+  invoice: Invoice;
+  destinationName: string;
   setInvoice: React.Dispatch<React.SetStateAction<Invoice | null>>;
   modalOpen: boolean;
   setModalOpen: React.Dispatch<React.SetStateAction<boolean>>;
