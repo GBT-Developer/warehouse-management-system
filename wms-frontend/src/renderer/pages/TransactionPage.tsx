@@ -58,9 +58,9 @@ export const TransactionPage = () => {
   useEffect(() => {
     const fetchCustomer = async () => {
       try {
-        const productsQuery = query(collection(db, 'customer'));
+        const customerQuery = query(collection(db, 'customer'));
         setLoading(true);
-        const querySnapshot = await getDocs(productsQuery);
+        const querySnapshot = await getDocs(customerQuery);
 
         const customerData: Customer[] = [];
         querySnapshot.forEach((theCustomer) => {
