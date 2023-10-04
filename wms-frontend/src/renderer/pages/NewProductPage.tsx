@@ -272,7 +272,7 @@ export const NewProductPage = () => {
         <InputField
           loading={loading}
           labelFor="available_color"
-          label="Warna Tersedia"
+          label="Warna"
           value={newProduct.available_color}
           onChange={(e) =>
             setNewProduct({ ...newProduct, available_color: e.target.value })
