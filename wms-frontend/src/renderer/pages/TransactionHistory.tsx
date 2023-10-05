@@ -314,7 +314,10 @@ export default function TransactionHistory() {
           </div>
           {clickedInvoice && (
             <PdfViewer
+              products={[]}
               setInvoice={setClickedInvoice}
+              dispatchNote={null}
+              setDipatchNote={() => {}}
               modalOpen={modalOpen}
               setModalOpen={setModalOpen}
               invoice={clickedInvoice}

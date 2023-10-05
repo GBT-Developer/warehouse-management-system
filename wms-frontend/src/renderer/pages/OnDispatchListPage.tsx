@@ -1,6 +1,8 @@
 import { collection, getDocs, query, where } from 'firebase/firestore';
 import React, { useEffect, useState } from 'react';
 import { AiOutlineLoading3Quarters } from 'react-icons/ai';
+import { PiFilePdfBold } from 'react-icons/pi';
+import { PdfViewer } from 'renderer/components/PdfViewer';
 import { SingleTableItem } from 'renderer/components/TableComponents/SingleTableItem';
 import { TableHeader } from 'renderer/components/TableComponents/TableHeader';
 import { TableTitle } from 'renderer/components/TableComponents/TableTitle';
@@ -21,6 +23,9 @@ export const OnDispatchListPage = () => {
   const [showProductsMap, setShowProductsMap] = useState<
     Record<string, boolean>
   >({});
+  const [modalOpen, setModalOpen] = useState(false);
+  const [clickedDispatchNote, setClickedDispatchNote] =
+    useState<DispatchNote | null>(null);
 
   const toggleShowProducts = (purchaseId: string) => {
     setShowProductsMap((prevState) => ({
@@ -100,6 +105,7 @@ export const OnDispatchListPage = () => {
                 <th className=" py-3">Nama Tukang Cat</th>
                 <th className=" py-3">Tanggal</th>
                 <th className=" py-3">Jumlah Product</th>
+                <th className=" py-3"></th>
               </TableHeader>
               <tbody>
                 {dispatchNoteList.length === 0 ? (
@@ -136,6 +142,20 @@ export const OnDispatchListPage = () => {
                           <SingleTableItem>
                             {dispatchNote.dispatch_items.length}
                           </SingleTableItem>
+                          <SingleTableItem>
+                            <button
+                              type="button"
+                              className="text-blue-500 text-lg p-2 hover:text-blue-700 cursor-pointer bg-transparent rounded-md"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                if (!dispatchNote) return;
+                                setClickedDispatchNote(dispatchNote);
+                                setModalOpen(true);
+                              }}
+                            >
+                              <PiFilePdfBold />
+                            </button>
+                          </SingleTableItem>
                         </tr>
                         {dispatchNote.id &&
                           showProductsMap[dispatchNote.id] && (
@@ -171,6 +191,20 @@ export const OnDispatchListPage = () => {
               </tbody>
             </table>
           </div>
+          {clickedDispatchNote && (
+            <PdfViewer
+              products={products.filter(
+                (product) => product.dispatch_note_id === clickedDispatchNote.id
+              )}
+              setInvoice={() => {}}
+              setDipatchNote={setClickedDispatchNote}
+              dispatchNote={clickedDispatchNote}
+              modalOpen={modalOpen}
+              setModalOpen={setModalOpen}
+              invoice={null}
+              destinationName={clickedDispatchNote.painter}
+            />
+          )}
         </div>
       </div>
     </PageLayout>
