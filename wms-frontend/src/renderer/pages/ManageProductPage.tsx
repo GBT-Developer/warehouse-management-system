@@ -132,6 +132,11 @@ export const ManageProductPage = () => {
     try {
       // Query products starting from the last product in the products array
       const lastVisibleProduct = products[products.length - 1];
+      if (nextQuery === null) {
+        setNextPostsEmpty(true);
+        setNextPostsLoading(false);
+        return;
+      }
 
       const productsQuery = query(
         collection(db, 'product'),
@@ -139,8 +144,7 @@ export const ManageProductPage = () => {
           ? where('warehouse_position', '==', warehousePosition)
           : where('warehouse_position', 'in', ['Gudang Bahan', 'Gudang Jadi']),
         orderBy('brand', 'asc'),
-        startAfter(lastVisibleProduct),
-        limit(50)
+        nextQuery
       );
 
       setLoading(true);
@@ -154,11 +158,13 @@ export const ManageProductPage = () => {
           data.id = theProduct.id;
           productData.push(data);
         });
+        setNextQuery(
+          startAfter(querySnapshot.docs[querySnapshot.docs.length - 1])
+        );
+      } else {
+        setNextQuery(null);
       }
 
-      setNextQuery(
-        startAfter(querySnapshot.docs[querySnapshot.docs.length - 1])
-      );
       setDownloadedProducts(productData);
       setPdfConfirmation(true);
       setLoading(false);
