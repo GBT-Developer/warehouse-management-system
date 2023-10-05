@@ -7,7 +7,6 @@ import {
 } from 'firebase/firestore';
 import { useEffect, useState } from 'react';
 import { AiOutlineLoading3Quarters } from 'react-icons/ai';
-import { IoInformationCircleSharp } from 'react-icons/io5';
 import { useNavigate } from 'react-router-dom';
 import { SingleTableItem } from 'renderer/components/TableComponents/SingleTableItem';
 import { TableHeader } from 'renderer/components/TableComponents/TableHeader';
@@ -143,7 +142,6 @@ export const ManageProductPage = () => {
                 <th className=" py-3">Jumlah</th>
                 <th className=" py-3">Harga Jual</th>
                 <th className=" py-3">Posisi Gudang</th>
-                <th className=" py-3"></th>
               </TableHeader>
               <tbody>
                 {products.length === 0 ? (
@@ -211,12 +209,6 @@ export const ManageProductPage = () => {
                         </SingleTableItem>
                         <SingleTableItem>
                           {product.warehouse_position}
-                        </SingleTableItem>
-                        <SingleTableItem>
-                          <IoInformationCircleSharp
-                            size={20}
-                            className="cursor-pointer"
-                          />
                         </SingleTableItem>
                       </tr>
                     ))

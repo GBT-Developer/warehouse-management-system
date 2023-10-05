@@ -154,11 +154,11 @@ export const ManageStockPage = () => {
 
   useEffect(() => {
     setLoading(true);
-
     if (
       supplierList.length === 0 &&
       (manageStockMode === 'purchase' || manageStockMode === 'force-change')
     ) {
+      console.log('fetching supplier list');
       const fetchSupplierList = async () => {
         const supplierQuery = query(collection(db, 'supplier'));
         const res = await getDocs(supplierQuery);
@@ -170,13 +170,18 @@ export const ManageStockPage = () => {
             ...doc.data(),
           } as Supplier);
         });
-
+        console.log(supplierList);
         setSupplierList(supplierList);
       };
 
       fetchSupplierList().catch(() => {
         setErrorMessage('An error occured while fetching supplier data');
       });
+    }
+    if (warehousePosition === 'Gudang Bahan') {
+      setSelectedWarehouse('Gudang Bahan');
+    } else if (warehousePosition === 'Gudang Jadi') {
+      setSelectedWarehouse('Gudang Jadi');
     }
     const fetchProductList = async (
       supplier_id: string,
@@ -348,8 +353,10 @@ export const ManageStockPage = () => {
           delete acceptedProduct.status;
           delete acceptedProduct.dispatch_note_id;
           const theOldCount =
-            products.find((product) => product.id === acceptedProduct.id)
-              ?.count ?? 0;
+            products.find((product) => {
+              console.log(product, acceptedProduct);
+              return product.id === acceptedProduct.id;
+            })?.count ?? 0;
 
           // Update product count
           const updateStock = increment(acceptedProduct.count);
@@ -573,56 +580,59 @@ export const ManageStockPage = () => {
             </select>
           </div>
         </div>
-        <div className="flex justify-between">
-          <div className="w-1/3 flex items-center">
-            <label htmlFor={'warehouse-id'} className="text-md">
-              Pilih Gudang
-            </label>
-          </div>
-          <div className="w-2/3">
-            <select
-              value={selectedWarehouse}
-              disabled={loading}
-              name="warehouse-id"
-              onChange={(e) => {
-                if (
-                  e.target.value === 'Gudang Jadi' ||
-                  e.target.value === 'Gudang Bahan'
-                )
-                  setSelectedWarehouse(e.target.value);
 
-                setProducts([]);
-                setAcceptedProducts([]);
-                setNewPurchase(newPurchaseInitialState);
-                setSelectedSupplier(null);
-                if (selectedSupplierRef.current)
-                  selectedSupplierRef.current.value = '';
-              }}
-              className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
-            >
-              <option value={''} disabled>
+        {warehousePosition === 'Semua Gudang' && (
+          <div className="flex justify-between">
+            <div className="w-1/3 flex items-center">
+              <label htmlFor={'warehouse-id'} className="text-md">
                 Pilih Gudang
-              </option>
-              {manageStockMode === 'purchase' ||
-              manageStockMode === 'force-change' ? (
-                <>
-                  <option key={'gudang_bahan'} value="Gudang Bahan">
-                    Gudang Bahan
-                  </option>
-                  <option key={'gudang_jadi'} value="Gudang Jadi">
-                    Gudang Jadi
-                  </option>
-                </>
-              ) : manageStockMode === 'from_other_warehouse' ? (
-                <>
-                  <option key={'gudang_jadi'} value="Gudang Jadi">
-                    Gudang Jadi
-                  </option>
-                </>
-              ) : null}
-            </select>
+              </label>
+            </div>
+            <div className="w-2/3">
+              <select
+                value={selectedWarehouse}
+                disabled={loading}
+                name="warehouse-id"
+                onChange={(e) => {
+                  if (
+                    e.target.value === 'Gudang Jadi' ||
+                    e.target.value === 'Gudang Bahan'
+                  )
+                    setSelectedWarehouse(e.target.value);
+
+                  setProducts([]);
+                  setAcceptedProducts([]);
+                  setNewPurchase(newPurchaseInitialState);
+                  setSelectedSupplier(null);
+                  if (selectedSupplierRef.current)
+                    selectedSupplierRef.current.value = '';
+                }}
+                className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
+              >
+                <option value={''} disabled>
+                  Pilih Gudang
+                </option>
+                {manageStockMode === 'purchase' ||
+                manageStockMode === 'force-change' ? (
+                  <>
+                    <option key={'gudang_bahan'} value="Gudang Bahan">
+                      Gudang Bahan
+                    </option>
+                    <option key={'gudang_jadi'} value="Gudang Jadi">
+                      Gudang Jadi
+                    </option>
+                  </>
+                ) : manageStockMode === 'from_other_warehouse' ? (
+                  <>
+                    <option key={'gudang_jadi'} value="Gudang Jadi">
+                      Gudang Jadi
+                    </option>
+                  </>
+                ) : null}
+              </select>
+            </div>
           </div>
-        </div>
+        )}
         {
           manageStockMode === 'purchase' ||
           manageStockMode === 'force-change' ? (

@@ -29,6 +29,7 @@ const newProductInitialState = {
   count: 0,
   sell_price: 0,
   purchase_price: 0,
+  supplier: undefined,
 } as Product;
 
 const newSupplierInitialState = {
@@ -58,7 +59,6 @@ export const NewProductPage = () => {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const warehouseOptionRef = useRef<HTMLSelectElement>(null);
   const supplierOptionRef = useRef<HTMLSelectElement>(null);
-  const dateRef = useRef<HTMLInputElement>(null);
   const [loading, setLoading] = useState(false);
   const [suppliers, setSupplier] = useState<Supplier[]>([]);
   const [showSupplierForm, setShowSupplierForm] = useState(false);
@@ -104,23 +104,16 @@ export const NewProductPage = () => {
       newProduct.motor_type === '' ||
       newProduct.part === '' ||
       newProduct.available_color === '' ||
-      newProduct.count === 0 ||
-      newProduct.purchase_price === 0 ||
-      newProduct.sell_price === 0
+      newProduct.warehouse_position === ''
     ) {
       setIsEmpty(true);
       return;
     } else if (
       newProduct.available_color != '' &&
       newProduct.brand != '' &&
-      newProduct.count != 0 &&
       newProduct.motor_type != '' &&
       newProduct.part != '' &&
-      newProduct.purchase_price != 0 &&
-      newProduct.sell_price != 0 &&
-      newProduct.warehouse_position != '' &&
-      newPurchase.created_at != '' &&
-      newProduct.supplier != null
+      newProduct.warehouse_position != ''
     ) {
       setIsEmpty(false);
       return;
@@ -136,9 +129,7 @@ export const NewProductPage = () => {
     e.preventDefault();
     // If one or more fields are empty, return early
     if (
-      Object.values(newProduct).some(
-        (value) => value === '' || value === undefined
-      ) ||
+      Object.values(newProduct).some((value) => value === '') ||
       newProduct.warehouse_position === ''
     ) {
       setErrorMessage('Tolong isi semua kolom');
@@ -151,9 +142,9 @@ export const NewProductPage = () => {
       Number.isNaN(Number(newProduct.sell_price)) ||
       Number.isNaN(Number(newProduct.purchase_price)) ||
       Number.isNaN(Number(newProduct.count)) ||
-      Number(newProduct.sell_price) <= 0 ||
-      Number(newProduct.purchase_price) <= 0 ||
-      Number(newProduct.count) <= 0
+      Number(newProduct.sell_price) < 0 ||
+      Number(newProduct.purchase_price) < 0 ||
+      Number(newProduct.count) < 0
     ) {
       setErrorMessage('Harga jual, harga beli, dan jumlah harus angka');
       setTimeout(() => {
@@ -161,7 +152,6 @@ export const NewProductPage = () => {
       }, 3000);
       return;
     }
-    setIsEmpty(false);
 
     await runTransaction(db, (transaction) => {
       setLoading(true);
@@ -171,39 +161,54 @@ export const NewProductPage = () => {
         newSupplierRef = doc(collection(db, 'supplier'));
         transaction.set(newSupplierRef, newSupplier);
       }
-
       const newProductRef = doc(collection(db, 'product'));
-      transaction.set(newProductRef, {
-        ...newProduct,
-        supplier: newProduct.supplier?.id,
-      });
+      if (newProduct.supplier?.id == null) {
+        transaction.set(newProductRef, {
+          ...newProduct,
+          supplier: '',
+        });
+      } else if (newProduct.supplier?.id != '') {
+        transaction.set(newProductRef, {
+          ...newProduct,
+          supplier: newProduct.supplier?.id,
+        });
+      }
+      if (
+        newProduct.count != 0 &&
+        newProduct.purchase_price != 0 &&
+        newProduct.sell_price != 0 &&
+        newProduct.supplier?.id != ''
+      ) {
+        const currentDateandTime = new Date();
+        const newPurchaseRef = doc(collection(db, 'purchase_history'));
+        const todayDate = format(currentDateandTime, 'yyyy-MM-dd');
+        let theTime = '';
+        // If invoice date is the same as current date, take the current time
+        if (newPurchase.created_at === format(currentDateandTime, 'yyyy-MM-dd'))
+          theTime = format(currentDateandTime, 'HH:mm:ss');
+        else theTime = '23:59:59';
 
-      const newPurchaseRef = doc(collection(db, 'purchase_history'));
-      const currentDateandTime = new Date();
-      if (!newPurchase.created_at) return Promise.reject('Date not found');
-      let theTime = '';
-      // If invoice date is the same as current date, take the current time
-      if (newPurchase.created_at === format(currentDateandTime, 'yyyy-MM-dd'))
-        theTime = format(currentDateandTime, 'HH:mm:ss');
-      else theTime = '23:59:59';
-
-      transaction.set(newPurchaseRef, {
-        ...newPurchase,
-        created_at: newPurchase.created_at,
-        time: theTime,
-        purchase_price: newProduct.purchase_price,
-        payment_status: newPurchase.payment_status,
-        warehouse_position: newProduct.warehouse_position,
-        supplier: newSupplierRef ? newSupplierRef.id : newProduct.supplier?.id,
-        products: [
-          {
-            id: newProductRef.id,
-            name: `${newProduct.brand} ${newProduct.motor_type} ${newProduct.part} ${newProduct.available_color}`,
-            quantity: newProduct.count,
-          },
-        ],
-      });
+        transaction.set(newPurchaseRef, {
+          ...newPurchase,
+          created_at: todayDate,
+          time: theTime,
+          purchase_price: newProduct.purchase_price,
+          payment_status: newPurchase.payment_status,
+          warehouse_position: newProduct.warehouse_position,
+          supplier: newSupplierRef
+            ? newSupplierRef.id
+            : newProduct.supplier?.id,
+          products: [
+            {
+              id: newProductRef.id,
+              name: `${newProduct.brand} ${newProduct.motor_type} ${newProduct.part} ${newProduct.available_color}`,
+              quantity: newProduct.count,
+            },
+          ],
+        });
+      }
       setLoading(false);
+      setIsEmpty(false);
       successNotify();
       setNewProduct(newProductInitialState);
       setNewSupplier(newSupplierInitialState);
@@ -212,8 +217,6 @@ export const NewProductPage = () => {
       if (supplierOptionRef.current) supplierOptionRef.current.value = '';
       //make the warehouse select empty
       if (warehouseOptionRef.current) warehouseOptionRef.current.value = '';
-      //make the date input empty
-      if (dateRef.current) dateRef.current.value = '';
       return Promise.resolve(newProductRef);
     }).catch((error) => {
       setLoading(false);
@@ -225,7 +228,7 @@ export const NewProductPage = () => {
   return (
     <PageLayout>
       <h1 className="text-4xl font-extrabold tracking-tight text-gray-900 md:text-5xl">
-        Tambah Product Baru
+        Tambah Produk Baru
       </h1>
       <form
         onSubmit={(e) => {
@@ -359,29 +362,6 @@ export const NewProductPage = () => {
                 )}
               </select>
             </div>
-          </div>
-        </div>
-
-        <div className="flex justify-between">
-          <div className="w-1/3 flex items-center">
-            <label htmlFor={'date-id'} className="text-md">
-              Tanggal Pembelian
-            </label>
-          </div>
-          <div className="w-2/3">
-            <input
-              disabled={loading}
-              ref={dateRef}
-              type="date"
-              name="date"
-              className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
-              onChange={(e) => {
-                setNewPurchase(() => ({
-                  ...newPurchase,
-                  created_at: e.target.value,
-                }));
-              }}
-            />
           </div>
         </div>
 
@@ -526,6 +506,9 @@ export const NewProductPage = () => {
             style={{
               backgroundColor: isEmpty ? 'gray' : 'blue',
               // Add other styles as needed
+            }}
+            onClick={() => {
+              console.log('keteken');
             }}
             className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5"
           >
