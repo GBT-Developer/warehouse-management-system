@@ -15,11 +15,13 @@ import { useEffect, useState } from 'react';
 import { AiOutlineLoading3Quarters } from 'react-icons/ai';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { PdfViewer } from 'renderer/components/PdfViewer';
 import { ReturnModal } from 'renderer/components/ReturnModal';
 import { SingleTableItem } from 'renderer/components/TableComponents/SingleTableItem';
 import { TableHeader } from 'renderer/components/TableComponents/TableHeader';
 import { TableTitle } from 'renderer/components/TableComponents/TableTitle';
 import { db } from 'renderer/firebase';
+import { DispatchNote } from 'renderer/interfaces/DispatchNote';
 import { Product } from 'renderer/interfaces/Product';
 import { PageLayout } from 'renderer/layout/PageLayout';
 import { useAuth } from 'renderer/providers/AuthProvider';
@@ -43,6 +45,10 @@ export const BrokenProductListPage = () => {
   const [nextQuery, setNextQuery] = useState<QueryStartAtConstraint | null>(
     null
   );
+  const [clickedDispatchNote, setClickedDispatchNote] =
+    useState<DispatchNote | null>(null);
+  const [pdfOpen, setPdfOpen] = useState(false);
+  const [pdfProducts, setPdfProducts] = useState<Product[]>([]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -215,6 +221,34 @@ export const BrokenProductListPage = () => {
           warehouse_position: 'Gudang Bahan',
           sell_price: activeProduct.sell_price,
         });
+
+        setPdfProducts([
+          {
+            id: productId,
+            available_color: activeProduct.available_color,
+            brand: activeProduct.brand,
+            count: activeProduct.count,
+            motor_type: activeProduct.motor_type,
+            part: activeProduct.part,
+            supplier: activeProduct.supplier,
+            warehouse_position: 'Gudang Bahan',
+            sell_price: activeProduct.sell_price,
+            purchase_price: activeProduct.purchase_price,
+          },
+        ]);
+        setClickedDispatchNote({
+          id: newDispatchNoteDocRef.id,
+          date: new Date().toISOString().slice(0, 10),
+          dispatch_items: [
+            {
+              amount: activeProduct.count,
+              color: activeProduct.available_color,
+              product_id: productId,
+            },
+          ],
+          painter: painterName,
+        });
+        setPdfOpen(true);
       }
 
       // Delete the product from 'broken_product' collection
@@ -338,6 +372,18 @@ export const BrokenProductListPage = () => {
                 )}
               </tbody>
             </table>
+            {clickedDispatchNote && (
+              <PdfViewer
+                products={pdfProducts}
+                setInvoice={() => {}}
+                setDipatchNote={setClickedDispatchNote}
+                dispatchNote={clickedDispatchNote}
+                modalOpen={pdfOpen}
+                setModalOpen={setPdfOpen}
+                invoice={null}
+                destinationName={clickedDispatchNote.painter}
+              />
+            )}
             {nextPosts_empty ? (
               <div className="flex justify-center items-center py-6 px-3 w-full bg-gray-50 rounded-lg z-0 bg-opacity-50">
                 <p className="text-gray-500 text-sm">No more data</p>
