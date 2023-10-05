@@ -1,4 +1,5 @@
 import { PDFViewer } from '@react-pdf/renderer';
+import { useEffect } from 'react';
 import { useAuth } from 'renderer/providers/AuthProvider';
 import { Product } from '../interfaces/Product';
 import DispatchNote from './reports/DispatchNote';
@@ -15,7 +16,7 @@ export const PdfViewer = ({
   setDipatchNote,
 }: {
   invoice: Invoice | null;
-  dispatchNote: DispatchNote | null;
+  dispatchNote: DispatchNote | undefined;
   products: Product[];
   destinationName: string;
   setInvoice: React.Dispatch<React.SetStateAction<Invoice | null>>;
@@ -24,6 +25,12 @@ export const PdfViewer = ({
   setModalOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }) => {
   const { companyInfo } = useAuth();
+
+  useEffect(() => {
+    console.log('invoice ', invoice);
+    console.log('dispatchNote ', dispatchNote);
+    console.log('products ', products);
+  }, [invoice, dispatchNote, products]);
 
   return (
     <div

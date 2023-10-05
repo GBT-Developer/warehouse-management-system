@@ -16,6 +16,7 @@ import { useNavigate } from 'react-router-dom';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { InputField } from 'renderer/components/InputField';
+import { PdfViewer } from 'renderer/components/PdfViewer';
 import { SingleTableItem } from 'renderer/components/TableComponents/SingleTableItem';
 import { TableModal } from 'renderer/components/TableComponents/TableModal';
 import { db } from 'renderer/firebase';
@@ -45,6 +46,10 @@ export const TransferItemPage = () => {
   const failNotify = (e?: string) =>
     toast.error(e ?? 'Barang gagal ditransfer');
   const [isEmpty, setIsEmpty] = useState(false);
+  const [clickedDispatchNote, setClickedDispatchNote] =
+    useState<DispatchNote | null>(null);
+  const [pdfOpen, setPdfOpen] = useState(false);
+  const [pdfProducts, setPdfProducts] = useState<Product[]>([]);
 
   useEffect(() => {
     if (dispatchNote.dispatch_items.length === 0) {
@@ -167,6 +172,10 @@ export const TransferItemPage = () => {
         failNotify(errorMessage);
       });
 
+      setPdfProducts(() => selectedProducts);
+      setClickedDispatchNote(() => dispatchNote);
+      setPdfOpen(true);
+      console.log(selectedProducts);
       // Clear form
       setDispatchNote(newDispatchNoteInitialStates);
       setSelectedProducts([]);
@@ -391,6 +400,19 @@ export const TransferItemPage = () => {
           <p className="text-red-500 text-sm ">{errorMessage}</p>
         )}
       </form>
+
+      {clickedDispatchNote && (
+        <PdfViewer
+          products={pdfProducts}
+          setInvoice={() => {}}
+          setDipatchNote={setClickedDispatchNote}
+          dispatchNote={clickedDispatchNote}
+          modalOpen={pdfOpen}
+          setModalOpen={setPdfOpen}
+          invoice={null}
+          destinationName={clickedDispatchNote.painter}
+        />
+      )}
 
       <TableModal
         placeholder="Search by product brand"

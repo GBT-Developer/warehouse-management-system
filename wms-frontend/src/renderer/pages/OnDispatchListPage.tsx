@@ -66,7 +66,6 @@ export const OnDispatchListPage = () => {
         const productList: (Product & { dispatch_note_id: string })[] = [];
         productSnapshot.forEach((doc) => {
           const data = doc.data() as Product & { dispatch_note_id: string };
-          data.id = doc.id;
           productList.push(data);
         });
 

@@ -1,5 +1,6 @@
 import { StyleSheet, View } from '@react-pdf/renderer';
 
+import { DispatchNote } from 'renderer/interfaces/DispatchNote';
 import { Product } from 'renderer/interfaces/Product';
 import DispatchTableHeader from './DispatchTableHeader';
 import DispatchTableRow from './DispatchTableRow';
@@ -12,10 +13,16 @@ const styles = StyleSheet.create({
   },
 });
 
-const DispatchItemsTable = ({ products }: { products: Product[] }) => (
+const DispatchItemsTable = ({
+  products,
+  dispatchNote,
+}: {
+  products: Product[];
+  dispatchNote?: DispatchNote;
+}) => (
   <View style={styles.tableContainer}>
     <DispatchTableHeader />
-    <DispatchTableRow items={products} />
+    <DispatchTableRow items={products} dispatchNote={dispatchNote} />
   </View>
 );
 

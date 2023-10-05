@@ -1,5 +1,6 @@
 import { StyleSheet, Text, View } from '@react-pdf/renderer';
 import { Fragment } from 'react';
+import { DispatchNote } from 'renderer/interfaces/DispatchNote';
 import { Product } from 'renderer/interfaces/Product';
 
 const styles = StyleSheet.create({
@@ -27,20 +28,25 @@ const styles = StyleSheet.create({
 
 const DispatchTableRow = ({
   items,
+  dispatchNote,
 }: {
-  items?: (Product & {
-    amount?: number;
-  })[];
+  items?: Product[];
+  dispatchNote?: DispatchNote;
 }) => {
   console.log('item ' + items);
-  const rows = items?.map((item) => (
-    <View style={styles.row} key={item.id}>
-      <Text style={styles.description}>
-        {item.brand} {item.motor_type} {item.part} {item.available_color}
-      </Text>
-      <Text style={styles.qty}>{item.count}</Text>
-    </View>
-  ));
+  const rows = items?.map((item) => {
+    const currentProduct = dispatchNote?.dispatch_items.find(
+      (dispatchNoteItem) => dispatchNoteItem.product_id === item.id
+    );
+    return (
+      <View style={styles.row} key={item.id}>
+        <Text style={styles.description}>
+          {item.brand} {item.motor_type} {item.part} {item.available_color}
+        </Text>
+        <Text style={styles.qty}>{currentProduct?.amount}</Text>
+      </View>
+    );
+  });
   return <Fragment>{rows}</Fragment>;
 };
 

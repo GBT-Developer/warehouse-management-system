@@ -14,7 +14,7 @@ import InvoiceSigningArea from './InvoiceSigningArea';
 
 export interface DispatchProps {
   products: Product[];
-  invoice: DispatchNote | null;
+  invoice: DispatchNote | undefined;
   companyInfo: CompanyInfo | null;
   destinationName: string;
 }
@@ -118,7 +118,7 @@ const DispatchNote = ({
             <Text>Tanggal: {invoice?.date}</Text>
           </View>
         </View>
-        <DispatchItemsTable products={products} />
+        <DispatchItemsTable products={products} dispatchNote={invoice} />
       </View>
       <InvoiceSigningArea />
     </Page>
