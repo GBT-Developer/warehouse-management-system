@@ -3,6 +3,8 @@ import {
   collection,
   deleteDoc,
   doc,
+  documentId,
+  getDoc,
   getDocs,
   increment,
   query,
@@ -22,6 +24,7 @@ import { InputField } from 'renderer/components/InputField';
 import { SingleTableItem } from 'renderer/components/TableComponents/SingleTableItem';
 import { TableModal } from 'renderer/components/TableComponents/TableModal';
 import { db } from 'renderer/firebase';
+import { DispatchNote } from 'renderer/interfaces/DispatchNote';
 import { Product } from 'renderer/interfaces/Product';
 import { PurchaseHistory } from 'renderer/interfaces/PurchaseHistory';
 import { Supplier } from 'renderer/interfaces/Supplier';
@@ -60,7 +63,9 @@ export const ManageStockPage = () => {
   const [acceptedProducts, setAcceptedProducts] = useState<
     (Product & { dispatch_note_id?: string; id?: string; status?: string })[]
   >([]); // For manage stock mode 'from_other_warehouse'
-  const [dispatchNote, setDispatchNote] = useState<string>('');
+  const [dispatchNoteId, setDispatchNoteId] = useState<string>('');
+  const [dispatchNote, setDispatchNote] = useState<DispatchNote | null>(null);
+  const [originalProducts, setOriginalProducts] = useState<Product[]>([]);
   const [modalOpen, setModalOpen] = useState(false);
   const selectedSupplierRef = useRef<HTMLSelectElement>(null);
   const selectedWarehouseRef = useRef<HTMLSelectElement>(null);
@@ -105,11 +110,11 @@ export const ManageStockPage = () => {
           }
         });
     } else if (manageStockMode === 'from_other_warehouse') {
-      if (dispatchNote === '' || dateInputRef.current?.value === '') {
+      if (dispatchNoteId === '' || dateInputRef.current?.value === '') {
         setIsEmpty(true);
         return;
       } else if (
-        dispatchNote &&
+        dispatchNoteId &&
         dateInputRef.current?.value !== '' &&
         acceptedProducts.length != 0
       )
@@ -147,7 +152,7 @@ export const ManageStockPage = () => {
     newPurchase,
     manageStockMode,
     selectedWarehouse,
-    dispatchNote,
+    dispatchNoteId,
     acceptedProducts,
     returnedProduct,
   ]);
@@ -158,7 +163,6 @@ export const ManageStockPage = () => {
       supplierList.length === 0 &&
       (manageStockMode === 'purchase' || manageStockMode === 'force-change')
     ) {
-      console.log('fetching supplier list');
       const fetchSupplierList = async () => {
         const supplierQuery = query(collection(db, 'supplier'));
         const res = await getDocs(supplierQuery);
@@ -170,7 +174,7 @@ export const ManageStockPage = () => {
             ...doc.data(),
           } as Supplier);
         });
-        console.log(supplierList);
+
         setSupplierList(supplierList);
       };
 
@@ -234,7 +238,7 @@ export const ManageStockPage = () => {
         newPurchase.purchase_price === 0 &&
         manageStockMode != 'force-change' &&
         !returnedProduct) ||
-      (manageStockMode === 'from_other_warehouse' && dispatchNote === '') ||
+      (manageStockMode === 'from_other_warehouse' && dispatchNoteId === '') ||
       (manageStockMode === 'from_other_warehouse' &&
         acceptedProducts.length != products.length) ||
       newPurchase.created_at === ''
@@ -353,8 +357,7 @@ export const ManageStockPage = () => {
           delete acceptedProduct.status;
           delete acceptedProduct.dispatch_note_id;
           const theOldCount =
-            products.find((product) => {
-              console.log(product, acceptedProduct);
+            originalProducts.find((product) => {
               return product.id === acceptedProduct.id;
             })?.count ?? 0;
 
@@ -452,7 +455,7 @@ export const ManageStockPage = () => {
     setReturnedProduct(false);
     setProducts([]);
     setAcceptedProducts([]);
-    setDispatchNote('');
+    setDispatchNoteId('');
     setReturnedProduct(false);
     setModalOpen(false);
     setManageStockMode('');
@@ -462,12 +465,12 @@ export const ManageStockPage = () => {
   };
 
   const deleteDispatchNote = () => {
-    if (!dispatchNote) return;
+    if (!dispatchNoteId) return;
 
     const onDispatchProductRef = collection(db, 'on_dispatch');
     const onDispatchProductQuery = query(
       onDispatchProductRef,
-      where('dispatch_note_id', '==', dispatchNote)
+      where('dispatch_note_id', '==', dispatchNoteId)
     );
 
     getDocs(onDispatchProductQuery)
@@ -480,7 +483,7 @@ export const ManageStockPage = () => {
       })
       .catch(() => console.log('error'));
 
-    const dispatchNoteRef = doc(db, 'dispatch_note', dispatchNote);
+    const dispatchNoteRef = doc(db, 'dispatch_note', dispatchNoteId);
 
     deleteDoc(dispatchNoteRef).catch((error) => {
       console.error('Error removing document: ', error);
@@ -488,13 +491,13 @@ export const ManageStockPage = () => {
   };
 
   const handleFetchDispatchNote = async () => {
-    if (dispatchNote === '') return;
+    if (dispatchNoteId === '') return;
 
     setLoading(true);
 
     const dispatchedProductQuery = query(
       collection(db, 'on_dispatch'),
-      where('dispatch_note_id', '==', dispatchNote)
+      where('dispatch_note_id', '==', dispatchNoteId)
     );
 
     const dispatchedProductQuerySnapshot = await getDocs(
@@ -510,6 +513,41 @@ export const ManageStockPage = () => {
       } as Product);
     });
 
+    // Fetch dispatch note
+    const dispatchNoteRef = doc(db, 'dispatch_note', dispatchNoteId);
+    const dispatchNoteDoc = await getDoc(dispatchNoteRef);
+
+    if (!dispatchNoteDoc.exists()) {
+      failNotify('Dispatch note not found');
+      setLoading(false);
+      return;
+    }
+
+    const dispatchNoteData = dispatchNoteDoc.data() as DispatchNote;
+    dispatchNoteData.id = dispatchNoteDoc.id;
+    setDispatchNote(dispatchNoteData);
+
+    // Fetch product list
+    const productQuery = query(
+      collection(db, 'product'),
+      where('warehouse_position', '==', 'Gudang Jadi'),
+      where(
+        documentId(),
+        'in',
+        dispatchedProductList.map((p) => p.id)
+      )
+    );
+    const productQuerySnapshot = await getDocs(productQuery);
+    const productList: Product[] = [];
+
+    productQuerySnapshot.forEach((doc) => {
+      productList.push({
+        id: doc.id,
+        ...doc.data(),
+      } as Product);
+    });
+
+    setOriginalProducts(productList);
     setProducts(dispatchedProductList);
     setLoading(false);
   };
@@ -676,9 +714,9 @@ export const ManageStockPage = () => {
                 loading={loading}
                 label="Surat Jalan"
                 labelFor="dispatch-note"
-                value={dispatchNote}
+                value={dispatchNoteId}
                 onChange={(e) => {
-                  setDispatchNote(() => e.target.value);
+                  setDispatchNoteId(() => e.target.value);
                 }}
                 additionalStyle="pr-10"
               />
