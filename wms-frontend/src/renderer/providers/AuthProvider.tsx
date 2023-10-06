@@ -75,7 +75,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   useEffect(() => {
     // Firebase auth state change listener
     const unsubscribe = onAuthStateChanged(auth, (newUser) => {
-      if (newUser) {
+      if (newUser)
         newUser
           .getIdToken()
           .then(async (newToken) => {
@@ -89,7 +89,8 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
             // Retrieving user role
             const userRef = doc(db, 'user', user_id);
             const userSnapshot = await getDoc(userRef);
-            const userData = userSnapshot.data() as CustomUser;
+            const userData = userSnapshot.data() as CustomUser | undefined;
+            if (!userData) throw new Error('No user found');
             userData.id = userSnapshot.id;
 
             const theUser = {
@@ -116,7 +117,9 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
             setUser(() => theUser);
             setWarehouse(
-              theUser.role === 'Owner' ? 'Semua Gudang' : theUser.role
+              theUser.role.toLowerCase() === 'owner'
+                ? 'Semua Gudang'
+                : theUser.role
             );
             setCompanyInfo(() => companyData);
           })
@@ -126,7 +129,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
             setCompanyInfo(null);
             signOut(auth);
           });
-      } else {
+      else {
         setAccessToken(null);
         setUser(null);
         setCompanyInfo(null);
