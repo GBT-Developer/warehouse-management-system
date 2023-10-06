@@ -50,7 +50,7 @@ export const AuthPage = () => {
         <LogoSVG width={250} height={150} />
         <AuthCard>
           <form className="flex flex-col gap-[0.5rem]" onSubmit={handleSubmit}>
-            <h3 className="text-xl font-medium text-gray-900">Sign in</h3>
+            <h3 className="text-xl font-medium text-gray-900">Masuk</h3>
             <div>
               <label
                 htmlFor="email"

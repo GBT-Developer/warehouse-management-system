@@ -45,9 +45,7 @@ export const SignIn = () => {
     <div className="max-w-2xl mx-auto">
       <div className="bg-white shadow-md border border-gray-200 rounded-lg max-w-sm p-4 sm:p-6 lg:p-8">
         <form className="gap-y-6" onSubmit={handleSubmit}>
-          <h3 className="text-xl font-medium text-gray-900">
-            Sign in
-          </h3>
+          <h3 className="text-xl font-medium text-gray-900">Login</h3>
           <div>
             <label
               htmlFor="email"

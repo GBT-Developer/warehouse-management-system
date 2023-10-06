@@ -203,7 +203,13 @@ export default function PurchaseHistoryPage() {
                         }}
                       >
                         <SingleTableItem>
-                          {purchase_history.created_at}
+                          <span className="font-medium text-md">
+                            {purchase_history.created_at}
+                            <br />
+                            <span className="text-sm font-normal">
+                              {purchase_history.time}
+                            </span>
+                          </span>
                         </SingleTableItem>
                         <SingleTableItem>{purchase_history.id}</SingleTableItem>
                         <SingleTableItem>
