@@ -173,9 +173,15 @@ export const TransferItemPage = () => {
       });
 
       setPdfProducts(() => selectedProducts);
-      setClickedDispatchNote(() => dispatchNote);
+      console.log(dispatchNote);
+      setClickedDispatchNote(() => {
+        return {
+          ...dispatchNote,
+          id: dispatchNoteDoc.id,
+        };
+      });
       setPdfOpen(true);
-      console.log(selectedProducts);
+
       // Clear form
       setDispatchNote(newDispatchNoteInitialStates);
       setSelectedProducts([]);

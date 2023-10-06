@@ -14,7 +14,7 @@ import InvoiceSigningArea from './InvoiceSigningArea';
 
 export interface DispatchProps {
   products: Product[];
-  invoice: DispatchNote | undefined;
+  theDispatchNote: DispatchNote | undefined;
   companyInfo: CompanyInfo | null;
   destinationName: string;
 }
@@ -37,13 +37,13 @@ const styles = StyleSheet.create({
   },
 });
 
-const DispatchNote = ({
+const DispatchNotePdf = ({
   products,
-  invoice,
+  theDispatchNote,
   companyInfo,
   destinationName,
 }: DispatchProps) => (
-  <Document title={`Invoice ${invoice?.id ?? ''}`}>
+  <Document title={`Surat Jalan ${theDispatchNote?.id ?? ''}`}>
     <Page size="A4" style={styles.page}>
       <View>
         <View
@@ -115,14 +115,17 @@ const DispatchNote = ({
             }}
           >
             <Text>Nama Tujuan: {destinationName}</Text>
-            <Text>Tanggal: {invoice?.date}</Text>
+            <Text>Tanggal: {theDispatchNote?.date}</Text>
           </View>
         </View>
-        <DispatchItemsTable products={products} dispatchNote={invoice} />
+        <DispatchItemsTable
+          products={products}
+          dispatchNote={theDispatchNote}
+        />
       </View>
       <InvoiceSigningArea />
     </Page>
   </Document>
 );
 
-export default DispatchNote;
+export default DispatchNotePdf;

@@ -1,8 +1,8 @@
 import { PDFViewer } from '@react-pdf/renderer';
-import { useEffect } from 'react';
+import { DispatchNote } from 'renderer/interfaces/DispatchNote';
 import { useAuth } from 'renderer/providers/AuthProvider';
 import { Product } from '../interfaces/Product';
-import DispatchNote from './reports/DispatchNote';
+import DispatchNotePdf from './reports/DispatchNote';
 import Invoice from './reports/Invoice';
 
 export const PdfViewer = ({
@@ -26,12 +26,6 @@ export const PdfViewer = ({
 }) => {
   const { companyInfo } = useAuth();
 
-  useEffect(() => {
-    console.log('invoice ', invoice);
-    console.log('dispatchNote ', dispatchNote);
-    console.log('products ', products);
-  }, [invoice, dispatchNote, products]);
-
   return (
     <div
       className={`fixed top-0 left-0 right-0 z-50 ${
@@ -51,9 +45,9 @@ export const PdfViewer = ({
             destinationName={destinationName}
           />
         ) : (
-          <DispatchNote
+          <DispatchNotePdf
             products={products}
-            invoice={dispatchNote}
+            theDispatchNote={dispatchNote}
             companyInfo={companyInfo}
             destinationName={destinationName}
           />
