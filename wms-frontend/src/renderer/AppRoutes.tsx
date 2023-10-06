@@ -1,5 +1,4 @@
-import { onAuthStateChanged } from 'firebase/auth';
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import {
   Navigate,
   Route,
@@ -7,10 +6,10 @@ import {
   Routes,
   useLocation,
 } from 'react-router-dom';
-import { auth } from 'renderer/firebase';
 import { AdminListPage } from './pages/AdminListPage';
 import { BrokenProductListPage } from './pages/BrokenProductListPage';
 import { ChangePasswordPage } from './pages/ChangePasswordPage';
+import CompanyDetail from './pages/CompanyDetail';
 import { CreateAdminPage } from './pages/CreateAdminPage';
 import CustomerListPage from './pages/CustomerListPage';
 import EditCustomerPage from './pages/EditCustomerPage';
@@ -34,6 +33,7 @@ import TransactionHistory from './pages/TransactionHistory';
 import { TransactionPage } from './pages/TransactionPage';
 import { TransferItemPage } from './pages/TransferItemPage';
 import VoidListPage from './pages/VoidListPage';
+import { useAuth } from './providers/AuthProvider';
 
 type RouteConfig = RouteProps & {
   isPrivate?: boolean;
@@ -151,6 +151,10 @@ export const routes: RouteConfig[] = [
     path: '/changepassword',
     element: <ChangePasswordPage />,
   },
+  {
+    path: '/company-detail',
+    element: <CompanyDetail />,
+  },
 ];
 
 export interface AuthRequiredProps {
@@ -163,23 +167,7 @@ export const AuthRequired = ({
   to = '/auth/login',
 }: AuthRequiredProps) => {
   const { search } = useLocation();
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-
-  // Add a loading state to handle initial Firebase authentication
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    // Set isLoading to false when Firebase authentication is done
-    const unsubscribe = onAuthStateChanged(auth, () => {
-      setIsLoading(false);
-      if (auth.currentUser) setIsLoggedIn(true);
-      else setIsLoggedIn(false);
-    });
-
-    return unsubscribe;
-  }, []);
-
-  if (isLoading) return null; // Or a loading spinner, or any other loading indicator
+  const { isLoggedIn } = useAuth();
 
   return (
     <>

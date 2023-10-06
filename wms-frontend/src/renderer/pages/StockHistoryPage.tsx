@@ -173,7 +173,7 @@ function StockHistoryPage() {
             <table className="w-full text-sm text-left text-gray-500">
               <TableHeader>
                 <th className=" py-3">Tanggal</th>
-                <th className=" py-3">Product</th>
+                <th className=" py-3">Nama Produk</th>
                 <th className=" py-3">Posisi Gudang</th>
                 <th className=" py-3">Jumlah Lama</th>
                 <th className=" py-3">Jumlah Baru</th>
@@ -183,7 +183,7 @@ function StockHistoryPage() {
                 {stockHistory.length === 0 ? (
                   <tr className="border-b">
                     <td className="py-3" colSpan={6}>
-                      <p className="flex justify-center">No data</p>
+                      <p className="flex justify-center">Data tidak tersedia</p>
                     </td>
                   </tr>
                 ) : (
@@ -220,7 +220,13 @@ function StockHistoryPage() {
                     .map((stock_history: StockHistory, index) => (
                       <tr key={index} className="border-b">
                         <SingleTableItem>
-                          {stock_history.created_at}
+                          <span className="font-medium text-md">
+                            {stock_history.created_at}
+                            <br />
+                            <span className="text-sm font-normal">
+                              {stock_history.time}
+                            </span>
+                          </span>
                         </SingleTableItem>
                         <SingleTableItem>
                           {stock_history.product_name}
@@ -269,7 +275,7 @@ function StockHistoryPage() {
                   {nextPosts_loading ? (
                     <AiOutlineLoading3Quarters className="animate-spin flex justify-center text-4xl" />
                   ) : (
-                    'Load more'
+                    'Selanjutnya'
                   )}
                 </button>
               </div>

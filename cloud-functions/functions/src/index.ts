@@ -26,6 +26,7 @@ if (process.env.NODE_ENV === "development") {
 
   import("./seeding").then(async (module) => {
     await module.seedUser(NUM_USERS); // Create 10 users and one 'owner' user
+    await module.seedCompanyInfo(); // Create company info
     const suppliers = await module.seedSupplier(NUM_SUPPLIERS); // Create 10 suppliers
     if (suppliers.size > 0) {
       await module.seedProduct(NUM_PRODUCTS, suppliers); // Create 100 products

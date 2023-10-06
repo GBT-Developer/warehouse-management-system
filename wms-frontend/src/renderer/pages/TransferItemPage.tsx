@@ -16,6 +16,7 @@ import { useNavigate } from 'react-router-dom';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { InputField } from 'renderer/components/InputField';
+import { PdfViewer } from 'renderer/components/PdfViewer';
 import { SingleTableItem } from 'renderer/components/TableComponents/SingleTableItem';
 import { TableModal } from 'renderer/components/TableComponents/TableModal';
 import { db } from 'renderer/firebase';
@@ -45,6 +46,10 @@ export const TransferItemPage = () => {
   const failNotify = (e?: string) =>
     toast.error(e ?? 'Barang gagal ditransfer');
   const [isEmpty, setIsEmpty] = useState(false);
+  const [clickedDispatchNote, setClickedDispatchNote] =
+    useState<DispatchNote | null>(null);
+  const [pdfOpen, setPdfOpen] = useState(false);
+  const [pdfProducts, setPdfProducts] = useState<Product[]>([]);
 
   useEffect(() => {
     if (dispatchNote.dispatch_items.length === 0) {
@@ -166,6 +171,16 @@ export const TransferItemPage = () => {
         const errorMessage = error as unknown as string;
         failNotify(errorMessage);
       });
+
+      setPdfProducts(() => selectedProducts);
+      console.log(dispatchNote);
+      setClickedDispatchNote(() => {
+        return {
+          ...dispatchNote,
+          id: dispatchNoteDoc.id,
+        };
+      });
+      setPdfOpen(true);
 
       // Clear form
       setDispatchNote(newDispatchNoteInitialStates);
@@ -333,8 +348,25 @@ export const TransferItemPage = () => {
                       loading={loading}
                       value={item.amount}
                       onChange={(e) => {
-                        if (!/^[0-9]+$/.test(e.target.value)) return;
-
+                        if (
+                          !/^[0-9]*(\.[0-9]*)?$/.test(e.target.value) &&
+                          e.target.value !== ''
+                        )
+                          return;
+                        if (isNaN(Number(e.target.value))) return;
+                        if (
+                          parseInt(e.target.value) >
+                          selectedProducts[index].count
+                        ) {
+                          setErrorMessage(
+                            'Stock di gudang tidak cukup. Stock di gudang: ' +
+                              selectedProducts[index].count.toString()
+                          );
+                          setTimeout(() => {
+                            setErrorMessage(null);
+                          }, 3000);
+                          return;
+                        }
                         setDispatchNote({
                           ...dispatchNote,
                           dispatch_items: dispatchNote.dispatch_items.map(
@@ -360,7 +392,7 @@ export const TransferItemPage = () => {
           className="py-2 px-5 text-sm font-medium text-red-500 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-red-700 focus:z-10 focus:ring-4 focus:ring-gray-200"
           onClick={() => setModalOpen(true)}
         >
-          + Pilih Product(s)
+          + Pilih Produk
         </button>
 
         <div className="flex flex-row-reverse gap-2 justify-start">
@@ -392,72 +424,87 @@ export const TransferItemPage = () => {
         )}
       </form>
 
+      {clickedDispatchNote && (
+        <PdfViewer
+          products={pdfProducts}
+          setInvoice={() => {}}
+          setDipatchNote={setClickedDispatchNote}
+          dispatchNote={clickedDispatchNote}
+          modalOpen={pdfOpen}
+          setModalOpen={setPdfOpen}
+          invoice={null}
+          destinationName={clickedDispatchNote.painter}
+        />
+      )}
+
       <TableModal
-        placeholder="Search by product brand"
+        placeholder="Cari berdasarkan merek produk"
         modalOpen={modalOpen}
         handleSearch={handleSearch}
         setModalOpen={setModalOpen}
-        title={'Pilih Product'}
+        title={'Pilih Produk'}
         headerList={
           products.length > 0 ? ['', 'Nama Product', 'Jumlah Tersedia'] : []
         }
       >
         {products.length > 0 ? (
-          products.map((product, index) => (
-            <tr
-              key={index}
-              className="border-b hover:shadow-md cursor-pointer"
-              onClick={() => {
-                if (selectedProducts.find((p) => p === product)) {
-                  setSelectedProducts(
-                    selectedProducts.filter((p) => p !== product)
-                  );
-                  setDispatchNote({
-                    ...dispatchNote,
-                    dispatch_items: dispatchNote.dispatch_items.filter(
-                      (i) => i.product_id !== product.id
-                    ),
-                  });
-                } else {
-                  if (!product.id) return;
-                  setSelectedProducts([...selectedProducts, product]);
-                  setDispatchNote({
-                    ...dispatchNote,
-                    dispatch_items: [
-                      ...dispatchNote.dispatch_items,
-                      {
-                        product_id: product.id,
-                        color: '',
-                        amount: 0,
-                      },
-                    ],
-                  });
-                }
-              }}
-            >
-              <SingleTableItem>
-                <input
-                  type="checkbox"
-                  checked={selectedProducts.includes(product)}
-                  readOnly
-                />
-              </SingleTableItem>
-              <SingleTableItem key={index}>
-                {product.brand +
-                  ' ' +
-                  product.motor_type +
-                  ' ' +
-                  product.part +
-                  ' ' +
-                  product.available_color}
-              </SingleTableItem>
-              <SingleTableItem>{product.count}</SingleTableItem>
-            </tr>
-          ))
+          products
+            .filter((product) => product.count > 0) // Filter out products with count <= 0
+            .map((product, index) => (
+              <tr
+                key={index}
+                className="border-b hover:shadow-md cursor-pointer"
+                onClick={() => {
+                  if (selectedProducts.find((p) => p === product)) {
+                    setSelectedProducts(
+                      selectedProducts.filter((p) => p !== product)
+                    );
+                    setDispatchNote({
+                      ...dispatchNote,
+                      dispatch_items: dispatchNote.dispatch_items.filter(
+                        (i) => i.product_id !== product.id
+                      ),
+                    });
+                  } else {
+                    if (!product.id) return;
+                    setSelectedProducts([...selectedProducts, product]);
+                    setDispatchNote({
+                      ...dispatchNote,
+                      dispatch_items: [
+                        ...dispatchNote.dispatch_items,
+                        {
+                          product_id: product.id,
+                          color: '',
+                          amount: 0,
+                        },
+                      ],
+                    });
+                  }
+                }}
+              >
+                <SingleTableItem>
+                  <input
+                    type="checkbox"
+                    checked={selectedProducts.includes(product)}
+                    readOnly
+                  />
+                </SingleTableItem>
+                <SingleTableItem key={index}>
+                  {product.brand +
+                    ' ' +
+                    product.motor_type +
+                    ' ' +
+                    product.part +
+                    ' ' +
+                    product.available_color}
+                </SingleTableItem>
+                <SingleTableItem>{product.count}</SingleTableItem>
+              </tr>
+            ))
         ) : (
           <tr className="border-b">
             <SingleTableItem>
-              <p className="flex justify-center">No products found</p>
+              <p className="flex justify-center">Produk tidak ditemukan</p>
             </SingleTableItem>
           </tr>
         )}

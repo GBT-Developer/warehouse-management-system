@@ -13,8 +13,10 @@ import {
 import React, { useEffect, useState } from 'react';
 import { AiOutlineLoading3Quarters } from 'react-icons/ai';
 import { BiSolidTrash } from 'react-icons/bi';
+import { PiFilePdfBold } from 'react-icons/pi';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { PdfViewer } from 'renderer/components/PdfViewer';
 import { SingleTableItem } from 'renderer/components/TableComponents/SingleTableItem';
 import { TableHeader } from 'renderer/components/TableComponents/TableHeader';
 import { TableTitle } from 'renderer/components/TableComponents/TableTitle';
@@ -22,6 +24,7 @@ import { db } from 'renderer/firebase';
 import { Invoice } from 'renderer/interfaces/Invoice';
 import { PageLayout } from 'renderer/layout/PageLayout';
 import { useAuth } from 'renderer/providers/AuthProvider';
+
 export default function TransactionHistory() {
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(false);
@@ -38,6 +41,8 @@ export default function TransactionHistory() {
   const [nextQuery, setNextQuery] = useState<QueryStartAtConstraint | null>(
     null
   );
+  const [clickedInvoice, setClickedInvoice] = useState<Invoice | null>(null);
+  const [modalOpen, setModalOpen] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -148,7 +153,7 @@ export default function TransactionHistory() {
             )}
             <table className="w-full text-sm text-left text-gray-500">
               <TableHeader>
-                <th className=" py-3">Tangga</th>
+                <th className=" py-3">Tanggal</th>
                 <th className=" py-3">Nomor Invoice</th>
                 <th className=" py-3">Nama Customer</th>
                 <th className=" py-3">Posisi Gudang</th>
@@ -187,7 +192,13 @@ export default function TransactionHistory() {
                         }}
                       >
                         <SingleTableItem>
-                          {mapInvoiceHistory.date}
+                          <span className="font-medium text-md">
+                            {mapInvoiceHistory.date}
+                            <br />
+                            <span className="text-sm font-normal">
+                              {mapInvoiceHistory.time}
+                            </span>
+                          </span>
                         </SingleTableItem>
                         <SingleTableItem>
                           {mapInvoiceHistory.id}
@@ -214,6 +225,19 @@ export default function TransactionHistory() {
                         <SingleTableItem>
                           <button
                             type="button"
+                            className="text-blue-500 text-lg p-2 hover:text-blue-700 cursor-pointer bg-transparent rounded-md"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              if (!mapInvoiceHistory.id) return;
+                              setClickedInvoice(mapInvoiceHistory);
+                              setModalOpen(true);
+                            }}
+                          >
+                            <PiFilePdfBold size={20} />
+                          </button>
+
+                          <button
+                            type="button"
                             className="text-red-500 text-lg p-2 hover:text-red-700 cursor-pointer bg-transparent rounded-md"
                             onClick={(e) => {
                               e.stopPropagation();
@@ -226,9 +250,12 @@ export default function TransactionHistory() {
                               );
                               deleteDoc(purchaseRef)
                                 .then(() => {
-                                  const newInvoiceHistroy = [...invoiceHistory];
-                                  newInvoiceHistroy.splice(index, 1);
-                                  setInvoiceHistory(newInvoiceHistroy);
+                                  setInvoiceHistory((prev) =>
+                                    prev.filter(
+                                      (invoice) =>
+                                        invoice.id !== mapInvoiceHistory.id
+                                    )
+                                  );
                                 })
                                 .catch(() => failNotify());
                               setLoading(false);
@@ -276,19 +303,33 @@ export default function TransactionHistory() {
               <div className="flex justify-center items-center py-6 px-3 w-full bg-gray-50 rounded-lg z-0 bg-opacity-50">
                 <button
                   className="text-gray-500 text-sm hover:underline"
-                  onClick={() => fetchMoreData()}
+                  onClick={() => {
+                    fetchMoreData().catch((error) => console.log(error));
+                  }}
                 >
                   {nextPosts_loading ? (
                     <div className="flex justify-center items-center">
                       <AiOutlineLoading3Quarters className="animate-spin flex justify-center text-4xl" />
                     </div>
                   ) : (
-                    'Load more'
+                    'Selanjutnya'
                   )}
                 </button>
               </div>
             )}
           </div>
+          {clickedInvoice && (
+            <PdfViewer
+              products={[]}
+              setInvoice={setClickedInvoice}
+              dispatchNote={undefined}
+              setDipatchNote={() => {}}
+              modalOpen={modalOpen}
+              setModalOpen={setModalOpen}
+              invoice={clickedInvoice}
+              destinationName={clickedInvoice.customer_name ?? ''}
+            />
+          )}
         </div>
       </div>
       <ToastContainer

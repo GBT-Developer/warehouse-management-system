@@ -1,5 +1,6 @@
 import { faker } from "@faker-js/faker";
 import * as functions from "firebase-functions";
+import * as path from "path";
 import { firebaseAdmin } from "../index";
 
 export const seedUser = async (num_of_user: number) => {
@@ -66,6 +67,36 @@ const createRootUser = async () => {
           functions.logger.error(error);
         });
     });
+};
+
+export const seedCompanyInfo = async () => {
+  const db = firebaseAdmin.firestore();
+  const company_info = await db.collection("company_info").get();
+
+  if (company_info.size === 0) {
+    await db.runTransaction(async (t) => {
+      const company_info_ref = db.collection("company_info").doc("my_company");
+      t.set(company_info_ref, {
+        name: "PT. Permata Motor",
+        address: "Jl. Raya Ciputat No. 1",
+        phone_number: "081234567890",
+        logo: "company_info/company_logo",
+      });
+    });
+
+    const currentDir = path.resolve(__dirname);
+    const fileName = path.resolve(currentDir, "../../One_piece_logo.png");
+
+    const bucket = firebaseAdmin.storage().bucket();
+    await bucket.upload(fileName, {
+      destination: "company_info/company_logo",
+      metadata: {
+        contentType: "image/png",
+      },
+    });
+  } else {
+    functions.logger.info("Company info already exists");
+  }
 };
 
 export const seedSupplier = async (

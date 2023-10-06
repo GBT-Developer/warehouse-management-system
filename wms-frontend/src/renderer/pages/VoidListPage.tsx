@@ -159,10 +159,9 @@ export default function VoidListPage() {
             )}
             <table className="w-full text-sm text-left text-gray-500">
               <TableHeader>
-                <th className="py-3">Date</th>
+                <th className="py-3">Tanggal</th>
                 <th className="py-3">Void Invoice ID</th>
                 <th className="py-3">Nama Customer</th>
-                <th className="py-3">Tanggal</th>
                 <th className="py-3">Metode Pembayaran</th>
                 <th className="py-3">Total Harga</th>
               </TableHeader>
@@ -170,7 +169,7 @@ export default function VoidListPage() {
                 {voidList.length === 0 ? (
                   <tr className="border-b">
                     <td className="py-3" colSpan={6}>
-                      <p className="flex justify-center">No data</p>
+                      <p className="flex justify-center">Data tidak tersedia</p>
                     </td>
                   </tr>
                 ) : (
@@ -259,7 +258,7 @@ export default function VoidListPage() {
                   {nextPosts_loading ? (
                     <AiOutlineLoading3Quarters className="animate-spin flex justify-center text-4xl" />
                   ) : (
-                    'Load more'
+                    'Selanjutnya'
                   )}
                 </button>
               </div>

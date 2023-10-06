@@ -58,9 +58,9 @@ export const TransactionPage = () => {
   useEffect(() => {
     const fetchCustomer = async () => {
       try {
-        const productsQuery = query(collection(db, 'customer'));
+        const customerQuery = query(collection(db, 'customer'));
         setLoading(true);
-        const querySnapshot = await getDocs(productsQuery);
+        const querySnapshot = await getDocs(customerQuery);
 
         const customerData: Customer[] = [];
         querySnapshot.forEach((theCustomer) => {
@@ -314,7 +314,7 @@ export const TransactionPage = () => {
               name="supplier-id"
               onChange={(e) => {
                 if (e.target.value === 'New Customer')
-                  navigate('/input-customer');
+                  navigate('/customer-list/new');
                 if (e.target.value === 'Guest') {
                   setSelectedCustomer(null);
                   setGuestFormOpen(true);
@@ -463,7 +463,7 @@ export const TransactionPage = () => {
           disabled={!selectedCustomer && !guestFormOpen}
           onClick={() => setModalOpen(true)}
         >
-          + Pilih Product(s)
+          + Pilih Produk
         </button>
 
         <hr />
@@ -546,7 +546,7 @@ export const TransactionPage = () => {
             }}
             className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5"
           >
-            Submit
+            Konfirm
           </button>
         </div>
         {errorMessage && (
@@ -554,89 +554,91 @@ export const TransactionPage = () => {
         )}
       </form>
       <TableModal
-        placeholder="Search by product brand"
+        placeholder="Cari berdasarkan merek produk"
         modalOpen={modalOpen}
         setModalOpen={setModalOpen}
         handleSearch={handleSearch}
-        title={'Choose Product'}
+        title={'Pilih Produk'}
         headerList={
           products.length > 0
-            ? ['', 'Nama Product', 'Posisi Gudang', 'Jumlah Tersedia', 'Harga']
+            ? ['', 'Nama Produk', 'Posisi Gudang', 'Jumlah Tersedia', 'Harga']
             : []
         }
       >
         {products.length > 0 ? (
-          products.map((product, index) => (
-            <tr
-              key={index}
-              className="hover:bg-gray-100 cursor-pointer"
-              onClick={() => {
-                if (selectedProducts.find((p) => p === product)) {
-                  setSelectedProducts(
-                    selectedProducts.filter((p) => p !== product)
-                  );
-                  setInvoice({
-                    ...invoice,
-                    items: invoice.items?.filter((p) => p.id !== product.id),
-                  });
-                } else {
-                  if (!product.id) return;
-                  setSelectedProducts([...selectedProducts, product]);
-                  setInvoice({
-                    ...invoice,
-                    items: [
-                      ...(invoice.items ?? []),
-                      {
-                        id: product.id,
-                        count: 1,
-                        sell_price:
-                          selectedCustomer?.SpecialPrice.find(
-                            (p) => p.product_id === product.id
-                          )?.price ?? product.sell_price,
-                        brand: product.brand,
-                        motor_type: product.motor_type,
-                        part: product.part,
-                        available_color: product.available_color,
-                        warehouse_position: product.warehouse_position,
-                        purchase_price: product.purchase_price,
-                        supplier: product.supplier,
-                        is_returned: false,
-                      },
-                    ],
-                  });
-                }
-              }}
-            >
-              <SingleTableItem>
-                <input
-                  type="checkbox"
-                  checked={selectedProducts.includes(product)}
-                  readOnly
-                />
-              </SingleTableItem>
-              <SingleTableItem key={index}>
-                {product.brand +
-                  ' ' +
-                  product.motor_type +
-                  ' ' +
-                  product.part +
-                  ' ' +
-                  product.available_color}
-              </SingleTableItem>
-              <SingleTableItem>{product.warehouse_position}</SingleTableItem>
-              <SingleTableItem>{product.count}</SingleTableItem>
-              <SingleTableItem>
-                {new Intl.NumberFormat('id-ID', {
-                  style: 'currency',
-                  currency: 'IDR',
-                }).format(product.sell_price)}
-              </SingleTableItem>
-            </tr>
-          ))
+          products
+            .filter((product) => product.count > 0) // Filter out products with count <= 0
+            .map((product, index) => (
+              <tr
+                key={index}
+                className="hover:bg-gray-100 cursor-pointer"
+                onClick={() => {
+                  if (selectedProducts.find((p) => p === product)) {
+                    setSelectedProducts(
+                      selectedProducts.filter((p) => p !== product)
+                    );
+                    setInvoice({
+                      ...invoice,
+                      items: invoice.items?.filter((p) => p.id !== product.id),
+                    });
+                  } else {
+                    if (!product.id) return;
+                    setSelectedProducts([...selectedProducts, product]);
+                    setInvoice({
+                      ...invoice,
+                      items: [
+                        ...(invoice.items ?? []),
+                        {
+                          id: product.id,
+                          count: 1,
+                          sell_price:
+                            selectedCustomer?.SpecialPrice.find(
+                              (p) => p.product_id === product.id
+                            )?.price ?? product.sell_price,
+                          brand: product.brand,
+                          motor_type: product.motor_type,
+                          part: product.part,
+                          available_color: product.available_color,
+                          warehouse_position: product.warehouse_position,
+                          purchase_price: product.purchase_price,
+                          supplier: product.supplier,
+                          is_returned: false,
+                        },
+                      ],
+                    });
+                  }
+                }}
+              >
+                <SingleTableItem>
+                  <input
+                    type="checkbox"
+                    checked={selectedProducts.includes(product)}
+                    readOnly
+                  />
+                </SingleTableItem>
+                <SingleTableItem key={index}>
+                  {product.brand +
+                    ' ' +
+                    product.motor_type +
+                    ' ' +
+                    product.part +
+                    ' ' +
+                    product.available_color}
+                </SingleTableItem>
+                <SingleTableItem>{product.warehouse_position}</SingleTableItem>
+                <SingleTableItem>{product.count}</SingleTableItem>
+                <SingleTableItem>
+                  {new Intl.NumberFormat('id-ID', {
+                    style: 'currency',
+                    currency: 'IDR',
+                  }).format(product.sell_price)}
+                </SingleTableItem>
+              </tr>
+            ))
         ) : (
           <tr className="border-b">
             <SingleTableItem>
-              <p className="flex justify-center">No products found</p>
+              <p className="flex justify-center">Produk tidak ditemukan</p>
             </SingleTableItem>
           </tr>
         )}

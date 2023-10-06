@@ -1,7 +1,6 @@
 import {
   QueryStartAtConstraint,
   collection,
-  deleteDoc,
   doc,
   getDocs,
   limit,
@@ -13,7 +12,6 @@ import {
 } from 'firebase/firestore';
 import React, { useEffect, useState } from 'react';
 import { AiOutlineLoading3Quarters } from 'react-icons/ai';
-import { BiSolidTrash } from 'react-icons/bi';
 import { IoChevronBackOutline } from 'react-icons/io5';
 import { useNavigate, useParams } from 'react-router-dom';
 import { SingleTableItem } from 'renderer/components/TableComponents/SingleTableItem';
@@ -158,7 +156,7 @@ export default function PurchaseHistoryPage() {
                 <IoChevronBackOutline size={40} /> {/* Icon */}
               </button>
               <h1 className="text-4xl font-extrabold tracking-tight text-gray-900 md:text-5xl">
-                Purchase Report
+                Riwayat Pembelian
               </h1>
             </div>
           </TableTitle>
@@ -170,8 +168,8 @@ export default function PurchaseHistoryPage() {
             )}
             <table className="w-full text-sm text-left text-gray-500">
               <TableHeader>
-                <th className="py-3">Nomor Invoice</th>
                 <th className="py-3">Tanggal</th>
+                <th className="py-3">Nomor Invoice</th>
                 <th className="py-3">Harga Beli</th>
                 <th className="py-3">Status</th>
                 <th className="py-3"></th>
@@ -198,7 +196,8 @@ export default function PurchaseHistoryPage() {
                     <React.Fragment key={index}>
                       <tr
                         className="border-b hover:shadow-md cursor-pointer"
-                        onClick={() => {
+                        onClick={(e) => {
+                          e.stopPropagation();
                           if (!purchase_history.id) return;
                           toggleShowProducts(purchase_history.id);
                         }}
@@ -216,36 +215,43 @@ export default function PurchaseHistoryPage() {
                           </span>
                         </SingleTableItem>
                         <SingleTableItem>
-                          <form>
+                          <form
+                            onClick={(e) => {
+                              e.stopPropagation();
+                            }}
+                          >
                             <select
-                              value={purchase_history.payment_status.toLowerCase()}
+                              value={purchaseList[
+                                index
+                              ].payment_status.toLowerCase()} // Use purchaseList[index] instead of purchase_history
                               disabled={
                                 loading || user?.role.toLowerCase() !== 'owner'
                               }
-                              id="purchase_history"
-                              name="purchase_history"
+                              id={`purchase_history_${index}`} // Use a unique ID for each select element
+                              name={`purchase_history_${index}`} // Use a unique name for each select element
                               onChange={(e) => {
+                                e.stopPropagation();
                                 const newPurchaseList = [...purchaseList];
                                 newPurchaseList[index].payment_status =
                                   e.target.value;
                                 setPurchaseList(newPurchaseList);
 
-                                // Update the data in firebase
-                                if (!purchase_history.id) return;
+                                // Update the data in firebase for the specific purchase_history item
+                                const theId = purchaseList[index].id;
+                                if (!theId) return;
                                 const purchaseRef = doc(
                                   db,
                                   'purchase_history',
-                                  purchase_history.id
+                                  theId
                                 );
-                                purchase_history.payment_status =
-                                  e.target.value;
                                 updateDoc(purchaseRef, {
                                   payment_status: e.target.value,
                                 }).catch((error) => console.log(error));
                               }}
                               className={` ${
-                                purchase_history.payment_status.toLowerCase() ===
-                                'unpaid'
+                                purchaseList[
+                                  index
+                                ].payment_status.toLowerCase() === 'unpaid'
                                   ? 'bg-red-400'
                                   : 'bg-green-400'
                               } border border-gray-300 text-gray-900 text-sm rounded-lg outline-none block w-fit p-2.5`}
@@ -258,31 +264,6 @@ export default function PurchaseHistoryPage() {
                               </option>
                             </select>
                           </form>
-                        </SingleTableItem>
-                        <SingleTableItem>
-                          <button
-                            type="button"
-                            className="text-red-500 text-lg p-2 hover:text-red-700 cursor-pointer bg-transparent rounded-md"
-                            onClick={() => {
-                              setLoading(true);
-                              if (!purchase_history.id) return;
-                              const purchaseRef = doc(
-                                db,
-                                'purchase_history',
-                                purchase_history.id
-                              );
-                              deleteDoc(purchaseRef)
-                                .then(() => {
-                                  const newPurchaseList = [...purchaseList];
-                                  newPurchaseList.splice(index, 1);
-                                  setPurchaseList(newPurchaseList);
-                                })
-                                .catch((error) => console.log(error));
-                              setLoading(false);
-                            }}
-                          >
-                            <BiSolidTrash />
-                          </button>
                         </SingleTableItem>
                       </tr>
                       {purchase_history.id &&
@@ -324,7 +305,7 @@ export default function PurchaseHistoryPage() {
                       <AiOutlineLoading3Quarters className="animate-spin flex justify-center text-4xl" />
                     </div>
                   ) : (
-                    'Load more'
+                    'Selanjutnya'
                   )}
                 </button>
               </div>

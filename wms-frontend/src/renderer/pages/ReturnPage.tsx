@@ -515,7 +515,7 @@ export default function ReturnPage() {
               className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
             >
               <option value={''} disabled>
-                Select mode
+                Pilih mode
               </option>
               <option value={'return'}>Pengembalian</option>
               <option value={'exchange'}>Tukar Barang</option>
@@ -836,7 +836,7 @@ export default function ReturnPage() {
                 disabled={loading}
                 onClick={() => setModalOpen(true)}
               >
-                + Pilih Product(s)
+                + Pilih Produk
               </button>
 
               <hr />
@@ -930,7 +930,7 @@ export default function ReturnPage() {
               }}
               className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2 focus:outline-none"
             >
-              Submit
+              Konfirm
             </button>
             <button
               disabled={loading}
@@ -938,7 +938,7 @@ export default function ReturnPage() {
               className="py-2.5 px-5 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-200"
               onClick={() => navigate(-1)}
             >
-              Cancel
+              Batal
             </button>
           </div>
           {errorMessage && (
@@ -948,91 +948,93 @@ export default function ReturnPage() {
       )}
 
       <TableModal
-        placeholder="Search by product brand"
+        placeholder="Cari berdasarkan merek produk"
         modalOpen={modalOpen}
         setModalOpen={setModalOpen}
         handleSearch={handleSearch}
-        title={'Choose Product'}
+        title={'Pilih Produk'}
         headerList={
           products.length > 0
-            ? ['', 'Nama Product', 'Posisi Gudang', 'Jumlah Tersedia', 'Harga']
+            ? ['', 'Nama Produk', 'Posisi Gudang', 'Jumlah Tersedia', 'Harga']
             : []
         }
       >
         {products.length > 0 ? (
-          products.map((product, index) => (
-            <tr
-              key={index}
-              className="hover:bg-gray-100 cursor-pointer"
-              onClick={() => {
-                if (selectedProducts.some((p) => p.id === product.id)) {
-                  setSelectedProducts(
-                    selectedProducts.filter((p) => p.id !== product.id)
-                  );
-                  setNewTransaction({
-                    ...newTransaction,
-                    items: newTransaction.items?.filter(
-                      (p) => p.id !== product.id
-                    ),
-                  });
-                  setSelectedNewItems(
-                    selectedNewItems.filter((p) => p.id !== product.id)
-                  );
-                } else {
-                  if (!product.id) return;
-                  const specialPrice = getSpecialPriceForProduct(product.id);
-                  setSelectedProducts([...selectedProducts, product]);
-                  setSelectedNewItems([
-                    ...selectedNewItems,
-                    {
-                      id: product.id,
-                      count: 1,
-                      sell_price:
-                        specialPrice !== null
-                          ? specialPrice
-                          : product.sell_price,
-                      brand: product.brand,
-                      motor_type: product.motor_type,
-                      part: product.part,
-                      available_color: product.available_color,
-                      purchase_price: product.purchase_price,
-                      warehouse_position: product.warehouse_position,
-                      is_returned: false,
-                    },
-                  ]);
-                }
-              }}
-            >
-              <SingleTableItem>
-                <input
-                  type="checkbox"
-                  checked={selectedProducts.includes(product)}
-                  readOnly
-                />
-              </SingleTableItem>
-              <SingleTableItem key={index}>
-                {product.brand +
-                  ' ' +
-                  product.motor_type +
-                  ' ' +
-                  product.part +
-                  ' ' +
-                  product.available_color}
-              </SingleTableItem>
-              <SingleTableItem>{product.warehouse_position}</SingleTableItem>
-              <SingleTableItem>{product.count}</SingleTableItem>
-              <SingleTableItem>
-                {new Intl.NumberFormat('id-ID', {
-                  style: 'currency',
-                  currency: 'IDR',
-                }).format(product.sell_price)}
-              </SingleTableItem>
-            </tr>
-          ))
+          products
+            .filter((product) => product.count > 0) // Filter out products with count <= 0
+            .map((product, index) => (
+              <tr
+                key={index}
+                className="hover:bg-gray-100 cursor-pointer"
+                onClick={() => {
+                  if (selectedProducts.some((p) => p.id === product.id)) {
+                    setSelectedProducts(
+                      selectedProducts.filter((p) => p.id !== product.id)
+                    );
+                    setNewTransaction({
+                      ...newTransaction,
+                      items: newTransaction.items?.filter(
+                        (p) => p.id !== product.id
+                      ),
+                    });
+                    setSelectedNewItems(
+                      selectedNewItems.filter((p) => p.id !== product.id)
+                    );
+                  } else {
+                    if (!product.id) return;
+                    const specialPrice = getSpecialPriceForProduct(product.id);
+                    setSelectedProducts([...selectedProducts, product]);
+                    setSelectedNewItems([
+                      ...selectedNewItems,
+                      {
+                        id: product.id,
+                        count: 1,
+                        sell_price:
+                          specialPrice !== null
+                            ? specialPrice
+                            : product.sell_price,
+                        brand: product.brand,
+                        motor_type: product.motor_type,
+                        part: product.part,
+                        available_color: product.available_color,
+                        purchase_price: product.purchase_price,
+                        warehouse_position: product.warehouse_position,
+                        is_returned: false,
+                      },
+                    ]);
+                  }
+                }}
+              >
+                <SingleTableItem>
+                  <input
+                    type="checkbox"
+                    checked={selectedProducts.includes(product)}
+                    readOnly
+                  />
+                </SingleTableItem>
+                <SingleTableItem key={index}>
+                  {product.brand +
+                    ' ' +
+                    product.motor_type +
+                    ' ' +
+                    product.part +
+                    ' ' +
+                    product.available_color}
+                </SingleTableItem>
+                <SingleTableItem>{product.warehouse_position}</SingleTableItem>
+                <SingleTableItem>{product.count}</SingleTableItem>
+                <SingleTableItem>
+                  {new Intl.NumberFormat('id-ID', {
+                    style: 'currency',
+                    currency: 'IDR',
+                  }).format(product.sell_price)}
+                </SingleTableItem>
+              </tr>
+            ))
         ) : (
           <tr className="border-b">
             <SingleTableItem>
-              <p className="flex justify-center">No products found</p>
+              <p className="flex justify-center">Produk tidak ditemukan</p>
             </SingleTableItem>
           </tr>
         )}

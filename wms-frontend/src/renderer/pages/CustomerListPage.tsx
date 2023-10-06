@@ -128,7 +128,7 @@ export default function CustomerListPage() {
                 {customerList.length === 0 ? (
                   <tr className="border-b">
                     <td className="py-3" colSpan={3}>
-                      <p className="flex justify-center">No data</p>
+                      <p className="flex justify-center">Data tidak tersedia</p>
                     </td>
                   </tr>
                 ) : (
@@ -207,7 +207,7 @@ export default function CustomerListPage() {
                   {nextPosts_loading ? (
                     <AiOutlineLoading3Quarters className="animate-spin flex justify-center text-4xl" />
                   ) : (
-                    'Load more'
+                    'Selanjutnya'
                   )}
                 </button>
               </div>
@@ -219,7 +219,7 @@ export default function CustomerListPage() {
               className=" text-blue-700 bg-white hover:bg-white  focus:ring-4 focus:ring-white font-medium rounded-lg text-lg px-10 py-3 focus:outline-none hover:-translate-y-1 shadow-md  sh"
               onClick={() => navigate('/customer-list/new')}
             >
-              + New
+              + Tambah
             </button>
           </div>
         </div>

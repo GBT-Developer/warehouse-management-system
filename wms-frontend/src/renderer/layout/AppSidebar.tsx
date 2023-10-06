@@ -14,10 +14,12 @@ import {
   MdInventory2,
   MdOutlineAssignmentReturn,
   MdOutlinePeopleAlt,
+  MdWork,
 } from 'react-icons/md';
 import { PiPasswordLight, PiUserListLight } from 'react-icons/pi';
 import { TbPackageExport, TbTruckReturn } from 'react-icons/tb';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
+import LogoSVG from 'renderer/components/Logo';
 import { useAuth } from 'renderer/providers/AuthProvider';
 
 interface SidebarItemProps {
@@ -147,7 +149,7 @@ export const AppSidebar = () => {
       <div className="py-4">
         <div className="flex px-3 justify-between items-center text-black">
           <Link to="/">
-            <p className="text-4xl font-bold">WMS</p>
+            <LogoSVG width={100} height={50} />
           </Link>
         </div>
         <div className="px-3">
@@ -258,7 +260,7 @@ export const AppSidebar = () => {
                   '/broken-product-list-page'
                 )}
               >
-                Product Rusak
+                Produk Rusak
               </SidebarItem>
 
               {user?.role.toLocaleLowerCase() === 'owner' && (
@@ -339,15 +341,26 @@ export const AppSidebar = () => {
         <p className="text-sm font-bold text-gray-500 ">Administrasi</p>
         <ul className="my-3 space-y-2 font-regular">
           {user?.role.toLocaleLowerCase() === 'owner' && (
-            <SidebarItem
-              icon={<PiUserListLight />}
-              onClick={() => {
-                navigate('/adminlistpage');
-              }}
-              selected={location.pathname.includes('/adminlistpage')}
-            >
-              List Admin
-            </SidebarItem>
+            <>
+              <SidebarItem
+                icon={<PiUserListLight />}
+                onClick={() => {
+                  navigate('/adminlistpage');
+                }}
+                selected={location.pathname.includes('/adminlistpage')}
+              >
+                List Admin
+              </SidebarItem>
+              <SidebarItem
+                icon={<MdWork />}
+                onClick={() => {
+                  navigate('/company-detail');
+                }}
+                selected={location.pathname.includes('/company-detail')}
+              >
+                Detail Perusahaan
+              </SidebarItem>
+            </>
           )}
           <SidebarItem
             icon={<PiPasswordLight />}

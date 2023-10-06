@@ -6,11 +6,13 @@ import {
   signOut,
 } from 'firebase/auth';
 import { doc, getDoc, runTransaction } from 'firebase/firestore';
+import { getBlob, ref } from 'firebase/storage';
 import React, { useContext, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import { auth, db, secondaryAuth } from 'renderer/firebase';
+import { auth, db, secondaryAuth, storage } from 'renderer/firebase';
+import { CompanyInfo } from 'renderer/interfaces/CompanyInfo';
 import { CustomUser } from 'renderer/interfaces/CustomUser';
 
 export interface LoginData {
@@ -34,8 +36,10 @@ export interface AuthContext {
     logout: () => void;
     register: (registerData: RegisterData) => Promise<CustomUser | undefined>;
     setCurrentWarehouse: (newWarehousePosition: string) => void;
+    setCurrentCompanyInfo: (newCompanyInfo: CompanyInfo) => void;
   };
   warehousePosition: string;
+  companyInfo: CompanyInfo | null;
 }
 
 export const initialAuthContext = {
@@ -47,8 +51,10 @@ export const initialAuthContext = {
     logout: () => undefined,
     register: () => Promise.resolve(undefined),
     setCurrentWarehouse: () => undefined,
+    setCurrentCompanyInfo: () => undefined,
   },
   warehousePosition: '',
+  companyInfo: null,
 };
 
 export const authContext = React.createContext<AuthContext | null>(
@@ -64,46 +70,27 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [accessToken, setAccessToken] = useState<string | null>(null); // Store token in memory
   const [user, setUser] = useState<CustomUser | null>(null);
   const [warehouse, setWarehouse] = useState<string>('');
+  const [companyInfo, setCompanyInfo] = useState<CompanyInfo | null>(null);
 
   useEffect(() => {
     // Firebase auth state change listener
     const unsubscribe = onAuthStateChanged(auth, (newUser) => {
-      if (newUser) {
+      if (newUser)
         newUser
           .getIdToken()
           .then(async (newToken) => {
             setAccessToken(newToken);
-            const { user_id } = JSON.parse(atob(newToken.split('.')[1])) as {
-              user_id: string | undefined;
-            };
-
-            if (!user_id) throw new Error('No user id found in token');
-
-            const userRef = doc(db, 'user', user_id);
-            const userSnapshot = await getDoc(userRef);
-            const userData = userSnapshot.data() as CustomUser;
-            userData.id = userSnapshot.id;
-
-            const theUser = {
-              display_name: userData.display_name,
-              email: userData.email,
-              id: userData.id,
-              role: userData.role,
-            } as CustomUser;
-
-            setUser(() => theUser);
-            setWarehouse(
-              theUser.role === 'Owner' ? 'Semua Gudang' : theUser.role
-            );
           })
           .catch(() => {
             setAccessToken(null);
             setUser(null);
-            navigate('/');
+            setCompanyInfo(null);
+            signOut(auth);
           });
-      } else {
+      else {
         setAccessToken(null);
         setUser(null);
+        setCompanyInfo(null);
         navigate('/');
       }
     });
@@ -152,6 +139,41 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       const userData = userSnapshot.data() as CustomUser | undefined;
 
       if (!userData) throw new Error('No user found');
+
+      // Retrieving user role
+      if (!userData) throw new Error('No user found');
+      userData.id = userSnapshot.id;
+
+      const theUser = {
+        display_name: userData.display_name,
+        email: userData.email,
+        id: userData.id,
+        role: userData.role,
+      } as CustomUser;
+
+      // Retrieving company info
+      const companyRef = doc(db, 'company_info', 'my_company');
+      const companySnapshot = await getDoc(companyRef);
+      const companyData = companySnapshot.data() as CompanyInfo | undefined;
+      if (companyData) {
+        const spaceRef = ref(storage, companyData.logo);
+
+        await getBlob(spaceRef)
+          .then((url) => {
+            companyData.logo = URL.createObjectURL(url);
+          })
+          .catch(() => {
+            companyData.logo = 'company_info/company_logo.png';
+          });
+        console.log(companyData);
+      }
+
+      setUser(() => theUser);
+      setWarehouse(
+        theUser.role.toLowerCase() === 'owner' ? 'Semua Gudang' : theUser.role
+      );
+      setCompanyInfo(() => companyData ?? null);
+      navigate('/profile');
 
       return userData;
     } catch (error) {
@@ -225,6 +247,13 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     []
   );
 
+  const onChangeCompanyInfo = React.useCallback(
+    (newCompanyInfo: CompanyInfo) => {
+      setCompanyInfo(() => newCompanyInfo);
+    },
+    []
+  );
+
   const authValue = useMemo(
     () => ({
       accessToken,
@@ -235,8 +264,10 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         logout: onLogout,
         register: onRegister,
         setCurrentWarehouse: onChangeWarehouse,
+        setCurrentCompanyInfo: onChangeCompanyInfo,
       },
       warehousePosition: warehouse,
+      companyInfo,
     }),
     [
       accessToken,
@@ -246,6 +277,8 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       onRegister,
       onChangeWarehouse,
       warehouse,
+      onChangeCompanyInfo,
+      companyInfo,
     ]
   );
 

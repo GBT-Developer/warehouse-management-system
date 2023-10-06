@@ -287,7 +287,7 @@ function EditCustomerPage() {
           className="py-2 px-5 text-sm font-medium text-red-500 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-red-700 focus:z-10 focus:ring-4 focus:ring-gray-200"
           onClick={() => setModalOpen(true)}
         >
-          + Pilih Product(s)
+          + Pilih Produk
         </button>
 
         <div className="flex flex-row-reverse gap-2 justify-start">
@@ -299,7 +299,7 @@ function EditCustomerPage() {
               handleSubmit(e).catch((error) => console.log(error));
             }}
           >
-            Submit
+            Simpan
           </button>
           <button
             disabled={loading}
@@ -307,7 +307,7 @@ function EditCustomerPage() {
             className="py-2 px-5 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-4 focus:ring-gray-200"
             onClick={() => navigate(-1)}
           >
-            Cancel
+            Batal
           </button>
         </div>
         {errorMessage && (
@@ -315,11 +315,11 @@ function EditCustomerPage() {
         )}
       </form>
       <TableModal
-        placeholder="Search by product brand"
+        placeholder="Cari berdasarkan merek produk"
         modalOpen={modalOpen}
         handleSearch={handleSearch}
         setModalOpen={setModalOpen}
-        title={'Pilih Product'}
+        title={'Pilih Produk'}
         headerList={
           products.length > 0
             ? ['', 'Nama Product', 'Harga Jual', 'Posisi Gudang']
