@@ -90,6 +90,17 @@ export const ProductPdf = ({ products, companyInfo }: ProductPdf) => (
   >
     <Page size="A4" style={styles.page}>
       <View>
+        <View>
+          <Text
+            style={{
+              textAlign: 'left',
+              fontSize: 32,
+              fontWeight: 900,
+            }}
+          >
+            Stok Produk
+          </Text>
+        </View>
         <View
           style={{
             display: 'flex',
