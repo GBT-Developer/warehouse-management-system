@@ -33,7 +33,6 @@ function InputSupplier() {
     toast.error(e ?? 'Supplier baru gagal ditambahkan');
   const [isEmpty, setIsEmpty] = useState(false);
 
-  // Check all of the input empty or not
   useEffect(() => {
     if (
       newSupplier.company_name === '' &&

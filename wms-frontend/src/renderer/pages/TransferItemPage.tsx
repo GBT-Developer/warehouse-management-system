@@ -173,7 +173,6 @@ export const TransferItemPage = () => {
       });
 
       setPdfProducts(() => selectedProducts);
-      console.log(dispatchNote);
       setClickedDispatchNote(() => {
         return {
           ...dispatchNote,
