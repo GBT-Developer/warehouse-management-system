@@ -105,9 +105,14 @@ export default function ProductDetailPage() {
     // If one or more fields are empty, return early
     if (!product) return;
     if (
-      Object.values(product).some(
-        (value) => value === '' || value === undefined
-      )
+      product.brand === '' ||
+      product.motor_type === '' ||
+      product.part === '' ||
+      product.available_color === '' ||
+      product.count === undefined ||
+      product.sell_price === undefined ||
+      product.warehouse_position === '' ||
+      product.supplier === undefined
     ) {
       setErrorMessage('Mohon isi semua kolom');
       setTimeout(() => {
@@ -119,8 +124,8 @@ export default function ProductDetailPage() {
     if (
       Number.isNaN(Number(product.sell_price)) ||
       Number.isNaN(Number(product.count)) ||
-      Number(product.sell_price) <= 0 ||
-      Number(product.count) <= 0
+      Number(product.sell_price) < 0 ||
+      Number(product.count) < 0
     ) {
       setErrorMessage('Harga atau jumlah barang tidak valid');
       setTimeout(() => {
@@ -177,7 +182,7 @@ export default function ProductDetailPage() {
         >
           {editToggle ? (
             <>
-              Cancel
+              Batal
               <GiCancel />
             </>
           ) : (
@@ -384,7 +389,7 @@ export default function ProductDetailPage() {
                   type="submit"
                   className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2 focus:outline-none"
                 >
-                  Save Changes
+                  Simpan
                 </button>
               )}
             </div>

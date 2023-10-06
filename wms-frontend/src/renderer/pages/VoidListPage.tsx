@@ -169,7 +169,7 @@ export default function VoidListPage() {
                 {voidList.length === 0 ? (
                   <tr className="border-b">
                     <td className="py-3" colSpan={6}>
-                      <p className="flex justify-center">No data</p>
+                      <p className="flex justify-center">Data tidak tersedia</p>
                     </td>
                   </tr>
                 ) : (
@@ -258,7 +258,7 @@ export default function VoidListPage() {
                   {nextPosts_loading ? (
                     <AiOutlineLoading3Quarters className="animate-spin flex justify-center text-4xl" />
                   ) : (
-                    'Load more'
+                    'Selanjutnya'
                   )}
                 </button>
               </div>

@@ -211,7 +211,7 @@ export const ManageProductPage = () => {
                 {products.length === 0 ? (
                   <tr className="border-b">
                     <td className="py-3" colSpan={4}>
-                      <p className="flex justify-center">No data</p>
+                      <p className="flex justify-center">Data tidak tersedia</p>
                     </td>
                   </tr>
                 ) : (
@@ -293,7 +293,7 @@ export const ManageProductPage = () => {
                   {nextPosts_loading ? (
                     <AiOutlineLoading3Quarters className="animate-spin flex justify-center text-4xl" />
                   ) : (
-                    'Load more'
+                    'Selanjutnya'
                   )}
                 </button>
               </div>

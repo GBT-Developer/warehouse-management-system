@@ -156,7 +156,7 @@ export default function PurchaseHistoryPage() {
                 <IoChevronBackOutline size={40} /> {/* Icon */}
               </button>
               <h1 className="text-4xl font-extrabold tracking-tight text-gray-900 md:text-5xl">
-                Riwayat Transaksi
+                Riwayat Pembelian
               </h1>
             </div>
           </TableTitle>
@@ -305,7 +305,7 @@ export default function PurchaseHistoryPage() {
                       <AiOutlineLoading3Quarters className="animate-spin flex justify-center text-4xl" />
                     </div>
                   ) : (
-                    'Load more'
+                    'Selanjutnya'
                   )}
                 </button>
               </div>
