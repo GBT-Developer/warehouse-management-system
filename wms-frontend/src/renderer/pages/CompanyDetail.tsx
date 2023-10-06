@@ -1,4 +1,4 @@
-import { doc, updateDoc } from 'firebase/firestore';
+import { doc, runTransaction } from 'firebase/firestore';
 import { ref, uploadBytes } from 'firebase/storage';
 import { useRef, useState } from 'react';
 import { AiFillEdit, AiOutlineLoading3Quarters } from 'react-icons/ai';
@@ -31,7 +31,7 @@ export default function CompanyDetail() {
   const failNotify = (e?: string) =>
     toast.error(e ?? 'Detail perusahaan gagal diubah');
 
-  function handleSubmit(e: { preventDefault: () => void }) {
+  const handleSubmit = async (e: { preventDefault: () => void }) => {
     e.preventDefault();
     // If one or more fields are empty, return early
     if (!editedCompanyInfo) return;
@@ -41,53 +41,48 @@ export default function CompanyDetail() {
       )
     ) {
       failNotify('Mohon isi semua kolom');
-      setTimeout(() => {
-        setErrorMessage(null);
-      }, 3000);
       return;
     }
 
     if (Number.isNaN(Number(editedCompanyInfo.phone_number))) {
-      setErrorMessage('Mohon isi nomor telepon dengan benar');
-      setTimeout(() => {
-        setErrorMessage(null);
-      }, 3000);
+      failNotify('Mohon isi nomor telepon dengan benar');
       return;
     }
 
+    setLoading(true);
+
     // Uploading image to firebase storage
+    const imagePath = `company_info/company_logo`;
     if (imageInputRef.current?.files?.[0]) {
       const imageObject = imageInputRef.current.files[0];
-      const storageRef = ref(storage, `company_info/company_logo`);
+      const storageRef = ref(storage, imagePath);
       const uploadTask = uploadBytes(storageRef, imageObject);
-
-      setLoading(true);
 
       uploadTask.catch(() => {
         failNotify();
       });
     }
 
-    const productRef = doc(db, 'company_info', 'my_company');
-    const updatedProduct = {
+    const companyInfoRef = doc(db, 'company_info', 'my_company');
+    const updatedCompanyInfo = {
       ...editedCompanyInfo,
     };
 
-    setLoading(true);
-
-    updateDoc(productRef, {
-      ...updatedProduct,
-      logo: 'company_info/company_logo',
+    await runTransaction(db, async (transaction) => {
+      transaction.set(companyInfoRef, {
+        ...updatedCompanyInfo,
+        logo: imagePath,
+      });
     }).catch((error) => {
       failNotify();
     });
 
-    setCurrentCompanyInfo(updatedProduct);
+    setCurrentCompanyInfo(updatedCompanyInfo);
 
     setLoading(false);
     successNotify();
     setEditToggle(false);
-  }
+  };
 
   return (
     <PageLayout>
@@ -128,7 +123,7 @@ export default function CompanyDetail() {
             } transform transition-all duration-300`}
           >
             {loading && (
-              <div className="absolute flex justify-center items-center py-2 px-3 top-0 left-0 w-full h-full bg-gray-50 rounded-lg z-0">
+              <div className="absolute flex justify-center items-center py-2 px-3 top-0 left-0 w-full h-full bg-gray-50 rounded-lg z-50">
                 <AiOutlineLoading3Quarters className="animate-spin flex justify-center text-4xl" />
               </div>
             )}

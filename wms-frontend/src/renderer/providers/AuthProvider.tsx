@@ -103,17 +103,21 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
             // Retrieving company info
             const companyRef = doc(db, 'company_info', 'my_company');
             const companySnapshot = await getDoc(companyRef);
-            const companyData = companySnapshot.data() as CompanyInfo;
-            companyData.id = companySnapshot.id;
-            const spaceRef = ref(storage, companyData.logo ?? '');
+            const companyData = companySnapshot.data() as
+              | CompanyInfo
+              | undefined;
+            if (companyData) {
+              const spaceRef = ref(storage, companyData.logo);
 
-            getBlob(spaceRef)
-              .then((url) => {
-                companyData.logo = URL.createObjectURL(url);
-              })
-              .catch(() => {
-                companyData.logo = '';
-              });
+              await getBlob(spaceRef)
+                .then((url) => {
+                  companyData.logo = URL.createObjectURL(url);
+                })
+                .catch(() => {
+                  companyData.logo = 'company_info/company_logo.png';
+                });
+              console.log(companyData);
+            }
 
             setUser(() => theUser);
             setWarehouse(
@@ -121,7 +125,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
                 ? 'Semua Gudang'
                 : theUser.role
             );
-            setCompanyInfo(() => companyData);
+            setCompanyInfo(() => companyData ?? null);
           })
           .catch(() => {
             setAccessToken(null);
