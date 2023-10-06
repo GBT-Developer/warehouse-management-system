@@ -33,7 +33,6 @@ const DispatchTableRow = ({
   items?: Product[];
   dispatchNote?: DispatchNote;
 }) => {
-  console.log('item ' + items);
   const rows = items?.map((item) => {
     const currentProduct = dispatchNote?.dispatch_items.find(
       (dispatchNoteItem) => dispatchNoteItem.product_id === item.id
