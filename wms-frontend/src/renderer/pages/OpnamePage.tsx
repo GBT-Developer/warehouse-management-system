@@ -326,7 +326,15 @@ export default function OpnamePage() {
                 ) : (
                   invoiceList.map((invoice) => (
                     <tr key={invoice.id} className="border-b">
-                      <SingleTableItem>{invoice.date}</SingleTableItem>
+                      <SingleTableItem>
+                        <span className="font-medium text-md">
+                          {invoice.date}
+                          <br />
+                          <span className="text-sm font-normal">
+                            {invoice.time}
+                          </span>
+                        </span>
+                      </SingleTableItem>
                       <SingleTableItem>{invoice.customer_name}</SingleTableItem>
                       <SingleTableItem>
                         {new Intl.NumberFormat('id-ID', {
