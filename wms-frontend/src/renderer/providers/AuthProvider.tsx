@@ -126,6 +126,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
                 : theUser.role
             );
             setCompanyInfo(() => companyData ?? null);
+            navigate('/profile');
           })
           .catch(() => {
             setAccessToken(null);

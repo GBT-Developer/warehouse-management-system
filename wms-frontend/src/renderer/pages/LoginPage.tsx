@@ -1,6 +1,5 @@
 import { FormEvent, useState } from 'react';
 import { AiOutlineLoading3Quarters } from 'react-icons/ai';
-import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { PageLayout } from 'renderer/layout/PageLayout';
@@ -13,7 +12,6 @@ const defaultFormFields = {
 };
 
 export const AuthPage = () => {
-  const navigate = useNavigate();
   const { login } = useAuth().actions;
   const [formFields, setFormFields] = useState(defaultFormFields);
   const [loading, setLoading] = useState(false);
@@ -38,7 +36,6 @@ export const AuthPage = () => {
 
       setLoading(false);
       resetFormFields();
-      navigate('/profile');
     } catch (err) {
       const errString = (err as Error).message as string;
       failNotify(errString);
