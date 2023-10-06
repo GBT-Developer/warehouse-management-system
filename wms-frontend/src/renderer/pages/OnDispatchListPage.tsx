@@ -109,7 +109,7 @@ export const OnDispatchListPage = () => {
                 {dispatchNoteList.length === 0 ? (
                   <tr className="border-b">
                     <td className="py-3" colSpan={4}>
-                      <p className="flex justify-center">No data</p>
+                      <p className="flex justify-center">Data tidak tersedia</p>
                     </td>
                   </tr>
                 ) : (

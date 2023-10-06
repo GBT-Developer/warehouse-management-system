@@ -312,7 +312,7 @@ export default function TransactionHistory() {
                       <AiOutlineLoading3Quarters className="animate-spin flex justify-center text-4xl" />
                     </div>
                   ) : (
-                    'Load more'
+                    'Selanjutnya'
                   )}
                 </button>
               </div>
@@ -322,7 +322,7 @@ export default function TransactionHistory() {
             <PdfViewer
               products={[]}
               setInvoice={setClickedInvoice}
-              dispatchNote={null}
+              dispatchNote={undefined}
               setDipatchNote={() => {}}
               modalOpen={modalOpen}
               setModalOpen={setModalOpen}

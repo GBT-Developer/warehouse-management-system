@@ -92,7 +92,7 @@ export const ReturnModal = ({
                   </div>
                 )}
                 <div className="flex">
-                  <p className="w-2/5 font-bold">Nama Produkt:</p>
+                  <p className="w-2/5 font-bold">Nama Produk:</p>
                   <p className="w-3/5">
                     {product &&
                       product.brand +
@@ -131,7 +131,7 @@ export const ReturnModal = ({
                     className="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded"
                     onClick={toggleModal}
                   >
-                    Cancel
+                    Batal
                   </button>
                   <button
                     className="bg-blue-700 hover:bg-blue-800 text-white font-bold py-2 px-4 rounded"
@@ -139,7 +139,7 @@ export const ReturnModal = ({
                       confirmButtonHandler().catch((e) => console.log(e));
                     }}
                   >
-                    Confirm
+                    Konfirmasi
                   </button>
                 </div>
               </div>
