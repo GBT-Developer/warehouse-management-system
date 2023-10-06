@@ -1,21 +1,36 @@
 import { PDFViewer } from '@react-pdf/renderer';
+import { useEffect } from 'react';
 import { useAuth } from 'renderer/providers/AuthProvider';
+import { Product } from '../interfaces/Product';
+import DispatchNote from './reports/DispatchNote';
 import Invoice from './reports/Invoice';
 
 export const PdfViewer = ({
   invoice,
+  dispatchNote,
   destinationName,
   modalOpen,
+  products,
   setModalOpen,
   setInvoice,
+  setDipatchNote,
 }: {
-  invoice: Invoice;
+  invoice: Invoice | null;
+  dispatchNote: DispatchNote | undefined;
+  products: Product[];
   destinationName: string;
   setInvoice: React.Dispatch<React.SetStateAction<Invoice | null>>;
+  setDipatchNote: React.Dispatch<React.SetStateAction<DispatchNote | null>>;
   modalOpen: boolean;
   setModalOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }) => {
   const { companyInfo } = useAuth();
+
+  useEffect(() => {
+    console.log('invoice ', invoice);
+    console.log('dispatchNote ', dispatchNote);
+    console.log('products ', products);
+  }, [invoice, dispatchNote, products]);
 
   return (
     <div
@@ -25,14 +40,24 @@ export const PdfViewer = ({
       onClick={() => {
         setModalOpen(false);
         setInvoice(null);
+        setDipatchNote(null);
       }}
     >
       <PDFViewer className="w-3/5 h-[90%] rounded-lg">
-        <Invoice
-          invoice={invoice}
-          companyInfo={companyInfo}
-          destinationName={destinationName}
-        />
+        {invoice ? (
+          <Invoice
+            invoice={invoice}
+            companyInfo={companyInfo}
+            destinationName={destinationName}
+          />
+        ) : (
+          <DispatchNote
+            products={products}
+            invoice={dispatchNote}
+            companyInfo={companyInfo}
+            destinationName={destinationName}
+          />
+        )}
       </PDFViewer>
     </div>
   );
