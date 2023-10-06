@@ -2,6 +2,7 @@ import { FormEvent, useState } from 'react';
 import { AiOutlineLoading3Quarters } from 'react-icons/ai';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import LogoSVG from 'renderer/components/Logo';
 import { PageLayout } from 'renderer/layout/PageLayout';
 import { AuthCard } from '../components/AuthCard';
 import { useAuth } from '../providers/AuthProvider';
@@ -45,69 +46,72 @@ export const AuthPage = () => {
 
   return (
     <PageLayout>
-      <AuthCard>
-        <form className="flex flex-col gap-[0.5rem]" onSubmit={handleSubmit}>
-          <h3 className="text-xl font-medium text-gray-900">Sign in</h3>
-          <div>
-            <label
-              htmlFor="email"
-              className="text-sm font-medium text-gray-900 block mb-2"
+      <div className="flex flex-col items-center h-full w-full pt-44">
+        <LogoSVG width={250} height={150} />
+        <AuthCard>
+          <form className="flex flex-col gap-[0.5rem]" onSubmit={handleSubmit}>
+            <h3 className="text-xl font-medium text-gray-900">Sign in</h3>
+            <div>
+              <label
+                htmlFor="email"
+                className="text-sm font-medium text-gray-900 block mb-2"
+              >
+                Email Anda
+                <input
+                  type="email"
+                  name="email"
+                  id="email"
+                  className="bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
+                  placeholder="name@company.com"
+                  required
+                  disabled={loading}
+                  onChange={(event) => {
+                    setFormFields({
+                      ...formFields,
+                      email: event.target.value,
+                    });
+                  }}
+                />
+              </label>
+            </div>
+            <div>
+              <label
+                htmlFor="password"
+                className="text-sm font-medium text-gray-900 block mb-2"
+              >
+                Password Anda
+                <input
+                  type="password"
+                  name="password"
+                  id="password"
+                  placeholder="••••••••"
+                  className="bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
+                  required
+                  disabled={loading}
+                  onChange={(event) => {
+                    setFormFields({
+                      ...formFields,
+                      password: event.target.value,
+                    });
+                  }}
+                />
+              </label>
+            </div>
+            <button
+              type="submit"
+              className="w-full text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center flex justify-center"
             >
-              Email Anda
-              <input
-                type="email"
-                name="email"
-                id="email"
-                className="bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
-                placeholder="name@company.com"
-                required
-                disabled={loading}
-                onChange={(event) => {
-                  setFormFields({
-                    ...formFields,
-                    email: event.target.value,
-                  });
-                }}
-              />
-            </label>
-          </div>
-          <div>
-            <label
-              htmlFor="password"
-              className="text-sm font-medium text-gray-900 block mb-2"
-            >
-              Password Anda
-              <input
-                type="password"
-                name="password"
-                id="password"
-                placeholder="••••••••"
-                className="bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
-                required
-                disabled={loading}
-                onChange={(event) => {
-                  setFormFields({
-                    ...formFields,
-                    password: event.target.value,
-                  });
-                }}
-              />
-            </label>
-          </div>
-          <button
-            type="submit"
-            className="w-full text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center flex justify-center"
-          >
-            {loading ? (
-              <p>
-                <AiOutlineLoading3Quarters className="animate-spin flex justify-center" />
-              </p>
-            ) : (
-              'Login'
-            )}
-          </button>
-        </form>
-      </AuthCard>
+              {loading ? (
+                <p>
+                  <AiOutlineLoading3Quarters className="animate-spin flex justify-center" />
+                </p>
+              ) : (
+                'Login'
+              )}
+            </button>
+          </form>
+        </AuthCard>
+      </div>
     </PageLayout>
   );
 };
