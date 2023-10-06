@@ -46,6 +46,18 @@ const DispatchNotePdf = ({
   <Document title={`Surat Jalan ${theDispatchNote?.id ?? ''}`}>
     <Page size="A4" style={styles.page}>
       <View>
+        <View>
+          <Text
+            style={{
+              textAlign: 'left',
+              fontSize: 24,
+              fontWeight: 900,
+            }}
+          >
+            Surat Jalan
+          </Text>
+        </View>
+
         <View
           style={{
             display: 'flex',
@@ -92,18 +104,6 @@ const DispatchNotePdf = ({
                 </Text>
               </View>
             )}
-            <View
-              style={{
-                display: 'flex',
-                flexDirection: 'column',
-                justifyContent: 'flex-start',
-                alignItems: 'flex-start',
-                gap: 3,
-              }}
-            >
-              <Text>{companyInfo?.address}</Text>
-              <Text>{companyInfo?.phone_number}</Text>
-            </View>
           </View>
           <View
             style={{
@@ -116,6 +116,31 @@ const DispatchNotePdf = ({
           >
             <Text>Nama Tujuan: {destinationName}</Text>
             <Text>Tanggal: {theDispatchNote?.date}</Text>
+          </View>
+        </View>
+        <View
+          style={{
+            display: 'flex',
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            width: '100%',
+            marginTop: 6,
+          }}
+        >
+          <View
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'flex-start',
+              alignItems: 'flex-start',
+              gap: 3,
+            }}
+          >
+            <Text>{companyInfo?.address}</Text>
+            <Text>{companyInfo?.phone_number}</Text>
+          </View>
+          <View>
+            <Text>No. Surat Jalan: {theDispatchNote?.id}</Text>
           </View>
         </View>
         <DispatchItemsTable

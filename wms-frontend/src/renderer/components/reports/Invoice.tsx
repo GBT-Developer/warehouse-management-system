@@ -39,6 +39,18 @@ const Invoice = ({ invoice, companyInfo, destinationName }: InvoiceProps) => (
   <Document title={`Invoice ${invoice.id ?? ''}`}>
     <Page size="A4" style={styles.page}>
       <View>
+        <View>
+          <Text
+            style={{
+              textAlign: 'left',
+              fontSize: 32,
+              fontWeight: 900,
+            }}
+          >
+            Invoice
+          </Text>
+        </View>
+
         <View
           style={{
             display: 'flex',
@@ -85,18 +97,6 @@ const Invoice = ({ invoice, companyInfo, destinationName }: InvoiceProps) => (
                 </Text>
               </View>
             )}
-            <View
-              style={{
-                display: 'flex',
-                flexDirection: 'column',
-                justifyContent: 'flex-start',
-                alignItems: 'flex-start',
-                gap: 3,
-              }}
-            >
-              <Text>{companyInfo?.address}</Text>
-              <Text>{companyInfo?.phone_number}</Text>
-            </View>
           </View>
           <View
             style={{
@@ -111,6 +111,32 @@ const Invoice = ({ invoice, companyInfo, destinationName }: InvoiceProps) => (
             <Text>Tanggal: {invoice.date}</Text>
           </View>
         </View>
+        <View
+          style={{
+            display: 'flex',
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            width: '100%',
+            marginTop: 6,
+          }}
+        >
+          <View
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'flex-start',
+              alignItems: 'flex-start',
+              gap: 3,
+            }}
+          >
+            <Text>{companyInfo?.address}</Text>
+            <Text>{companyInfo?.phone_number}</Text>
+          </View>
+          <View>
+            <Text>No. Invoice: {invoice.id}</Text>
+          </View>
+        </View>
+
         <InvoiceItemsTable invoice={invoice} />
       </View>
       <InvoiceSigningArea />
