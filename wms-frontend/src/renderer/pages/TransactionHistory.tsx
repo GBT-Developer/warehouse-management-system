@@ -153,7 +153,7 @@ export default function TransactionHistory() {
             )}
             <table className="w-full text-sm text-left text-gray-500">
               <TableHeader>
-                <th className=" py-3">Tangga</th>
+                <th className=" py-3">Tanggal</th>
                 <th className=" py-3">Nomor Invoice</th>
                 <th className=" py-3">Nama Customer</th>
                 <th className=" py-3">Posisi Gudang</th>
@@ -192,7 +192,13 @@ export default function TransactionHistory() {
                         }}
                       >
                         <SingleTableItem>
-                          {mapInvoiceHistory.date}
+                          <span className="font-medium text-md">
+                            {mapInvoiceHistory.date}
+                            <br />
+                            <span className="text-sm font-normal">
+                              {mapInvoiceHistory.time}
+                            </span>
+                          </span>
                         </SingleTableItem>
                         <SingleTableItem>
                           {mapInvoiceHistory.id}

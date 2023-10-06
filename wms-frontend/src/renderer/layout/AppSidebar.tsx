@@ -259,7 +259,7 @@ export const AppSidebar = () => {
                   '/broken-product-list-page'
                 )}
               >
-                Product Rusak
+                Produk Rusak
               </SidebarItem>
 
               {user?.role.toLocaleLowerCase() === 'owner' && (

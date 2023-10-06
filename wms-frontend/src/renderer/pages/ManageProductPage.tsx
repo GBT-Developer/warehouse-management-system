@@ -8,7 +8,6 @@ import {
 } from 'firebase/firestore';
 import { useEffect, useState } from 'react';
 import { AiOutlineLoading3Quarters } from 'react-icons/ai';
-import { IoInformationCircleSharp } from 'react-icons/io5';
 import { PiFilePdfBold } from 'react-icons/pi';
 import { useNavigate } from 'react-router-dom';
 import { ProductPdf } from 'renderer/components/ManageProductPDF';
@@ -182,7 +181,7 @@ export const ManageProductPage = () => {
         <div className="relative shadow-md sm:rounded-lg overflow-auto h-full flex flex-col justify-between">
           <TableTitle setSearch={setSearch}>
             <h1 className="text-4xl font-extrabold tracking-tight text-gray-900 md:text-5xl">
-              Kelola Product
+              Kelola Produk
             </h1>
           </TableTitle>
           <div className="overflow-y-auto h-full relative">
@@ -203,11 +202,10 @@ export const ManageProductPage = () => {
             </div>
             <table className="w-full text-sm text-left text-gray-500">
               <TableHeader>
-                <th className=" py-3">Nama Product</th>
+                <th className=" py-3">Nama Produk</th>
                 <th className=" py-3">Jumlah</th>
                 <th className=" py-3">Harga Jual</th>
                 <th className=" py-3">Posisi Gudang</th>
-                <th className=" py-3"></th>
               </TableHeader>
               <tbody>
                 {products.length === 0 ? (
@@ -276,12 +274,6 @@ export const ManageProductPage = () => {
                         <SingleTableItem>
                           {product.warehouse_position}
                         </SingleTableItem>
-                        <SingleTableItem>
-                          <IoInformationCircleSharp
-                            size={20}
-                            className="cursor-pointer"
-                          />
-                        </SingleTableItem>
                       </tr>
                     ))
                 )}
@@ -313,7 +305,7 @@ export const ManageProductPage = () => {
               className=" text-blue-700 bg-white hover:bg-white  focus:ring-4 focus:ring-white font-medium rounded-lg text-lg px-10 py-3 focus:outline-none hover:-translate-y-1 shadow-md"
               onClick={() => navigate('/manage-product/new')}
             >
-              + New
+              + Tambah
             </button>
           </div>
         </div>

@@ -164,7 +164,7 @@ function InputSupplier() {
         />
         <InputField
           loading={loading}
-          label="Kontak Person"
+          label="Narahubung"
           labelFor="contact_person"
           value={newSupplier.contact_person}
           placeholder="i.e John Doe"

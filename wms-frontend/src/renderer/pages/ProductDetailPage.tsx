@@ -34,7 +34,7 @@ export default function ProductDetailPage() {
   const [suppliers, setSupplier] = useState<Supplier[]>([]);
   const [stockHistory, setStockHistory] = useState<StockHistory[]>([]);
   const navigate = useNavigate();
-  const successNotify = () => toast.success('Detail Product berhasil diubah');
+  const successNotify = () => toast.success('Detail Produk berhasil diubah');
   const failNotify = (e?: string) =>
     toast.error(e ?? 'Detail Product gagal diubah');
   useEffect(() => {
@@ -61,6 +61,7 @@ export default function ProductDetailPage() {
         const supplierOfTheProduct = supplierList.find((supplier) => {
           return supplier.id === productData.supplier;
         });
+        setSupplier(supplierList);
         if (supplierOfTheProduct === undefined) {
           setLoading(false);
           return;
@@ -72,7 +73,6 @@ export default function ProductDetailPage() {
             supplier: supplierOfTheProduct,
           };
         });
-        setSupplier(supplierList);
 
         // Fetch stock history
         const stockHistoryQuery = query(
@@ -167,7 +167,7 @@ export default function ProductDetailPage() {
             <IoChevronBackOutline size={40} /> {/* Icon */}
           </button>
           <h1 className="text-4xl font-extrabold tracking-tight text-gray-900 md:text-5xl">
-            Detail Product
+            Detail Produk
           </h1>
         </div>
         <button
@@ -182,7 +182,7 @@ export default function ProductDetailPage() {
             </>
           ) : (
             <>
-              Edit Product
+              Edit Produk
               <AiFillEdit />
             </>
           )}
@@ -243,7 +243,7 @@ export default function ProductDetailPage() {
             <InputField
               loading={loading || !editToggle}
               labelFor="available_color"
-              label="Warna Tersedia"
+              label="Warna"
               value={product?.available_color ?? ''}
               onChange={(e) => {
                 if (product === undefined) return;
@@ -256,7 +256,7 @@ export default function ProductDetailPage() {
             <InputField
               loading={true}
               labelFor="count"
-              label="Jumlah Product"
+              label="Jumlah Produk"
               value={product?.count ?? ''}
               onChange={(e) => {
                 if (product === undefined) return;
@@ -270,7 +270,16 @@ export default function ProductDetailPage() {
               loading={loading || !editToggle}
               labelFor="sell_price"
               label="Harga Jual"
-              value={product?.sell_price ?? ''}
+              value={
+                editToggle
+                  ? product?.sell_price ?? ''
+                  : product
+                  ? new Intl.NumberFormat('id-ID', {
+                      style: 'currency',
+                      currency: 'IDR',
+                    }).format(product.sell_price)
+                  : ''
+              }
               onChange={(e) => {
                 if (
                   !/^[0-9]*(\.[0-9]*)?$/.test(e.target.value) &&
@@ -331,36 +340,35 @@ export default function ProductDetailPage() {
               <div className="w-2/3">
                 {editToggle ? (
                   <>
-                    {product?.supplier && product.supplier.id && (
-                      <select
-                        value={product.supplier.id}
-                        ref={supplierOptionRef}
-                        disabled={loading || !editToggle}
-                        id="supplier"
-                        name="supplier"
-                        onChange={(e) => {
-                          if (product.supplier === undefined) return;
-                          const theSupplier = suppliers.find(
-                            (supplier) => supplier.id === e.target.value
-                          );
-                          if (!theSupplier) return;
-                          setProduct((prev) => {
-                            if (prev === undefined) return;
-                            return {
-                              ...prev,
-                              supplier: theSupplier,
-                            };
-                          });
-                        }}
-                        className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
-                      >
-                        {suppliers.map((supplier) => (
-                          <option key={supplier.id} value={supplier.id}>
-                            {supplier.company_name}
-                          </option>
-                        ))}
-                      </select>
-                    )}
+                    <select
+                      value={product?.supplier?.id}
+                      ref={supplierOptionRef}
+                      disabled={loading || !editToggle}
+                      id="supplier"
+                      name="supplier"
+                      onChange={(e) => {
+                        const theSupplier = suppliers.find(
+                          (supplier) => supplier.id === e.target.value
+                        );
+                        setProduct((prev) => {
+                          if (prev === undefined) return;
+                          return {
+                            ...prev,
+                            supplier: theSupplier,
+                          };
+                        });
+                      }}
+                      className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
+                    >
+                      <option value="" disabled selected>
+                        Pilih Supplier
+                      </option>
+                      {suppliers.map((supplier) => (
+                        <option key={supplier.id} value={supplier.id}>
+                          {supplier.company_name}
+                        </option>
+                      ))}
+                    </select>
                   </>
                 ) : (
                   <p className="text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">

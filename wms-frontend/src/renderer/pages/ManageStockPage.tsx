@@ -3,6 +3,8 @@ import {
   collection,
   deleteDoc,
   doc,
+  documentId,
+  getDoc,
   getDocs,
   increment,
   query,
@@ -22,6 +24,7 @@ import { InputField } from 'renderer/components/InputField';
 import { SingleTableItem } from 'renderer/components/TableComponents/SingleTableItem';
 import { TableModal } from 'renderer/components/TableComponents/TableModal';
 import { db } from 'renderer/firebase';
+import { DispatchNote } from 'renderer/interfaces/DispatchNote';
 import { Product } from 'renderer/interfaces/Product';
 import { PurchaseHistory } from 'renderer/interfaces/PurchaseHistory';
 import { Supplier } from 'renderer/interfaces/Supplier';
@@ -60,7 +63,9 @@ export const ManageStockPage = () => {
   const [acceptedProducts, setAcceptedProducts] = useState<
     (Product & { dispatch_note_id?: string; id?: string; status?: string })[]
   >([]); // For manage stock mode 'from_other_warehouse'
-  const [dispatchNote, setDispatchNote] = useState<string>('');
+  const [dispatchNoteId, setDispatchNoteId] = useState<string>('');
+  const [dispatchNote, setDispatchNote] = useState<DispatchNote | null>(null);
+  const [originalProducts, setOriginalProducts] = useState<Product[]>([]);
   const [modalOpen, setModalOpen] = useState(false);
   const selectedSupplierRef = useRef<HTMLSelectElement>(null);
   const selectedWarehouseRef = useRef<HTMLSelectElement>(null);
@@ -105,11 +110,11 @@ export const ManageStockPage = () => {
           }
         });
     } else if (manageStockMode === 'from_other_warehouse') {
-      if (dispatchNote === '' || dateInputRef.current?.value === '') {
+      if (dispatchNoteId === '' || dateInputRef.current?.value === '') {
         setIsEmpty(true);
         return;
       } else if (
-        dispatchNote &&
+        dispatchNoteId &&
         dateInputRef.current?.value !== '' &&
         acceptedProducts.length != 0
       )
@@ -147,14 +152,13 @@ export const ManageStockPage = () => {
     newPurchase,
     manageStockMode,
     selectedWarehouse,
-    dispatchNote,
+    dispatchNoteId,
     acceptedProducts,
     returnedProduct,
   ]);
 
   useEffect(() => {
     setLoading(true);
-
     if (
       supplierList.length === 0 &&
       (manageStockMode === 'purchase' || manageStockMode === 'force-change')
@@ -177,6 +181,11 @@ export const ManageStockPage = () => {
       fetchSupplierList().catch(() => {
         setErrorMessage('An error occured while fetching supplier data');
       });
+    }
+    if (warehousePosition === 'Gudang Bahan') {
+      setSelectedWarehouse('Gudang Bahan');
+    } else if (warehousePosition === 'Gudang Jadi') {
+      setSelectedWarehouse('Gudang Jadi');
     }
     const fetchProductList = async (
       supplier_id: string,
@@ -229,7 +238,7 @@ export const ManageStockPage = () => {
         newPurchase.purchase_price === 0 &&
         manageStockMode != 'force-change' &&
         !returnedProduct) ||
-      (manageStockMode === 'from_other_warehouse' && dispatchNote === '') ||
+      (manageStockMode === 'from_other_warehouse' && dispatchNoteId === '') ||
       (manageStockMode === 'from_other_warehouse' &&
         acceptedProducts.length != products.length) ||
       newPurchase.created_at === ''
@@ -348,8 +357,9 @@ export const ManageStockPage = () => {
           delete acceptedProduct.status;
           delete acceptedProduct.dispatch_note_id;
           const theOldCount =
-            products.find((product) => product.id === acceptedProduct.id)
-              ?.count ?? 0;
+            originalProducts.find((product) => {
+              return product.id === acceptedProduct.id;
+            })?.count ?? 0;
 
           // Update product count
           const updateStock = increment(acceptedProduct.count);
@@ -445,7 +455,7 @@ export const ManageStockPage = () => {
     setReturnedProduct(false);
     setProducts([]);
     setAcceptedProducts([]);
-    setDispatchNote('');
+    setDispatchNoteId('');
     setReturnedProduct(false);
     setModalOpen(false);
     setManageStockMode('');
@@ -455,12 +465,12 @@ export const ManageStockPage = () => {
   };
 
   const deleteDispatchNote = () => {
-    if (!dispatchNote) return;
+    if (!dispatchNoteId) return;
 
     const onDispatchProductRef = collection(db, 'on_dispatch');
     const onDispatchProductQuery = query(
       onDispatchProductRef,
-      where('dispatch_note_id', '==', dispatchNote)
+      where('dispatch_note_id', '==', dispatchNoteId)
     );
 
     getDocs(onDispatchProductQuery)
@@ -473,7 +483,7 @@ export const ManageStockPage = () => {
       })
       .catch(() => console.log('error'));
 
-    const dispatchNoteRef = doc(db, 'dispatch_note', dispatchNote);
+    const dispatchNoteRef = doc(db, 'dispatch_note', dispatchNoteId);
 
     deleteDoc(dispatchNoteRef).catch((error) => {
       console.error('Error removing document: ', error);
@@ -481,13 +491,13 @@ export const ManageStockPage = () => {
   };
 
   const handleFetchDispatchNote = async () => {
-    if (dispatchNote === '') return;
+    if (dispatchNoteId === '') return;
 
     setLoading(true);
 
     const dispatchedProductQuery = query(
       collection(db, 'on_dispatch'),
-      where('dispatch_note_id', '==', dispatchNote)
+      where('dispatch_note_id', '==', dispatchNoteId)
     );
 
     const dispatchedProductQuerySnapshot = await getDocs(
@@ -503,6 +513,41 @@ export const ManageStockPage = () => {
       } as Product);
     });
 
+    // Fetch dispatch note
+    const dispatchNoteRef = doc(db, 'dispatch_note', dispatchNoteId);
+    const dispatchNoteDoc = await getDoc(dispatchNoteRef);
+
+    if (!dispatchNoteDoc.exists()) {
+      failNotify('Dispatch note not found');
+      setLoading(false);
+      return;
+    }
+
+    const dispatchNoteData = dispatchNoteDoc.data() as DispatchNote;
+    dispatchNoteData.id = dispatchNoteDoc.id;
+    setDispatchNote(dispatchNoteData);
+
+    // Fetch product list
+    const productQuery = query(
+      collection(db, 'product'),
+      where('warehouse_position', '==', 'Gudang Jadi'),
+      where(
+        documentId(),
+        'in',
+        dispatchedProductList.map((p) => p.id)
+      )
+    );
+    const productQuerySnapshot = await getDocs(productQuery);
+    const productList: Product[] = [];
+
+    productQuerySnapshot.forEach((doc) => {
+      productList.push({
+        id: doc.id,
+        ...doc.data(),
+      } as Product);
+    });
+
+    setOriginalProducts(productList);
     setProducts(dispatchedProductList);
     setLoading(false);
   };
@@ -573,56 +618,59 @@ export const ManageStockPage = () => {
             </select>
           </div>
         </div>
-        <div className="flex justify-between">
-          <div className="w-1/3 flex items-center">
-            <label htmlFor={'warehouse-id'} className="text-md">
-              Pilih Gudang
-            </label>
-          </div>
-          <div className="w-2/3">
-            <select
-              value={selectedWarehouse}
-              disabled={loading}
-              name="warehouse-id"
-              onChange={(e) => {
-                if (
-                  e.target.value === 'Gudang Jadi' ||
-                  e.target.value === 'Gudang Bahan'
-                )
-                  setSelectedWarehouse(e.target.value);
 
-                setProducts([]);
-                setAcceptedProducts([]);
-                setNewPurchase(newPurchaseInitialState);
-                setSelectedSupplier(null);
-                if (selectedSupplierRef.current)
-                  selectedSupplierRef.current.value = '';
-              }}
-              className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
-            >
-              <option value={''} disabled>
+        {warehousePosition === 'Semua Gudang' && (
+          <div className="flex justify-between">
+            <div className="w-1/3 flex items-center">
+              <label htmlFor={'warehouse-id'} className="text-md">
                 Pilih Gudang
-              </option>
-              {manageStockMode === 'purchase' ||
-              manageStockMode === 'force-change' ? (
-                <>
-                  <option key={'gudang_bahan'} value="Gudang Bahan">
-                    Gudang Bahan
-                  </option>
-                  <option key={'gudang_jadi'} value="Gudang Jadi">
-                    Gudang Jadi
-                  </option>
-                </>
-              ) : manageStockMode === 'from_other_warehouse' ? (
-                <>
-                  <option key={'gudang_jadi'} value="Gudang Jadi">
-                    Gudang Jadi
-                  </option>
-                </>
-              ) : null}
-            </select>
+              </label>
+            </div>
+            <div className="w-2/3">
+              <select
+                value={selectedWarehouse}
+                disabled={loading}
+                name="warehouse-id"
+                onChange={(e) => {
+                  if (
+                    e.target.value === 'Gudang Jadi' ||
+                    e.target.value === 'Gudang Bahan'
+                  )
+                    setSelectedWarehouse(e.target.value);
+
+                  setProducts([]);
+                  setAcceptedProducts([]);
+                  setNewPurchase(newPurchaseInitialState);
+                  setSelectedSupplier(null);
+                  if (selectedSupplierRef.current)
+                    selectedSupplierRef.current.value = '';
+                }}
+                className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
+              >
+                <option value={''} disabled>
+                  Pilih Gudang
+                </option>
+                {manageStockMode === 'purchase' ||
+                manageStockMode === 'force-change' ? (
+                  <>
+                    <option key={'gudang_bahan'} value="Gudang Bahan">
+                      Gudang Bahan
+                    </option>
+                    <option key={'gudang_jadi'} value="Gudang Jadi">
+                      Gudang Jadi
+                    </option>
+                  </>
+                ) : manageStockMode === 'from_other_warehouse' ? (
+                  <>
+                    <option key={'gudang_jadi'} value="Gudang Jadi">
+                      Gudang Jadi
+                    </option>
+                  </>
+                ) : null}
+              </select>
+            </div>
           </div>
-        </div>
+        )}
         {
           manageStockMode === 'purchase' ||
           manageStockMode === 'force-change' ? (
@@ -666,9 +714,9 @@ export const ManageStockPage = () => {
                 loading={loading}
                 label="Surat Jalan"
                 labelFor="dispatch-note"
-                value={dispatchNote}
+                value={dispatchNoteId}
                 onChange={(e) => {
-                  setDispatchNote(() => e.target.value);
+                  setDispatchNoteId(() => e.target.value);
                 }}
                 additionalStyle="pr-10"
               />
@@ -771,7 +819,7 @@ export const ManageStockPage = () => {
             <div className="flex justify-between">
               <div className="w-1/3 flex items-center">
                 <label htmlFor={'product-id'} className="text-md">
-                  Products
+                  Produk
                 </label>
               </div>
               <div className="w-2/3">
@@ -780,7 +828,7 @@ export const ManageStockPage = () => {
                   type="button"
                   onClick={() => setModalOpen(() => !modalOpen)}
                 >
-                  Pilih Product(s)
+                  Pilih Produk
                 </button>
               </div>
             </div>
@@ -794,7 +842,7 @@ export const ManageStockPage = () => {
                     <div className="w-1/5 flex justify-between items-center">
                       <input
                         disabled={loading}
-                        placeholder="Quantity"
+                        placeholder="Jumlah"
                         type="number"
                         name="quantity"
                         className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
@@ -855,7 +903,7 @@ export const ManageStockPage = () => {
               <div className="flex justify-between py-2">
                 <div className="w-1/3 flex items-center">
                   <label htmlFor={'returned-product'} className="text-md">
-                    Product Return?
+                    Produk Retur?
                   </label>
                 </div>
                 <div className="w-2/3 flex items-center">
@@ -944,7 +992,7 @@ export const ManageStockPage = () => {
         title={'Choose Product'}
         headerList={
           products.length > 0
-            ? ['', 'Product name', 'Warehouse', 'Available amount']
+            ? ['', 'Nama Produk', 'Posisi Gudang', 'Jumlah Tersedia']
             : []
         }
       >
@@ -1013,7 +1061,7 @@ export const ManageStockPage = () => {
         ) : (
           <tr className="border-b">
             <SingleTableItem>
-              <p className="flex justify-center">No products found</p>
+              <p className="flex justify-center">Produkt tidak ditemukan</p>
             </SingleTableItem>
           </tr>
         )}

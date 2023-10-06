@@ -100,11 +100,10 @@ export const OnDispatchListPage = () => {
 
             <table className="w-full text-sm text-left text-gray-500">
               <TableHeader>
+                <th className=" py-3">Tanggal</th>
                 <th className=" py-3">Nomor Surat Jalan</th>
                 <th className=" py-3">Nama Tukang Cat</th>
-                <th className=" py-3">Tanggal</th>
-                <th className=" py-3">Jumlah Product</th>
-                <th className=" py-3"></th>
+                <th className=" py-3">Jumlah Produk</th>
               </TableHeader>
               <tbody>
                 {dispatchNoteList.length === 0 ? (
@@ -133,11 +132,11 @@ export const OnDispatchListPage = () => {
                             toggleShowProducts(dispatchNote.id);
                           }}
                         >
+                          <SingleTableItem>{dispatchNote.date}</SingleTableItem>
                           <SingleTableItem>{dispatchNote.id}</SingleTableItem>
                           <SingleTableItem>
                             {dispatchNote.painter}
                           </SingleTableItem>
-                          <SingleTableItem>{dispatchNote.date}</SingleTableItem>
                           <SingleTableItem>
                             {dispatchNote.dispatch_items.length}
                           </SingleTableItem>
