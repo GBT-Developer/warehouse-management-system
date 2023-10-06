@@ -80,53 +80,6 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
           .getIdToken()
           .then(async (newToken) => {
             setAccessToken(newToken);
-            const { user_id } = JSON.parse(atob(newToken.split('.')[1])) as {
-              user_id: string | undefined;
-            };
-
-            if (!user_id) throw new Error('No user id found in token');
-
-            // Retrieving user role
-            const userRef = doc(db, 'user', user_id);
-            const userSnapshot = await getDoc(userRef);
-            const userData = userSnapshot.data() as CustomUser | undefined;
-            if (!userData) throw new Error('No user found');
-            userData.id = userSnapshot.id;
-
-            const theUser = {
-              display_name: userData.display_name,
-              email: userData.email,
-              id: userData.id,
-              role: userData.role,
-            } as CustomUser;
-
-            // Retrieving company info
-            const companyRef = doc(db, 'company_info', 'my_company');
-            const companySnapshot = await getDoc(companyRef);
-            const companyData = companySnapshot.data() as
-              | CompanyInfo
-              | undefined;
-            if (companyData) {
-              const spaceRef = ref(storage, companyData.logo);
-
-              await getBlob(spaceRef)
-                .then((url) => {
-                  companyData.logo = URL.createObjectURL(url);
-                })
-                .catch(() => {
-                  companyData.logo = 'company_info/company_logo.png';
-                });
-              console.log(companyData);
-            }
-
-            setUser(() => theUser);
-            setWarehouse(
-              theUser.role.toLowerCase() === 'owner'
-                ? 'Semua Gudang'
-                : theUser.role
-            );
-            setCompanyInfo(() => companyData ?? null);
-            navigate('/profile');
           })
           .catch(() => {
             setAccessToken(null);
@@ -186,6 +139,41 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       const userData = userSnapshot.data() as CustomUser | undefined;
 
       if (!userData) throw new Error('No user found');
+
+      // Retrieving user role
+      if (!userData) throw new Error('No user found');
+      userData.id = userSnapshot.id;
+
+      const theUser = {
+        display_name: userData.display_name,
+        email: userData.email,
+        id: userData.id,
+        role: userData.role,
+      } as CustomUser;
+
+      // Retrieving company info
+      const companyRef = doc(db, 'company_info', 'my_company');
+      const companySnapshot = await getDoc(companyRef);
+      const companyData = companySnapshot.data() as CompanyInfo | undefined;
+      if (companyData) {
+        const spaceRef = ref(storage, companyData.logo);
+
+        await getBlob(spaceRef)
+          .then((url) => {
+            companyData.logo = URL.createObjectURL(url);
+          })
+          .catch(() => {
+            companyData.logo = 'company_info/company_logo.png';
+          });
+        console.log(companyData);
+      }
+
+      setUser(() => theUser);
+      setWarehouse(
+        theUser.role.toLowerCase() === 'owner' ? 'Semua Gudang' : theUser.role
+      );
+      setCompanyInfo(() => companyData ?? null);
+      navigate('/profile');
 
       return userData;
     } catch (error) {
