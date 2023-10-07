@@ -1,3 +1,4 @@
+import { format } from 'date-fns';
 import {
   QueryStartAtConstraint,
   collection,
@@ -10,6 +11,7 @@ import {
 } from 'firebase/firestore';
 import React, { useEffect, useState } from 'react';
 import { AiOutlineLoading3Quarters } from 'react-icons/ai';
+import DateRangeComp from 'renderer/components/DateRangeComp';
 import { SingleTableItem } from 'renderer/components/TableComponents/SingleTableItem';
 import { TableHeader } from 'renderer/components/TableComponents/TableHeader';
 import { TableTitle } from 'renderer/components/TableComponents/TableTitle';
@@ -21,6 +23,7 @@ import { useAuth } from 'renderer/providers/AuthProvider';
 export default function VoidListPage() {
   const [search, setSearch] = useState('');
   const [voidList, setVoidList] = useState<Invoice[]>([]);
+  const [filteredVoidList, setFilteredVoidList] = useState<Invoice[]>([]);
   const [loading, setLoading] = useState(false);
   const [showProductsMap, setShowProductsMap] = useState<
     Record<string, boolean>
@@ -30,6 +33,20 @@ export default function VoidListPage() {
   const [nextPosts_empty, setNextPostsEmpty] = useState(false);
   const [nextQuery, setNextQuery] = useState<QueryStartAtConstraint | null>(
     null
+  );
+  // Take the first date of the month as the start date
+  const [startDate, setStartDate] = useState(
+    format(
+      new Date(new Date().getFullYear(), new Date().getMonth(), 1),
+      'yyyy-MM-dd'
+    )
+  );
+  // Take the last date of the month as the end date
+  const [endDate, setEndDate] = useState(
+    format(
+      new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0),
+      'yyyy-MM-dd'
+    )
   );
   // Take void list from firebase
   useEffect(() => {
@@ -79,6 +96,21 @@ export default function VoidListPage() {
       console.log(error);
     });
   }, [warehousePosition]);
+
+  //filter by date
+  useEffect(() => {
+    // Convert startDate and endDate to Date objects
+    const startDateObj = new Date(startDate);
+    const endDateObj = new Date(endDate);
+
+    // Use the filter method to filter invoices within the date range
+    const filteredVoidList = voidList.filter((void_list) => {
+      const voidListDate = new Date(void_list.date ?? '');
+      // Check if the invoice date is within the date range
+      return voidListDate >= startDateObj && voidListDate <= endDateObj;
+    });
+    setFilteredVoidList(filteredVoidList);
+  }, [startDate, endDate, voidList]);
 
   // Fetch next posts
   const fetchNextPosts = async () => {
@@ -151,6 +183,12 @@ export default function VoidListPage() {
               List Void
             </h1>
           </TableTitle>
+          <div className="flex flex-col justify-center">
+            <p>Periode tanggal:</p>
+            <DateRangeComp
+              {...{ startDate, endDate, setStartDate, setEndDate }}
+            />
+          </div>
           <div className="overflow-y-auto h-full relative">
             {loading && (
               <div className="absolute flex justify-center items-center py-2 px-3 top-0 left-0 w-full h-full bg-gray-50 rounded-lg z-0 bg-opacity-50">
@@ -173,7 +211,7 @@ export default function VoidListPage() {
                     </td>
                   </tr>
                 ) : (
-                  voidList
+                  filteredVoidList
                     .filter((void_list) => {
                       if (!void_list.id || !void_list.customer_name)
                         return false;

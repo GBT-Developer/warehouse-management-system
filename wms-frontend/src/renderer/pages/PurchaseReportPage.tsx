@@ -1,3 +1,4 @@
+import { format } from 'date-fns';
 import {
   QueryStartAtConstraint,
   collection,
@@ -14,6 +15,7 @@ import React, { useEffect, useState } from 'react';
 import { AiOutlineLoading3Quarters } from 'react-icons/ai';
 import { IoChevronBackOutline } from 'react-icons/io5';
 import { useNavigate, useParams } from 'react-router-dom';
+import DateRangeComp from 'renderer/components/DateRangeComp';
 import { SingleTableItem } from 'renderer/components/TableComponents/SingleTableItem';
 import { TableHeader } from 'renderer/components/TableComponents/TableHeader';
 import { TableTitle } from 'renderer/components/TableComponents/TableTitle';
@@ -27,6 +29,9 @@ export default function PurchaseHistoryPage() {
   const param = useParams();
   const { warehousePosition, user } = useAuth();
   const [purchaseList, setPurchaseList] = useState<PurchaseHistory[]>([]);
+  const [filteredPurchaseList, setFilteredPurchaseList] = useState<
+    PurchaseHistory[]
+  >([]);
   const [search, setSearch] = useState('');
   const [showProductsMap, setShowProductsMap] = useState<
     Record<string, boolean>
@@ -45,6 +50,20 @@ export default function PurchaseHistoryPage() {
     }));
   };
 
+  // Take the first date of the month as the start date
+  const [startDate, setStartDate] = useState(
+    format(
+      new Date(new Date().getFullYear(), new Date().getMonth(), 1),
+      'yyyy-MM-dd'
+    )
+  );
+  // Take the last date of the month as the end date
+  const [endDate, setEndDate] = useState(
+    format(
+      new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0),
+      'yyyy-MM-dd'
+    )
+  );
   // Take product from firebase
   useEffect(() => {
     const fetchData = async () => {
@@ -99,6 +118,22 @@ export default function PurchaseHistoryPage() {
     });
   }, [param.id, warehousePosition]);
 
+  //filter by date
+  useEffect(() => {
+    // Convert startDate and endDate to Date objects
+    const startDateObj = new Date(startDate);
+    const endDateObj = new Date(endDate);
+
+    // Use the filter method to filter invoices within the date range
+    const filteredPurchaseList = purchaseList.filter((purchase_history) => {
+      const purchaseHistoryDate = new Date(purchase_history.created_at ?? '');
+      // Check if the invoice date is within the date range
+      return (
+        purchaseHistoryDate >= startDateObj && purchaseHistoryDate <= endDateObj
+      );
+    });
+    setFilteredPurchaseList(filteredPurchaseList);
+  }, [startDate, endDate, purchaseList]);
   const fetchMoreData = async () => {
     try {
       if (nextQuery === null) return;
@@ -160,6 +195,12 @@ export default function PurchaseHistoryPage() {
               </h1>
             </div>
           </TableTitle>
+          <div className="flex flex-col justify-center">
+            <p>Periode tanggal:</p>
+            <DateRangeComp
+              {...{ startDate, endDate, setStartDate, setEndDate }}
+            />
+          </div>
           <div className="overflow-y-auto h-full relative">
             {loading && (
               <div className="absolute flex justify-center items-center py-2 px-3 top-0 left-0 w-full h-full bg-gray-50 rounded-lg z-0 bg-opacity-50">
@@ -175,7 +216,7 @@ export default function PurchaseHistoryPage() {
                 <th className="py-3"></th>
               </TableHeader>
               <tbody className="overflow-y-auto">
-                {purchaseList
+                {filteredPurchaseList
                   .filter((purchase_history) => {
                     if (!purchase_history.id) return false;
                     if (search === '') return true;
