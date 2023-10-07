@@ -32,6 +32,7 @@ export default function TransactionHistory() {
   const [loading, setLoading] = useState(false);
   const { warehousePosition } = useAuth();
   const [invoiceHistory, setInvoiceHistory] = useState<Invoice[]>([]);
+  const [filteredInvoices, setFilteredInvoices] = useState<Invoice[]>([]);
   const [showProductsMap, setShowProductsMap] = useState<
     Record<string, boolean>
   >({});
@@ -102,6 +103,21 @@ export default function TransactionHistory() {
       console.log(error);
     });
   }, [warehousePosition]);
+
+  //filter by date
+  useEffect(() => {
+    // Convert startDate and endDate to Date objects
+    const startDateObj = new Date(startDate);
+    const endDateObj = new Date(endDate);
+
+    // Use the filter method to filter invoices within the date range
+    const filteredInvoices = invoiceHistory.filter((invoice) => {
+      const invoiceDate = new Date(invoice.date ?? '');
+      // Check if the invoice date is within the date range
+      return invoiceDate >= startDateObj && invoiceDate <= endDateObj;
+    });
+    setFilteredInvoices(filteredInvoices);
+  }, [startDate, endDate, invoiceHistory]);
 
   const fetchMoreData = async () => {
     try {
@@ -183,7 +199,7 @@ export default function TransactionHistory() {
                 <th className=" py-3"></th>
               </TableHeader>
               <tbody className="overflow-y-auto">
-                {invoiceHistory
+                {filteredInvoices
                   .filter((invoiceHistory) => {
                     if (invoiceHistory.id === undefined) return;
                     if (search === '') return invoiceHistory;

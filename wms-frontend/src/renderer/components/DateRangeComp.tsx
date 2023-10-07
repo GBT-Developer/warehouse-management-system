@@ -48,7 +48,10 @@ const DateRangeComp = ({
 
   return (
     <div className="flex flex-col w-2/3 relative">
-      <div className="flex text-center items-center py-[0.15rem] w-[fit-content] rounded-sm cursor-pointer">
+      <div
+        className="flex text-center items-center py-[0.15rem] w-[fit-content] rounded-sm cursor-pointer"
+        onClick={() => setOpen(true)}
+      >
         <p>Dari:&nbsp;</p>
         <p className="font-medium text-[1.15rem]">
           {format(new Date(startDate), 'dd/MM/yyyy')}
@@ -72,7 +75,7 @@ const DateRangeComp = ({
               }
             }}
             onRangeFocusChange={(focusedRange) => {
-              if (focusedRange[1] === 0) setOpen(false);
+              if (focusedRange[1] === 0) setOpen(true);
             }}
             editableDateInputs={true}
             moveRangeOnFirstSelection={false}
