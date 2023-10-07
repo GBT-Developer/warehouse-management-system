@@ -123,6 +123,18 @@ export const OnDispatchListPage = () => {
                       )
                         return dispatchNote;
                     })
+                    .sort((a, b) => {
+                      if (a.time === undefined || b.time === undefined)
+                        return 0;
+                      return a.time > b.time ? -1 : 1;
+                    })
+                    .sort((a, b) => {
+                      if (a.date === undefined || b.date === undefined)
+                        return 0;
+                      return (
+                        new Date(b.date).getTime() - new Date(a.date).getTime()
+                      );
+                    })
                     .map((dispatchNote, index) => (
                       <React.Fragment key={index}>
                         <tr
@@ -132,7 +144,15 @@ export const OnDispatchListPage = () => {
                             toggleShowProducts(dispatchNote.id);
                           }}
                         >
-                          <SingleTableItem>{dispatchNote.date}</SingleTableItem>
+                          <SingleTableItem>
+                            <span className="font-medium text-md">
+                              {dispatchNote.date}
+                              <br />
+                              <span className="text-sm font-normal">
+                                {dispatchNote.time}
+                              </span>
+                            </span>
+                          </SingleTableItem>
                           <SingleTableItem>{dispatchNote.id}</SingleTableItem>
                           <SingleTableItem>
                             {dispatchNote.painter}

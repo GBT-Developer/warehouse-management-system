@@ -1,3 +1,4 @@
+import { format } from 'date-fns';
 import {
   QueryStartAtConstraint,
   collection,
@@ -165,6 +166,9 @@ export const BrokenProductListPage = () => {
       }
       if (!activeProduct?.id) return Promise.reject('No product id');
 
+      let theDay = format(new Date(), 'yyyy-MM-dd');
+      let theTime = format(new Date(), 'HH:mm:ss');
+
       const productId = activeProduct.id;
       if (reason === 'supplier') {
         // First check whether the product exists in 'returned_product' collection
@@ -183,6 +187,8 @@ export const BrokenProductListPage = () => {
             part: activeProduct.part,
             supplier: activeProduct.supplier,
             warehouse_position: activeProduct.warehouse_position,
+            date: theDay,
+            time: theTime,
           },
           {
             merge: true,
@@ -194,7 +200,8 @@ export const BrokenProductListPage = () => {
         const newDispatchNoteDocRef = doc(collection(db, 'dispatch_note'));
         transaction.set(newDispatchNoteDocRef, {
           // Date example: 2023-09-17
-          date: new Date().toISOString().slice(0, 10),
+          date: theDay,
+          time: theTime,
           dispatch_items: [
             {
               amount: activeProduct.count,
@@ -434,7 +441,7 @@ export const BrokenProductListPage = () => {
                       htmlFor="painter"
                       className="flex gap-[0.25rem] cursor-pointer"
                     >
-                      Painter
+                      Tukang Cat
                       <input
                         checked={reason === 'painter'}
                         type="radio"

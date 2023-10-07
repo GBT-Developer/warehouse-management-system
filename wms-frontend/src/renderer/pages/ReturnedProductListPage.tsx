@@ -156,6 +156,8 @@ export const ReturnedProductListPage = () => {
           part: string;
           warehouse_position: string;
           supplier: string;
+          date: string;
+          time: string;
         };
         // Check if the supplier is already in the map
         if (!suppliersMap.has(data.supplier))
@@ -228,7 +230,7 @@ export const ReturnedProductListPage = () => {
               <tbody>
                 {products.length === 0 ? (
                   <tr className="border-b">
-                    <td className="py-3" colSpan={3}>
+                    <td className="py-3" colSpan={6}>
                       <p className="flex justify-center">Data tidak tersedia</p>
                     </td>
                   </tr>
