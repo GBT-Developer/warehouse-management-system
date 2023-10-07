@@ -206,7 +206,15 @@ export default function VoidListPage() {
                             toggleShowProducts(void_list.id);
                           }}
                         >
-                          <SingleTableItem>{void_list.date}</SingleTableItem>
+                          <SingleTableItem>
+                            <span className="font-medium text-md">
+                              {void_list.date}
+                              <br />
+                              <span className="text-sm font-normal">
+                                {void_list.time}
+                              </span>
+                            </span>
+                          </SingleTableItem>
                           <SingleTableItem>{void_list.id}</SingleTableItem>
                           <SingleTableItem>
                             {void_list.customer_name}
