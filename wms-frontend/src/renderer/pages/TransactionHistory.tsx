@@ -33,9 +33,9 @@ export default function TransactionHistory() {
   const [showProductsMap, setShowProductsMap] = useState<
     Record<string, boolean>
   >({});
-  const successNotify = () => toast.success('Transaction deleted successfully');
+  const successNotify = () => toast.success('Transaksi berhasil dihapus');
   const failNotify = (e?: string) =>
-    toast.error(e ?? 'Failed to delete transaction');
+    toast.error(e ?? 'Transaksi gagal dihapus');
   const [nextPosts_loading, setNextPostsLoading] = useState(false);
   const [nextPosts_empty, setNextPostsEmpty] = useState(false);
   const [nextQuery, setNextQuery] = useState<QueryStartAtConstraint | null>(

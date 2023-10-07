@@ -19,9 +19,9 @@ export default function SupplierDetailPage() {
   const [editToggle, setEditToggle] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const successNotify = () =>
-    toast.success('Supplier data successfully updated');
+    toast.success('Data supplier berhasil diperbarui');
   const failNotify = (e?: string) =>
-    toast.error(e ?? 'Failed to update supplier data');
+    toast.error(e ?? 'Data supplier gagal diperbarui');
   useEffect(() => {
     const fetchData = async () => {
       try {

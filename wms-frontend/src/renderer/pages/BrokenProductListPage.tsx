@@ -151,14 +151,14 @@ export const BrokenProductListPage = () => {
   const returnHandler = async () => {
     await runTransaction(db, async (transaction) => {
       if (!reason) {
-        setErrorMessage('Please select a reason');
+        setErrorMessage('Tolong pilih alasan pengembalian');
         setTimeout(() => {
           setErrorMessage('');
         }, 3000);
         return;
       }
       if (!painterName && reason === 'painter') {
-        setErrorMessage('Please enter the painter name');
+        setErrorMessage('Tolong masukkan nama tukang cat');
         setTimeout(() => {
           setErrorMessage('');
         }, 3000);

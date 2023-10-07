@@ -168,7 +168,7 @@ export const ManageStockPage = () => {
       };
 
       fetchSupplierList().catch(() => {
-        setErrorMessage('An error occured while fetching supplier data');
+        setErrorMessage('Terjadi kesalahan saat mengambil data supplier');
       });
     }
     if (warehousePosition === 'Gudang Bahan') {
@@ -203,7 +203,7 @@ export const ManageStockPage = () => {
 
     if (selectedSupplier?.id && selectedWarehouse)
       fetchProductList(selectedSupplier.id, selectedWarehouse).catch(() => {
-        setErrorMessage('An error occured while fetching product data');
+        setErrorMessage('Terjadi kesalahan saat mengambil data produk');
       });
 
     setLoading(false);
@@ -231,7 +231,7 @@ export const ManageStockPage = () => {
       (manageStockMode === 'from_other_warehouse' &&
         acceptedProducts.length != products.length)
     ) {
-      setErrorMessage('Please fill all the required fields');
+      setErrorMessage('Tolong isi semua kolom');
       setTimeout(() => {
         setErrorMessage(null);
       }, 3000);
@@ -260,7 +260,8 @@ export const ManageStockPage = () => {
             (the_product) => the_product.id === product.id
           );
 
-          if (!productDetail) return Promise.reject('Product detail not found');
+          if (!productDetail)
+            return Promise.reject('Detail produk tidak ditemukan');
 
           const newStockHistoryDocRef = doc(collection(db, 'stock_history'));
           transaction.set(newStockHistoryDocRef, {
@@ -500,7 +501,7 @@ export const ManageStockPage = () => {
     const dispatchNoteDoc = await getDoc(dispatchNoteRef);
 
     if (!dispatchNoteDoc.exists()) {
-      failNotify('Dispatch note not found');
+      failNotify('Surat jalan tidak ditemukan');
       setLoading(false);
       return;
     }
@@ -749,7 +750,7 @@ export const ManageStockPage = () => {
                               Number(e.target.value) > Number(product.count)
                             ) {
                               setErrorMessage(
-                                'Not enough stock in warehouse. Stock in warehouse: ' +
+                                'Stock di gudang tidak cukup, Stock di gudang: ' +
                                   product.count.toString()
                               );
                               // Set e target value with the value without the last character

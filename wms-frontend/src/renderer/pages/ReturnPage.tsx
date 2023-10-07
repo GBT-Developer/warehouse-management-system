@@ -142,7 +142,7 @@ export default function ReturnPage() {
 
             // Check if there is enough stock
             if (product.count < item.count)
-              return Promise.reject('Not enough stock in the warehouse');
+              return Promise.reject('Stock di gudang tidak cukup');
 
             // Update product count
             const difference = product.count - item.count;
@@ -352,7 +352,7 @@ export default function ReturnPage() {
       const invoiceSnap = await getDocs(invoiceQuery);
 
       if (invoiceSnap.empty) {
-        setErrorMessage('Invoice not found');
+        setErrorMessage('Invoice tidak ditemukan');
         setTimeout(() => {
           setErrorMessage(null);
         }, 3000);
@@ -368,7 +368,7 @@ export default function ReturnPage() {
 
       return Promise.resolve(invoiceData);
     } catch (err) {
-      setErrorMessage('An error occured while fetching invoice');
+      setErrorMessage('Terjadi kesalahan saat mengambil invoice');
       setLoading(false);
     }
   };

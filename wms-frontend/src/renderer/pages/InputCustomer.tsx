@@ -369,7 +369,7 @@ function InputCustomerPage() {
         ) : (
           <tr className="border-b">
             <SingleTableItem>
-              <p className="flex justify-center">No products found</p>
+              <p className="flex justify-center">Produk tidak ditemukan</p>
             </SingleTableItem>
           </tr>
         )}
