@@ -1,3 +1,4 @@
+import { format } from 'date-fns';
 import {
   QueryStartAtConstraint,
   collection,
@@ -16,6 +17,7 @@ import { BiSolidTrash } from 'react-icons/bi';
 import { PiFilePdfBold } from 'react-icons/pi';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import DateRangeComp from 'renderer/components/DateRangeComp';
 import { PdfViewer } from 'renderer/components/PdfViewer';
 import { SingleTableItem } from 'renderer/components/TableComponents/SingleTableItem';
 import { TableHeader } from 'renderer/components/TableComponents/TableHeader';
@@ -43,7 +45,20 @@ export default function TransactionHistory() {
   );
   const [clickedInvoice, setClickedInvoice] = useState<Invoice | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
-
+  // Take the first date of the month as the start date
+  const [startDate, setStartDate] = useState(
+    format(
+      new Date(new Date().getFullYear(), new Date().getMonth(), 1),
+      'yyyy-MM-dd'
+    )
+  );
+  // Take the last date of the month as the end date
+  const [endDate, setEndDate] = useState(
+    format(
+      new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0),
+      'yyyy-MM-dd'
+    )
+  );
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
@@ -145,6 +160,12 @@ export default function TransactionHistory() {
               Riwayat Transaksi
             </h1>
           </TableTitle>
+          <div className="flex flex-col justify-center">
+            <p>Periode tanggal:</p>
+            <DateRangeComp
+              {...{ startDate, endDate, setStartDate, setEndDate }}
+            />
+          </div>
           <div className="overflow-y-auto h-full">
             {loading && (
               <div className="absolute flex justify-center items-center py-2 px-3 top-0 left-0 w-full h-full bg-gray-50 rounded-lg z-0 bg-opacity-50">
@@ -297,7 +318,7 @@ export default function TransactionHistory() {
             </table>
             {nextPosts_empty ? (
               <div className="flex justify-center items-center py-6 px-3 w-full bg-gray-50 rounded-lg z-0 bg-opacity-50">
-                <p className="text-gray-500 text-sm">No more data</p>
+                <p className="text-gray-500 text-sm">Data tidak tersedia</p>
               </div>
             ) : (
               <div className="flex justify-center items-center py-6 px-3 w-full bg-gray-50 rounded-lg z-0 bg-opacity-50">

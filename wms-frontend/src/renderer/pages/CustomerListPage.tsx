@@ -195,7 +195,7 @@ export default function CustomerListPage() {
             </table>
             {nextPosts_empty ? (
               <div className="flex justify-center items-center py-6 px-3 w-full">
-                <p className="text-gray-500 text-sm">No more data</p>
+                <p className="text-gray-500 text-sm">Data tidak tersedia</p>
               </div>
             ) : (
               <div className="flex justify-center items-center py-6 px-3 w-full">

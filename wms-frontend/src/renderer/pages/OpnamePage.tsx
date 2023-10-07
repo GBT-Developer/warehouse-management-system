@@ -353,7 +353,7 @@ export default function OpnamePage() {
             </table>
             {nextPosts_empty ? (
               <div className="flex justify-center items-center py-6 px-3 w-full bg-gray-50 rounded-lg z-0 bg-opacity-50">
-                <p className="text-gray-500 text-sm">No more data</p>
+                <p className="text-gray-500 text-sm">Data tidak tersedia</p>
               </div>
             ) : (
               <div className="flex justify-center items-center py-6 px-3 w-full bg-gray-50 rounded-lg z-0 bg-opacity-50">
