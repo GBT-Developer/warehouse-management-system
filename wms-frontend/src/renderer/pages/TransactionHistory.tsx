@@ -321,6 +321,12 @@ export default function TransactionHistory() {
                                         {product.available_color}:
                                       </span>{' '}
                                       <span>{product.count}x</span>
+                                      {product.is_returned && (
+                                        <span className="text-red-500">
+                                          {' '}
+                                          (Returned)
+                                        </span>
+                                      )}
                                     </div>
                                   </div>
                                 )
