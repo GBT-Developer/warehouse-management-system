@@ -69,7 +69,6 @@ export default function ReturnPage() {
       is_returned?: boolean;
     })[]
   >([]);
-  const dateInputRef = React.useRef<HTMLInputElement>(null);
   const successNotify = () => toast.success('Barang berhasil ditukar');
   const failNotify = (e?: string) => toast.error(e ?? 'Barang gagal ditukar');
   const getSpecialPriceForProduct = (productId: string) => {
@@ -94,16 +93,14 @@ export default function ReturnPage() {
       if (
         invoiceNumber === '' ||
         selectedNewItems.length === 0 ||
-        newTransaction.payment_method === '' ||
-        dateInputRef.current?.value === ''
+        newTransaction.payment_method === ''
       ) {
         setIsEmpty(true);
         return;
       } else if (
         invoiceNumber != '' &&
         selectedNewItems.length > 0 &&
-        newTransaction.payment_method != '' &&
-        dateInputRef.current?.value != ''
+        newTransaction.payment_method != ''
       ) {
         setIsEmpty(false);
         return;
@@ -268,13 +265,8 @@ export default function ReturnPage() {
           (acc, item) => acc + item.sell_price * item.count,
           0
         );
-        const currentDateandTime = new Date();
-        if (!newTransaction.date) return Promise.reject('Date not found');
-        let theTime = '';
-        // If invoice date is the same as current date, take the current time
-        if (newTransaction.date === format(currentDateandTime, 'yyyy-MM-dd'))
-          theTime = format(currentDateandTime, 'HH:mm:ss');
-        else theTime = '23:59:59';
+        const currentDate = format(new Date(), 'yyyy-MM-dd');
+        const currentTime = format(new Date(), 'HH:mm:ss');
 
         transaction.set(doc(collection(db, 'invoice')), {
           customer_id: selectedCustomer?.id ?? '',
@@ -287,8 +279,8 @@ export default function ReturnPage() {
               is_returned: false,
             };
           }),
-          date: newTransaction.date,
-          time: theTime,
+          date: currentDate,
+          time: currentTime,
           payment_method: newTransaction.payment_method,
         });
         // Reduce the sales stats
@@ -306,7 +298,7 @@ export default function ReturnPage() {
             }),
             date: new Date().toISOString().slice(0, 10),
             payment_method: newTransaction.payment_method,
-            time: theTime,
+            time: currentTime,
           },
           true
         ).catch((err) => console.log(err));
@@ -894,28 +886,6 @@ export default function ReturnPage() {
                       />
                     </label>
                   </div>
-                </div>
-              </div>
-              <div className="flex justify-between">
-                <div className="w-1/3 flex items-center">
-                  <label htmlFor={'date-id'} className="text-md">
-                    Tanggal Transaksi
-                  </label>
-                </div>
-                <div className="w-2/3">
-                  <input
-                    ref={dateInputRef}
-                    disabled={loading}
-                    type="date"
-                    name="date"
-                    className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
-                    onChange={(e) => {
-                      setNewTransaction(() => ({
-                        ...newTransaction,
-                        date: e.target.value,
-                      }));
-                    }}
-                  />
                 </div>
               </div>
             </div>
