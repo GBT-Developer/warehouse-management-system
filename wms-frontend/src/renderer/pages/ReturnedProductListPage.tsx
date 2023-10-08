@@ -66,6 +66,8 @@ export const ReturnedProductListPage = () => {
             part: string;
             warehouse_position: string;
             supplier: string;
+            date: string;
+            time: string;
           };
           // Check if the supplier is already in the map
           if (!suppliersMap.has(data.supplier))
@@ -223,6 +225,7 @@ export const ReturnedProductListPage = () => {
 
             <table className="w-full text-sm text-left text-gray-500">
               <TableHeader>
+                <th className=" py-3">Tanggal</th>
                 <th className=" py-3">Nama Produk</th>
                 <th className=" py-3">Supplier</th>
                 <th className=" py-3">Jumlah</th>
@@ -259,6 +262,15 @@ export const ReturnedProductListPage = () => {
                         key={product.id}
                         className="border-b hover:shadow-md cursor-pointer hover:underline"
                       >
+                        <SingleTableItem>
+                          <span className="font-medium text-md">
+                            {product.date}
+                            <br />
+                            <span className="text-sm font-normal">
+                              {product.time}
+                            </span>
+                          </span>
+                        </SingleTableItem>
                         <SingleTableItem>
                           {product.brand +
                             ' ' +
