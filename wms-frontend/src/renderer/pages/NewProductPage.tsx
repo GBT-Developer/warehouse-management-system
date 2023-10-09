@@ -103,13 +103,15 @@ export const NewProductPage = () => {
       newProduct.brand === '' ||
       newProduct.motor_type === '' ||
       newProduct.part === '' ||
-      newProduct.available_color === '' ||
+      (newProduct.available_color === '' &&
+        warehousePosition !== 'Gudang Bahan') ||
       newProduct.warehouse_position === ''
     ) {
       setIsEmpty(true);
       return;
     } else if (
-      newProduct.available_color != '' &&
+      (newProduct.available_color !== '' ||
+        warehousePosition === 'Gudang Bahan') &&
       newProduct.brand != '' &&
       newProduct.motor_type != '' &&
       newProduct.part != '' &&
@@ -127,9 +129,13 @@ export const NewProductPage = () => {
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
-    // If one or more fields are empty, return early
+    // If one or more fields are empty except color if warehouse position is Gudang Bahan, show error message
     if (
-      Object.values(newProduct).some((value) => value === '') ||
+      newProduct.brand === '' ||
+      newProduct.motor_type === '' ||
+      newProduct.part === '' ||
+      (newProduct.available_color === '' &&
+        warehousePosition !== 'Gudang Bahan') ||
       newProduct.warehouse_position === ''
     ) {
       setErrorMessage('Tolong isi semua kolom');
@@ -272,15 +278,17 @@ export const NewProductPage = () => {
             setNewProduct({ ...newProduct, part: e.target.value })
           }
         />
-        <InputField
-          loading={loading}
-          labelFor="available_color"
-          label="Warna"
-          value={newProduct.available_color}
-          onChange={(e) =>
-            setNewProduct({ ...newProduct, available_color: e.target.value })
-          }
-        />
+        {warehousePosition !== 'Gudang Bahan' && (
+          <InputField
+            loading={loading}
+            labelFor="available_color"
+            label="Warna"
+            value={newProduct.available_color}
+            onChange={(e) =>
+              setNewProduct({ ...newProduct, available_color: e.target.value })
+            }
+          />
+        )}
         <InputField
           loading={loading}
           labelFor="count"

@@ -108,7 +108,9 @@ export default function ProductDetailPage() {
       product.brand === '' ||
       product.motor_type === '' ||
       product.part === '' ||
-      product.available_color === '' ||
+      (product.available_color === '' &&
+        product.warehouse_position !== 'Gudang Bahan') ||
+      product.warehouse_position === '' ||
       product.count === undefined ||
       product.sell_price === undefined ||
       product.warehouse_position === '' ||
@@ -245,19 +247,21 @@ export default function ProductDetailPage() {
                 editToggle ? '' : 'border-none outline-none bg-inherit'
               }`}
             />
-            <InputField
-              loading={loading || !editToggle}
-              labelFor="available_color"
-              label="Warna"
-              value={product?.available_color ?? ''}
-              onChange={(e) => {
-                if (product === undefined) return;
-                setProduct({ ...product, available_color: e.target.value });
-              }}
-              additionalStyle={`${
-                editToggle ? '' : 'border-none outline-none bg-inherit'
-              }`}
-            />
+            {product?.warehouse_position !== 'Gudang Bahan' && (
+              <InputField
+                loading={loading || !editToggle}
+                labelFor="available_color"
+                label="Warna"
+                value={product?.available_color ?? ''}
+                onChange={(e) => {
+                  if (product === undefined) return;
+                  setProduct({ ...product, available_color: e.target.value });
+                }}
+                additionalStyle={`${
+                  editToggle ? '' : 'border-none outline-none bg-inherit'
+                }`}
+              />
+            )}
             <InputField
               loading={true}
               labelFor="count"
