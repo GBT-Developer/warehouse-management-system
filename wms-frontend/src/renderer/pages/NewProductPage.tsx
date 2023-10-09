@@ -88,7 +88,7 @@ export const NewProductPage = () => {
 
         setSupplier(supplierData);
       } catch (error) {
-        console.error('Error fetching data:', error);
+        console.error('Gagal mengambil data:', error);
       }
     };
 

@@ -18,8 +18,8 @@ export const AdminListPage = () => {
   const [adminList, setAdminList] = useState<CustomUser[]>([]);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-  const successNotify = () => toast.success('Admin successfully deleted');
-  const failNotify = (e?: string) => toast.error(e ?? 'Failed to delete admin');
+  const successNotify = () => toast.success('Admin berhasil dihapus');
+  const failNotify = (e?: string) => toast.error(e ?? 'Admin gagal dihapus');
   const [modalOpen, setModalOpen] = useState(false);
   const [activeAdmin, setActiveAdmin] = useState<CustomUser | null>(null);
   const [confirmed, setConfirmed] = useState(false);
@@ -170,7 +170,7 @@ export const AdminListPage = () => {
                             role="alert"
                           >
                             <p className="text-center text-2xl font-bold">
-                              Are you sure you want to delete this admin?
+                              Apakah anda yakin ingin menghapus admin ini?
                             </p>
                           </div>
                           <div className="flex">
@@ -188,8 +188,7 @@ export const AdminListPage = () => {
                           {confirmed && (
                             <div className="my-2 text-red-600 font-bold">
                               <p>
-                                Don't forget to remove the admin in the Firebase
-                                console!
+                                Jangan lupa delete admin di firebase! console!
                               </p>
                             </div>
                           )}

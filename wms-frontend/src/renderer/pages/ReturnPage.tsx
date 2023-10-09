@@ -69,7 +69,6 @@ export default function ReturnPage() {
       is_returned?: boolean;
     })[]
   >([]);
-  const dateInputRef = React.useRef<HTMLInputElement>(null);
   const successNotify = () => toast.success('Barang berhasil ditukar');
   const failNotify = (e?: string) => toast.error(e ?? 'Barang gagal ditukar');
   const getSpecialPriceForProduct = (productId: string) => {
@@ -94,16 +93,14 @@ export default function ReturnPage() {
       if (
         invoiceNumber === '' ||
         selectedNewItems.length === 0 ||
-        newTransaction.payment_method === '' ||
-        dateInputRef.current?.value === ''
+        newTransaction.payment_method === ''
       ) {
         setIsEmpty(true);
         return;
       } else if (
         invoiceNumber != '' &&
         selectedNewItems.length > 0 &&
-        newTransaction.payment_method != '' &&
-        dateInputRef.current?.value != ''
+        newTransaction.payment_method != ''
       ) {
         setIsEmpty(false);
         return;
@@ -118,14 +115,15 @@ export default function ReturnPage() {
 
   const handleSubmit = async () => {
     // Check whether all inputs are filled
-    if (mode === '') return Promise.reject('Please select a mode');
-    if (!invoiceNumber) return Promise.reject('Please input invoice number');
-    if (mode !== 'void' && selectedItems.length === 0)
-      return Promise.reject('Please select at least one item');
-    if (mode === 'void' && selectedNewItems.length === 0)
-      return Promise.reject('Please select at least one item');
+    if (mode === '') return Promise.reject('Pilih mode penukaran');
+    if (!invoiceNumber) return Promise.reject('Masukkan nomor invoice');
+    if (
+      (mode !== 'void' && selectedItems.length === 0) ||
+      (mode === 'void' && selectedNewItems.length === 0)
+    )
+      return Promise.reject('Pilih minimal 1 produk');
     if (mode === 'void' && !newTransaction.payment_method)
-      return Promise.reject('Please select a payment method');
+      return Promise.reject('Pilih metode transaksi');
 
     setLoading(true);
 
@@ -137,12 +135,12 @@ export default function ReturnPage() {
             // Get product data
             if (!item.id) return Promise.reject('Product id is undefined');
             const productRef = doc(db, 'product', item.id);
-            const productSnap = await getDoc(productRef);
+            const productSnap = await transaction.get(productRef);
             const product = productSnap.data() as Product;
 
             // Check if there is enough stock
             if (product.count < item.count)
-              return Promise.reject('Not enough stock in the warehouse');
+              return Promise.reject('Stock di gudang tidak cukup');
 
             // Update product count
             const difference = product.count - item.count;
@@ -165,6 +163,7 @@ export default function ReturnPage() {
 
             return Promise.resolve('Success');
           });
+          setLoading(false);
           await Promise.all(promises);
           return Promise.resolve('Success'); // If all promises are resolved, return 'Success
         } catch (err) {
@@ -227,6 +226,7 @@ export default function ReturnPage() {
           );
 
           const updateCount = increment(item.count);
+          delete item.id;
           transaction.set(
             brokenProductRef,
             {
@@ -244,7 +244,7 @@ export default function ReturnPage() {
         reduceSalesStats(invoice, false).catch((err) => console.log(err));
         return Promise.all(promises);
       });
-    } else
+    } else {
       await runTransaction(db, (transaction) => {
         // Delete the invoice
         transaction.delete(doc(db, 'invoice', invoiceNumber));
@@ -268,13 +268,8 @@ export default function ReturnPage() {
           (acc, item) => acc + item.sell_price * item.count,
           0
         );
-        const currentDateandTime = new Date();
-        if (!newTransaction.date) return Promise.reject('Date not found');
-        let theTime = '';
-        // If invoice date is the same as current date, take the current time
-        if (newTransaction.date === format(currentDateandTime, 'yyyy-MM-dd'))
-          theTime = format(currentDateandTime, 'HH:mm:ss');
-        else theTime = '23:59:59';
+        const currentDate = format(new Date(), 'yyyy-MM-dd');
+        const currentTime = format(new Date(), 'HH:mm:ss');
 
         transaction.set(doc(collection(db, 'invoice')), {
           customer_id: selectedCustomer?.id ?? '',
@@ -287,8 +282,8 @@ export default function ReturnPage() {
               is_returned: false,
             };
           }),
-          date: newTransaction.date,
-          time: theTime,
+          date: currentDate,
+          time: currentTime,
           payment_method: newTransaction.payment_method,
         });
         // Reduce the sales stats
@@ -306,14 +301,15 @@ export default function ReturnPage() {
             }),
             date: new Date().toISOString().slice(0, 10),
             payment_method: newTransaction.payment_method,
-            time: theTime,
+            time: currentTime,
           },
           true
         ).catch((err) => console.log(err));
 
         return Promise.resolve();
       });
-
+    }
+    console.log('kesini');
     // Clear the form
     setInvoiceNumber('');
     setCheckedItems([]);
@@ -352,7 +348,7 @@ export default function ReturnPage() {
       const invoiceSnap = await getDocs(invoiceQuery);
 
       if (invoiceSnap.empty) {
-        setErrorMessage('Invoice not found');
+        setErrorMessage('Invoice tidak ditemukan');
         setTimeout(() => {
           setErrorMessage(null);
         }, 3000);
@@ -368,7 +364,7 @@ export default function ReturnPage() {
 
       return Promise.resolve(invoiceData);
     } catch (err) {
-      setErrorMessage('An error occured while fetching invoice');
+      setErrorMessage('Terjadi kesalahan saat mengambil invoice');
       setLoading(false);
     }
   };
@@ -894,28 +890,6 @@ export default function ReturnPage() {
                       />
                     </label>
                   </div>
-                </div>
-              </div>
-              <div className="flex justify-between">
-                <div className="w-1/3 flex items-center">
-                  <label htmlFor={'date-id'} className="text-md">
-                    Tanggal Transaksi
-                  </label>
-                </div>
-                <div className="w-2/3">
-                  <input
-                    ref={dateInputRef}
-                    disabled={loading}
-                    type="date"
-                    name="date"
-                    className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
-                    onChange={(e) => {
-                      setNewTransaction(() => ({
-                        ...newTransaction,
-                        date: e.target.value,
-                      }));
-                    }}
-                  />
                 </div>
               </div>
             </div>

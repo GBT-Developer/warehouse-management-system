@@ -145,7 +145,7 @@ export default function ProductDetailPage() {
       count: product.count,
       sell_price: product.sell_price,
       warehouse_position: product.warehouse_position,
-      supplier: product.supplier,
+      supplier: product.supplier.id,
     };
 
     setLoading(true);

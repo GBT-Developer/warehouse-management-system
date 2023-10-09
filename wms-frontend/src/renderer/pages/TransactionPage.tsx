@@ -11,7 +11,7 @@ import {
   runTransaction,
   where,
 } from 'firebase/firestore';
-import React, { FormEvent, useEffect, useState } from 'react';
+import { FormEvent, useEffect, useState } from 'react';
 import { AiOutlineLoading3Quarters } from 'react-icons/ai';
 import { BiSolidTrash } from 'react-icons/bi';
 import { useNavigate } from 'react-router-dom';
@@ -49,7 +49,6 @@ export const TransactionPage = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [selectedProducts, setSelectedProducts] = useState<Product[]>([]);
   const [modalOpen, setModalOpen] = useState(false);
-  const dateInputRef = React.useRef<HTMLInputElement>(null);
   const [guestFormOpen, setGuestFormOpen] = useState(false);
   const successNotify = () => toast.success('Transaksi berhasil dilakukan');
   const failNotify = (e?: string) =>
@@ -96,18 +95,14 @@ export const TransactionPage = () => {
   // Check all of the input empty or not
   useEffect(() => {
     if (invoice.items?.length === 0) {
-      if (invoice.date === '' && invoice.payment_method === '') {
+      if (invoice.payment_method === '') {
         setIsEmpty(true);
         return;
-      } else if (invoice.date != '' && invoice.payment_method != '') {
+      } else if (invoice.payment_method != '') {
         setIsEmpty(true);
         return;
       }
-    } else if (
-      invoice.date != '' &&
-      invoice.payment_method != '' &&
-      invoice.items?.length != 0
-    )
+    } else if (invoice.payment_method != '' && invoice.items?.length != 0)
       invoice.items?.map((item) => {
         if (item.count === 0) {
           setIsEmpty(true);
@@ -122,11 +117,7 @@ export const TransactionPage = () => {
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
 
-    if (
-      invoice.items?.length === 0 ||
-      invoice.payment_method === '' ||
-      !invoice.date
-    ) {
+    if (invoice.items?.length === 0 || invoice.payment_method === '') {
       setErrorMessage('Please fill all fields');
       setTimeout(() => {
         setErrorMessage(null);
@@ -188,20 +179,15 @@ export const TransactionPage = () => {
         );
         const newInvoiceRef = doc(collection(db, 'invoice'));
 
-        const currentDateandTime = new Date();
-        if (!invoice.date) return Promise.reject('Date not found');
-        let theTime = '';
-        // If invoice date is the same as current date, take the current time
-        if (invoice.date === format(currentDateandTime, 'yyyy-MM-dd'))
-          theTime = format(currentDateandTime, 'HH:mm:ss');
-        else theTime = '23:59:59';
+        const currentDate = format(new Date(), 'yyyy-MM-dd');
+        const currentTime = format(new Date(), 'HH:mm:ss');
 
         transaction.set(newInvoiceRef, {
           customer_id: selectedCustomer?.id ?? '',
           customer_name: selectedCustomer?.name ?? invoice.customer_name,
           // Current date
-          date: invoice.date,
-          time: theTime,
+          date: currentDate,
+          time: currentTime,
           total_price: totalPrice,
           payment_method: invoice.payment_method,
           warehouse_position: invoice.items[0].warehouse_position,
@@ -231,8 +217,6 @@ export const TransactionPage = () => {
       setProducts([]);
       setLoading(false);
       setGuestFormOpen(false);
-      // Clear date input
-      if (dateInputRef.current) dateInputRef.current.value = '';
     } catch (error) {
       console.error('Error adding document: ', error);
     }
@@ -515,25 +499,6 @@ export const TransactionPage = () => {
                 />
               </label>
             </div>
-          </div>
-        </div>
-        <div className="flex justify-between">
-          <div className="w-1/3 flex items-center">
-            <label htmlFor={'date-id'} className="text-md">
-              Tanggal Transaksi
-            </label>
-          </div>
-          <div className="w-2/3">
-            <input
-              ref={dateInputRef}
-              disabled={loading}
-              type="date"
-              name="date"
-              className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
-              onChange={(e) => {
-                setInvoice(() => ({ ...invoice, date: e.target.value }));
-              }}
-            />
           </div>
         </div>
         <div className="flex flex-row-reverse gap-2 justify-start">

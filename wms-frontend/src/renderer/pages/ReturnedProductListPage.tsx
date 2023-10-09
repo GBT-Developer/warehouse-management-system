@@ -22,7 +22,9 @@ import { useAuth } from 'renderer/providers/AuthProvider';
 
 export const ReturnedProductListPage = () => {
   const [search, setSearch] = useState('');
-  const [products, setProducts] = useState<Product[]>([]);
+  const [products, setProducts] = useState<
+    (Product & { date: string; time: string })[]
+  >([]);
   const [loading, setLoading] = useState(false);
   const { warehousePosition } = useAuth();
   const [nextPosts_loading, setNextPostsLoading] = useState(false);
@@ -66,6 +68,8 @@ export const ReturnedProductListPage = () => {
             part: string;
             warehouse_position: string;
             supplier: string;
+            date: string;
+            time: string;
           };
           // Check if the supplier is already in the map
           if (!suppliersMap.has(data.supplier))
@@ -92,9 +96,12 @@ export const ReturnedProductListPage = () => {
           if (data.id) suppliersMap.set(data.id, data);
         });
 
-        const productData: Product[] = [];
+        const productData: (Product & { date: string; time: string })[] = [];
         querySnapshot.forEach((theProduct) => {
-          const data = theProduct.data() as Product;
+          const data = theProduct.data() as Product & {
+            date: string;
+            time: string;
+          };
           data.id = theProduct.id;
           const supplierId = data.supplier as unknown as string;
           data.supplier = suppliersMap.get(supplierId);
@@ -156,6 +163,8 @@ export const ReturnedProductListPage = () => {
           part: string;
           warehouse_position: string;
           supplier: string;
+          date: string;
+          time: string;
         };
         // Check if the supplier is already in the map
         if (!suppliersMap.has(data.supplier))
@@ -182,9 +191,12 @@ export const ReturnedProductListPage = () => {
         if (data.id) suppliersMap.set(data.id, data);
       });
 
-      const productData: Product[] = [];
+      const productData: (Product & { date: string; time: string })[] = [];
       querySnapshot.forEach((theProduct) => {
-        const data = theProduct.data() as Product;
+        const data = theProduct.data() as Product & {
+          date: string;
+          time: string;
+        };
         data.id = theProduct.id;
         const supplierId = data.supplier as unknown as string;
         data.supplier = suppliersMap.get(supplierId);
@@ -221,6 +233,7 @@ export const ReturnedProductListPage = () => {
 
             <table className="w-full text-sm text-left text-gray-500">
               <TableHeader>
+                <th className=" py-3">Tanggal</th>
                 <th className=" py-3">Nama Produk</th>
                 <th className=" py-3">Supplier</th>
                 <th className=" py-3">Jumlah</th>
@@ -228,7 +241,7 @@ export const ReturnedProductListPage = () => {
               <tbody>
                 {products.length === 0 ? (
                   <tr className="border-b">
-                    <td className="py-3" colSpan={3}>
+                    <td className="py-3" colSpan={6}>
                       <p className="flex justify-center">Data tidak tersedia</p>
                     </td>
                   </tr>
@@ -258,6 +271,15 @@ export const ReturnedProductListPage = () => {
                         className="border-b hover:shadow-md cursor-pointer hover:underline"
                       >
                         <SingleTableItem>
+                          <span className="font-medium text-md">
+                            {product.date}
+                            <br />
+                            <span className="text-sm font-normal">
+                              {product.time}
+                            </span>
+                          </span>
+                        </SingleTableItem>
+                        <SingleTableItem>
                           {product.brand +
                             ' ' +
                             product.motor_type +
@@ -277,7 +299,7 @@ export const ReturnedProductListPage = () => {
             </table>
             {nextPosts_empty ? (
               <div className="flex justify-center items-center py-6 px-3 w-full">
-                <p className="text-gray-500 text-sm">No more data</p>
+                <p className="text-gray-500 text-sm">Data tidak tersedia</p>
               </div>
             ) : (
               <div className="flex justify-center items-center py-6 px-3 w-full">
