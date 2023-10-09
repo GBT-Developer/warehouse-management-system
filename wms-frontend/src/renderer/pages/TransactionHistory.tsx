@@ -324,7 +324,7 @@ export default function TransactionHistory() {
                                       {product.is_returned && (
                                         <span className="text-red-500">
                                           {' '}
-                                          (Returned)
+                                          (Dikembalikan)
                                         </span>
                                       )}
                                     </div>
