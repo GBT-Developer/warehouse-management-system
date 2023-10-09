@@ -20,7 +20,7 @@ export const CreateAdminPage = () => {
   const [loading, setLoading] = useState(false);
   const [newAdmin, setNewAdmin] = useState<CustomUser>(initNewAdmin);
   const [errorMessage, setErrorMessage] = useState('');
-  const successNotify = () => toast.success('Admin successfully created');
+  const successNotify = () => toast.success('Admin berhasil dibuat');
   const { register } = useAuth().actions;
   const [isEmpty, setIsEmpty] = useState(false);
 

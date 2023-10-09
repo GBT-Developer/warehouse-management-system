@@ -1,3 +1,4 @@
+import { format } from 'date-fns';
 import {
   QueryStartAtConstraint,
   collection,
@@ -150,20 +151,23 @@ export const BrokenProductListPage = () => {
   const returnHandler = async () => {
     await runTransaction(db, async (transaction) => {
       if (!reason) {
-        setErrorMessage('Please select a reason');
+        setErrorMessage('Tolong pilih alasan pengembalian');
         setTimeout(() => {
           setErrorMessage('');
         }, 3000);
         return;
       }
       if (!painterName && reason === 'painter') {
-        setErrorMessage('Please enter the painter name');
+        setErrorMessage('Tolong masukkan nama tukang cat');
         setTimeout(() => {
           setErrorMessage('');
         }, 3000);
         return;
       }
       if (!activeProduct?.id) return Promise.reject('No product id');
+
+      let theDay = format(new Date(), 'yyyy-MM-dd');
+      let theTime = format(new Date(), 'HH:mm:ss');
 
       const productId = activeProduct.id;
       if (reason === 'supplier') {
@@ -183,6 +187,8 @@ export const BrokenProductListPage = () => {
             part: activeProduct.part,
             supplier: activeProduct.supplier,
             warehouse_position: activeProduct.warehouse_position,
+            date: theDay,
+            time: theTime,
           },
           {
             merge: true,
@@ -194,7 +200,8 @@ export const BrokenProductListPage = () => {
         const newDispatchNoteDocRef = doc(collection(db, 'dispatch_note'));
         transaction.set(newDispatchNoteDocRef, {
           // Date example: 2023-09-17
-          date: new Date().toISOString().slice(0, 10),
+          date: theDay,
+          time: theTime,
           dispatch_items: [
             {
               amount: activeProduct.count,
@@ -386,7 +393,7 @@ export const BrokenProductListPage = () => {
             )}
             {nextPosts_empty ? (
               <div className="flex justify-center items-center py-6 px-3 w-full bg-gray-50 rounded-lg z-0 bg-opacity-50">
-                <p className="text-gray-500 text-sm">No more data</p>
+                <p className="text-gray-500 text-sm">Data tidak tersedia</p>
               </div>
             ) : (
               <div className="flex justify-center items-center py-6 px-3 w-full bg-gray-50 rounded-lg z-0 bg-opacity-50">
@@ -434,7 +441,7 @@ export const BrokenProductListPage = () => {
                       htmlFor="painter"
                       className="flex gap-[0.25rem] cursor-pointer"
                     >
-                      Painter
+                      Tukang Cat
                       <input
                         checked={reason === 'painter'}
                         type="radio"

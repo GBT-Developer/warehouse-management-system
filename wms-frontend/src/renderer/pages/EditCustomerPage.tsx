@@ -33,10 +33,9 @@ function EditCustomerPage() {
   const [selectedProducts, setSelectedProducts] = useState<SpecialPrice[]>([]);
   const [products, setProducts] = useState<SpecialPrice[]>([]);
 
-  const successNotify = () =>
-    toast.success('Customer Data Successfully Updated');
+  const successNotify = () => toast.success('Data Customer berhasil diubah');
   const failNotify = (e?: string) =>
-    toast.error(e ?? 'Failed to update customer data');
+    toast.error(e ?? 'Data Customer gagal diubah');
 
   useEffect(() => {
     const fetchData = async () => {

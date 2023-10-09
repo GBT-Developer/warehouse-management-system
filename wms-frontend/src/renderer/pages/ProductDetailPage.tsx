@@ -108,7 +108,9 @@ export default function ProductDetailPage() {
       product.brand === '' ||
       product.motor_type === '' ||
       product.part === '' ||
-      product.available_color === '' ||
+      (product.available_color === '' &&
+        product.warehouse_position !== 'Gudang Bahan') ||
+      product.warehouse_position === '' ||
       product.count === undefined ||
       product.sell_price === undefined ||
       product.warehouse_position === '' ||
@@ -145,7 +147,7 @@ export default function ProductDetailPage() {
       count: product.count,
       sell_price: product.sell_price,
       warehouse_position: product.warehouse_position,
-      supplier: product.supplier,
+      supplier: product.supplier.id,
     };
 
     setLoading(true);
@@ -245,19 +247,21 @@ export default function ProductDetailPage() {
                 editToggle ? '' : 'border-none outline-none bg-inherit'
               }`}
             />
-            <InputField
-              loading={loading || !editToggle}
-              labelFor="available_color"
-              label="Warna"
-              value={product?.available_color ?? ''}
-              onChange={(e) => {
-                if (product === undefined) return;
-                setProduct({ ...product, available_color: e.target.value });
-              }}
-              additionalStyle={`${
-                editToggle ? '' : 'border-none outline-none bg-inherit'
-              }`}
-            />
+            {product?.warehouse_position !== 'Gudang Bahan' && (
+              <InputField
+                loading={loading || !editToggle}
+                labelFor="available_color"
+                label="Warna"
+                value={product?.available_color ?? ''}
+                onChange={(e) => {
+                  if (product === undefined) return;
+                  setProduct({ ...product, available_color: e.target.value });
+                }}
+                additionalStyle={`${
+                  editToggle ? '' : 'border-none outline-none bg-inherit'
+                }`}
+              />
+            )}
             <InputField
               loading={true}
               labelFor="count"
@@ -393,6 +397,11 @@ export default function ProductDetailPage() {
                 </button>
               )}
             </div>
+            {errorMessage && (
+              <p className="absolute bottom-0 left-0 text-red-500 text-sm ">
+                {errorMessage}
+              </p>
+            )}
           </form>
           <hr />
           <div className="flex flex-col gap-5">
@@ -430,9 +439,6 @@ export default function ProductDetailPage() {
             </table>
           </div>
         </div>
-        {errorMessage && (
-          <p className="text-red-500 text-sm ">{errorMessage}</p>
-        )}
       </div>
       <ToastContainer
         position="top-right"

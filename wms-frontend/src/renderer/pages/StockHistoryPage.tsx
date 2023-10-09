@@ -1,3 +1,4 @@
+import { format } from 'date-fns';
 import {
   QueryStartAtConstraint,
   collection,
@@ -11,6 +12,7 @@ import {
 import { useEffect, useState } from 'react';
 import { AiOutlineLoading3Quarters } from 'react-icons/ai';
 import { GoTriangleDown, GoTriangleUp } from 'react-icons/go';
+import DateRangeComp from 'renderer/components/DateRangeComp';
 import { SingleTableItem } from 'renderer/components/TableComponents/SingleTableItem';
 import { TableHeader } from 'renderer/components/TableComponents/TableHeader';
 import { TableTitle } from 'renderer/components/TableComponents/TableTitle';
@@ -24,12 +26,28 @@ function StockHistoryPage() {
   const [loading, setLoading] = useState(false);
   const { warehousePosition } = useAuth();
   const [stockHistory, setStockHistory] = useState<StockHistory[]>([]);
+  const [filteredStockHistory, setFilteredStockHistory] = useState<
+    StockHistory[]
+  >([]);
   const [nextPosts_loading, setNextPostsLoading] = useState(false);
   const [nextPosts_empty, setNextPostsEmpty] = useState(false);
   const [nextQuery, setNextQuery] = useState<QueryStartAtConstraint | null>(
     null
   );
-
+  // Take the first date of the month as the start date
+  const [startDate, setStartDate] = useState(
+    format(
+      new Date(new Date().getFullYear(), new Date().getMonth(), 1),
+      'yyyy-MM-dd'
+    )
+  );
+  // Take the last date of the month as the end date
+  const [endDate, setEndDate] = useState(
+    format(
+      new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0),
+      'yyyy-MM-dd'
+    )
+  );
   useEffect(() => {
     const fetchData = async () => {
       const q = query(
@@ -92,6 +110,21 @@ function StockHistoryPage() {
       console.log(error);
     });
   }, [warehousePosition]);
+
+  //filter by date
+  useEffect(() => {
+    // Convert startDate and endDate to Date objects
+    const startDateObj = new Date(startDate);
+    const endDateObj = new Date(endDate);
+
+    // Use the filter method to filter invoices within the date range
+    const filteredStockHistory = stockHistory.filter((stockHistory) => {
+      const stockHistoryDate = new Date(stockHistory.created_at ?? '');
+      // Check if the invoice date is within the date range
+      return stockHistoryDate >= startDateObj && stockHistoryDate <= endDateObj;
+    });
+    setFilteredStockHistory(filteredStockHistory);
+  }, [startDate, endDate, stockHistory]);
 
   const fetchNextPosts = async () => {
     if (nextQuery === null) {
@@ -164,6 +197,12 @@ function StockHistoryPage() {
               Riwayat Stock
             </h1>
           </TableTitle>
+          <div className="flex flex-col justify-center">
+            <p>Periode tanggal:</p>
+            <DateRangeComp
+              {...{ startDate, endDate, setStartDate, setEndDate }}
+            />
+          </div>
           <div className="overflow-y-auto h-full">
             {loading && (
               <div className="absolute flex justify-center items-center py-2 px-3 top-0 left-0 w-full h-full bg-gray-50 rounded-lg z-0 bg-opacity-50">
@@ -187,7 +226,7 @@ function StockHistoryPage() {
                     </td>
                   </tr>
                 ) : (
-                  stockHistory
+                  filteredStockHistory
                     .filter((stockHistory) => {
                       if (search === '') return stockHistory;
                       else if (
@@ -263,7 +302,7 @@ function StockHistoryPage() {
             </table>
             {nextPosts_empty ? (
               <div className="flex justify-center items-center py-6 px-3 w-full">
-                <p className="text-gray-500 text-sm">No more data</p>
+                <p className="text-gray-500 text-sm">Data tidak tersedia</p>
               </div>
             ) : (
               <div className="flex justify-center items-center py-6 px-3 w-full">

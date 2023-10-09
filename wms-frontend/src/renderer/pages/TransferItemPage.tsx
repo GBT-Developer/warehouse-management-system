@@ -1,3 +1,4 @@
+import { format } from 'date-fns';
 import {
   addDoc,
   and,
@@ -9,7 +10,7 @@ import {
   runTransaction,
   where,
 } from 'firebase/firestore';
-import React, { FormEvent, useEffect, useState } from 'react';
+import { FormEvent, useEffect, useState } from 'react';
 import { AiOutlineLoading3Quarters } from 'react-icons/ai';
 import { BiSolidTrash } from 'react-icons/bi';
 import { useNavigate } from 'react-router-dom';
@@ -41,7 +42,6 @@ export const TransferItemPage = () => {
   );
   const [selectedProducts, setSelectedProducts] = useState<Product[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
-  const dateInputRef = React.useRef<HTMLInputElement>(null);
   const successNotify = () => toast.success('Barang berhasil ditransfer');
   const failNotify = (e?: string) =>
     toast.error(e ?? 'Barang gagal ditransfer');
@@ -53,16 +53,15 @@ export const TransferItemPage = () => {
 
   useEffect(() => {
     if (dispatchNote.dispatch_items.length === 0) {
-      if (dispatchNote.date === '' || dispatchNote.painter === '') {
+      if (dispatchNote.painter === '') {
         setIsEmpty(true);
         return;
-      } else if (dispatchNote.date != '' && dispatchNote.painter != '') {
+      } else if (dispatchNote.painter != '') {
         setIsEmpty(true);
         return;
       }
     } else if (
       dispatchNote.dispatch_items.length != 0 &&
-      dispatchNote.date != '' &&
       dispatchNote.painter != ''
     )
       dispatchNote.dispatch_items.map((item) => {
@@ -83,7 +82,7 @@ export const TransferItemPage = () => {
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
 
-    if (!dispatchNote.date || !dispatchNote.painter) {
+    if (!dispatchNote.painter) {
       setErrorMessage('Please fill all fields');
       setTimeout(() => {
         setErrorMessage(null);
@@ -129,6 +128,11 @@ export const TransferItemPage = () => {
       return;
     }
 
+    //set time and date
+    const date = format(new Date(), 'yyyy-MM-dd');
+    const time = format(new Date(), 'HH:mm:ss');
+    dispatchNote.date = date;
+    dispatchNote.time = time;
     try {
       setLoading(true);
       const dispatchNoteRef = collection(db, 'dispatch_note');
@@ -186,7 +190,6 @@ export const TransferItemPage = () => {
       setSelectedProducts([]);
       setProducts([]);
       setLoading(false);
-      if (dateInputRef.current) dateInputRef.current.value = '';
     } catch (error) {
       console.error('Error adding document: ', error);
     }
@@ -262,29 +265,6 @@ export const TransferItemPage = () => {
             }));
           }}
         />
-
-        <div className="flex justify-between">
-          <div className="w-1/3 flex items-center">
-            <label htmlFor={'date-id'} className="text-md">
-              Tanggal
-            </label>
-          </div>
-          <div className="w-2/3">
-            <input
-              ref={dateInputRef}
-              disabled={loading}
-              type="date"
-              name="date"
-              className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
-              onChange={(e) => {
-                setDispatchNote(() => ({
-                  ...dispatchNote,
-                  date: e.target.value,
-                }));
-              }}
-            />
-          </div>
-        </div>
 
         <ul className="my-3 space-y-3 font-regular">
           {selectedProducts.length > 0 &&

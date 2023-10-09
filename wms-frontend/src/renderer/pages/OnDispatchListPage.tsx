@@ -1,7 +1,9 @@
+import { format } from 'date-fns';
 import { collection, getDocs, query, where } from 'firebase/firestore';
 import React, { useEffect, useState } from 'react';
 import { AiOutlineLoading3Quarters } from 'react-icons/ai';
 import { PiFilePdfBold } from 'react-icons/pi';
+import DateRangeComp from 'renderer/components/DateRangeComp';
 import { PdfViewer } from 'renderer/components/PdfViewer';
 import { SingleTableItem } from 'renderer/components/TableComponents/SingleTableItem';
 import { TableHeader } from 'renderer/components/TableComponents/TableHeader';
@@ -14,6 +16,9 @@ import { PageLayout } from 'renderer/layout/PageLayout';
 export const OnDispatchListPage = () => {
   const [search, setSearch] = useState('');
   const [dispatchNoteList, setDispatchNoteList] = useState<DispatchNote[]>([]);
+  const [filteredDispatchNoteList, setFilteredDispatchNoteList] = useState<
+    DispatchNote[]
+  >([]);
   const [products, setProducts] = useState<
     (Product & {
       dispatch_note_id: string;
@@ -34,6 +39,20 @@ export const OnDispatchListPage = () => {
     }));
   };
 
+  // Take the first date of the month as the start date
+  const [startDate, setStartDate] = useState(
+    format(
+      new Date(new Date().getFullYear(), new Date().getMonth(), 1),
+      'yyyy-MM-dd'
+    )
+  );
+  // Take the last date of the month as the end date
+  const [endDate, setEndDate] = useState(
+    format(
+      new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0),
+      'yyyy-MM-dd'
+    )
+  );
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -82,6 +101,21 @@ export const OnDispatchListPage = () => {
     });
   }, []);
 
+  //filter by date
+  useEffect(() => {
+    // Convert startDate and endDate to Date objects
+    const startDateObj = new Date(startDate);
+    const endDateObj = new Date(endDate);
+
+    // Use the filter method to filter invoices within the date range
+    const filteredDispatchNoteList = dispatchNoteList.filter((dispatchNote) => {
+      const dispatchNoteDate = new Date(dispatchNote.date ?? '');
+      // Check if the invoice date is within the date range
+      return dispatchNoteDate >= startDateObj && dispatchNoteDate <= endDateObj;
+    });
+    setFilteredDispatchNoteList(filteredDispatchNoteList);
+  }, [startDate, endDate, dispatchNoteList]);
+
   return (
     <PageLayout>
       <div className="w-full h-full bg-transparent overflow-hidden">
@@ -91,6 +125,12 @@ export const OnDispatchListPage = () => {
               List Pengiriman
             </h1>
           </TableTitle>
+          <div className="flex flex-col justify-center">
+            <p>Periode tanggal:</p>
+            <DateRangeComp
+              {...{ startDate, endDate, setStartDate, setEndDate }}
+            />
+          </div>
           <div className="overflow-y-auto h-full relative">
             {loading && (
               <div className="absolute flex justify-center items-center py-2 px-3 top-0 left-0 w-full h-full bg-gray-50 rounded-lg z-0 bg-opacity-50">
@@ -113,7 +153,7 @@ export const OnDispatchListPage = () => {
                     </td>
                   </tr>
                 ) : (
-                  dispatchNoteList
+                  filteredDispatchNoteList
                     .filter((dispatchNote) => {
                       if (search === '') return dispatchNote;
                       else if (
@@ -122,6 +162,18 @@ export const OnDispatchListPage = () => {
                           .includes(search.toLowerCase())
                       )
                         return dispatchNote;
+                    })
+                    .sort((a, b) => {
+                      if (a.time === undefined || b.time === undefined)
+                        return 0;
+                      return a.time > b.time ? -1 : 1;
+                    })
+                    .sort((a, b) => {
+                      if (a.date === undefined || b.date === undefined)
+                        return 0;
+                      return (
+                        new Date(b.date).getTime() - new Date(a.date).getTime()
+                      );
                     })
                     .map((dispatchNote, index) => (
                       <React.Fragment key={index}>
@@ -132,7 +184,15 @@ export const OnDispatchListPage = () => {
                             toggleShowProducts(dispatchNote.id);
                           }}
                         >
-                          <SingleTableItem>{dispatchNote.date}</SingleTableItem>
+                          <SingleTableItem>
+                            <span className="font-medium text-md">
+                              {dispatchNote.date}
+                              <br />
+                              <span className="text-sm font-normal">
+                                {dispatchNote.time}
+                              </span>
+                            </span>
+                          </SingleTableItem>
                           <SingleTableItem>{dispatchNote.id}</SingleTableItem>
                           <SingleTableItem>
                             {dispatchNote.painter}

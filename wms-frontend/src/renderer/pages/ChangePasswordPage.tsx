@@ -39,7 +39,7 @@ export const ChangePasswordPage = () => {
       );
       if (newPassword === confirmNewPassword)
         await updatePassword(user, newPassword);
-      else throw new Error('Passwords do not match');
+      else throw new Error('Password tidak sesuai');
 
       setPassword('');
       setNewPassword('');

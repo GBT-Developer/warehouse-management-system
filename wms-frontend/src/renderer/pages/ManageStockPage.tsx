@@ -11,7 +11,7 @@ import {
   runTransaction,
   where,
 } from 'firebase/firestore';
-import React, { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
   AiFillRightCircle,
   AiOutlineLoading3Quarters,
@@ -69,7 +69,6 @@ export const ManageStockPage = () => {
   const [modalOpen, setModalOpen] = useState(false);
   const selectedSupplierRef = useRef<HTMLSelectElement>(null);
   const selectedWarehouseRef = useRef<HTMLSelectElement>(null);
-  const dateInputRef = React.useRef<HTMLInputElement>(null);
   const [returnedProduct, setReturnedProduct] = useState(false);
   const [initialLoad, setInitialLoad] = useState(true);
 
@@ -88,14 +87,12 @@ export const ManageStockPage = () => {
         selectedSupplier === null ||
         newPurchase.products.length === 0 ||
         (newPurchase.purchase_price === 0 && !returnedProduct) ||
-        !selectedWarehouse ||
-        dateInputRef.current?.value === ''
+        !selectedWarehouse
       ) {
         setIsEmpty(true);
         return;
       } else if (
         (newPurchase.products.length > 0 &&
-          dateInputRef.current?.value !== '' &&
           !returnedProduct &&
           newPurchase.purchase_price > 0) ||
         returnedProduct
@@ -110,14 +107,10 @@ export const ManageStockPage = () => {
           }
         });
     } else if (manageStockMode === 'from_other_warehouse') {
-      if (dispatchNoteId === '' || dateInputRef.current?.value === '') {
+      if (dispatchNoteId === '') {
         setIsEmpty(true);
         return;
-      } else if (
-        dispatchNoteId &&
-        dateInputRef.current?.value !== '' &&
-        acceptedProducts.length != 0
-      )
+      } else if (dispatchNoteId && acceptedProducts.length != 0)
         acceptedProducts.map((product) => {
           if (product.count === 0) {
             setIsEmpty(true);
@@ -130,15 +123,11 @@ export const ManageStockPage = () => {
     } else if (
       selectedSupplier === null ||
       newPurchase.products.length === 0 ||
-      !selectedWarehouse ||
-      dateInputRef.current?.value === ''
+      !selectedWarehouse
     ) {
       setIsEmpty(true);
       return;
-    } else if (
-      newPurchase.products.length > 0 &&
-      dateInputRef.current?.value !== ''
-    )
+    } else if (newPurchase.products.length > 0)
       newPurchase.products.map((product) => {
         if (product.quantity === 0 || !product.quantity.toString()) {
           setIsEmpty(true);
@@ -179,7 +168,7 @@ export const ManageStockPage = () => {
       };
 
       fetchSupplierList().catch(() => {
-        setErrorMessage('An error occured while fetching supplier data');
+        setErrorMessage('Terjadi kesalahan saat mengambil data supplier');
       });
     }
     if (warehousePosition === 'Gudang Bahan') {
@@ -214,7 +203,7 @@ export const ManageStockPage = () => {
 
     if (selectedSupplier?.id && selectedWarehouse)
       fetchProductList(selectedSupplier.id, selectedWarehouse).catch(() => {
-        setErrorMessage('An error occured while fetching product data');
+        setErrorMessage('Terjadi kesalahan saat mengambil data produk');
       });
 
     setLoading(false);
@@ -240,10 +229,9 @@ export const ManageStockPage = () => {
         !returnedProduct) ||
       (manageStockMode === 'from_other_warehouse' && dispatchNoteId === '') ||
       (manageStockMode === 'from_other_warehouse' &&
-        acceptedProducts.length != products.length) ||
-      newPurchase.created_at === ''
+        acceptedProducts.length != products.length)
     ) {
-      setErrorMessage('Please fill all the required fields');
+      setErrorMessage('Tolong isi semua kolom');
       setTimeout(() => {
         setErrorMessage(null);
       }, 3000);
@@ -251,13 +239,8 @@ export const ManageStockPage = () => {
     }
 
     setLoading(true);
-    const currentDateandTime = new Date();
-    if (!newPurchase.created_at) return Promise.reject('Date not found');
-    let theTime = '';
-    // If invoice date is the same as current date, take the current time
-    if (newPurchase.created_at === format(currentDateandTime, 'yyyy-MM-dd'))
-      theTime = format(currentDateandTime, 'HH:mm:ss');
-    else theTime = '23:59:59';
+    const currentDate = format(new Date(), 'yyyy-MM-dd');
+    const currentTime = format(new Date(), 'HH:mm:ss');
 
     if (manageStockMode === 'purchase' || manageStockMode === 'force-change')
       await runTransaction(db, async (transaction) => {
@@ -277,7 +260,8 @@ export const ManageStockPage = () => {
             (the_product) => the_product.id === product.id
           );
 
-          if (!productDetail) return Promise.reject('Product detail not found');
+          if (!productDetail)
+            return Promise.reject('Detail produk tidak ditemukan');
 
           const newStockHistoryDocRef = doc(collection(db, 'stock_history'));
           transaction.set(newStockHistoryDocRef, {
@@ -295,8 +279,8 @@ export const ManageStockPage = () => {
             difference: product.quantity,
             warehouse_position: selectedWarehouse,
             type: 'purchase',
-            created_at: newPurchase.created_at,
-            time: theTime,
+            created_at: currentDate,
+            time: currentTime,
           });
         });
 
@@ -308,8 +292,8 @@ export const ManageStockPage = () => {
 
           transaction.set(newPurchaseHistoryDocRef, {
             supplier: selectedSupplier.id,
-            created_at: newPurchase.created_at,
-            time: theTime,
+            created_at: currentDate,
+            time: currentTime,
             purchase_price: newPurchase.purchase_price,
             payment_status: newPurchase.payment_status,
             warehouse_position: products[0].warehouse_position,
@@ -400,8 +384,8 @@ export const ManageStockPage = () => {
               count: acceptedProduct.count + theOldCount,
               warehouse_position: selectedWarehouse,
               type: 'from_other_warehouse',
-              created_at: newPurchase.created_at,
-              time: theTime,
+              created_at: currentDate,
+              time: currentTime,
             },
             {
               merge: true,
@@ -451,7 +435,6 @@ export const ManageStockPage = () => {
     setSelectedWarehouse('');
     if (selectedSupplierRef.current) selectedSupplierRef.current.value = '';
     if (selectedWarehouseRef.current) selectedWarehouseRef.current.value = '';
-    if (dateInputRef.current) dateInputRef.current.value = '';
     setReturnedProduct(false);
     setProducts([]);
     setAcceptedProducts([]);
@@ -518,7 +501,7 @@ export const ManageStockPage = () => {
     const dispatchNoteDoc = await getDoc(dispatchNoteRef);
 
     if (!dispatchNoteDoc.exists()) {
-      failNotify('Dispatch note not found');
+      failNotify('Surat jalan tidak ditemukan');
       setLoading(false);
       return;
     }
@@ -767,7 +750,7 @@ export const ManageStockPage = () => {
                               Number(e.target.value) > Number(product.count)
                             ) {
                               setErrorMessage(
-                                'Not enough stock in warehouse. Stock in warehouse: ' +
+                                'Stock di gudang tidak cukup, Stock di gudang: ' +
                                   product.count.toString()
                               );
                               // Set e target value with the value without the last character
@@ -939,28 +922,6 @@ export const ManageStockPage = () => {
             )}
           </>
         )}
-        <div className="flex justify-between">
-          <div className="w-1/3 flex items-center">
-            <label htmlFor={'date-id'} className="text-md">
-              Tanggal Pembelian
-            </label>
-          </div>
-          <div className="w-2/3">
-            <input
-              ref={dateInputRef}
-              disabled={loading}
-              type="date"
-              name="date"
-              className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
-              onChange={(e) => {
-                setNewPurchase(() => ({
-                  ...newPurchase,
-                  created_at: e.target.value,
-                }));
-              }}
-            />
-          </div>
-        </div>
         <div className="flex flex-row-reverse gap-2 justify-start">
           <button
             disabled={isEmpty}
