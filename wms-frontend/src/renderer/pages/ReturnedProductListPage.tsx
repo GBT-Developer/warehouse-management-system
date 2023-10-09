@@ -22,7 +22,9 @@ import { useAuth } from 'renderer/providers/AuthProvider';
 
 export const ReturnedProductListPage = () => {
   const [search, setSearch] = useState('');
-  const [products, setProducts] = useState<Product[]>([]);
+  const [products, setProducts] = useState<
+    (Product & { date: string; time: string })[]
+  >([]);
   const [loading, setLoading] = useState(false);
   const { warehousePosition } = useAuth();
   const [nextPosts_loading, setNextPostsLoading] = useState(false);
@@ -94,9 +96,12 @@ export const ReturnedProductListPage = () => {
           if (data.id) suppliersMap.set(data.id, data);
         });
 
-        const productData: Product[] = [];
+        const productData: (Product & { date: string; time: string })[] = [];
         querySnapshot.forEach((theProduct) => {
-          const data = theProduct.data() as Product;
+          const data = theProduct.data() as Product & {
+            date: string;
+            time: string;
+          };
           data.id = theProduct.id;
           const supplierId = data.supplier as unknown as string;
           data.supplier = suppliersMap.get(supplierId);
@@ -186,9 +191,12 @@ export const ReturnedProductListPage = () => {
         if (data.id) suppliersMap.set(data.id, data);
       });
 
-      const productData: Product[] = [];
+      const productData: (Product & { date: string; time: string })[] = [];
       querySnapshot.forEach((theProduct) => {
-        const data = theProduct.data() as Product;
+        const data = theProduct.data() as Product & {
+          date: string;
+          time: string;
+        };
         data.id = theProduct.id;
         const supplierId = data.supplier as unknown as string;
         data.supplier = suppliersMap.get(supplierId);
