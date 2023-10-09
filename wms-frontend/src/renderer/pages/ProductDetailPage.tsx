@@ -393,6 +393,11 @@ export default function ProductDetailPage() {
                 </button>
               )}
             </div>
+            {errorMessage && (
+              <p className="absolute bottom-0 left-0 text-red-500 text-sm ">
+                {errorMessage}
+              </p>
+            )}
           </form>
           <hr />
           <div className="flex flex-col gap-5">
@@ -430,9 +435,6 @@ export default function ProductDetailPage() {
             </table>
           </div>
         </div>
-        {errorMessage && (
-          <p className="text-red-500 text-sm ">{errorMessage}</p>
-        )}
       </div>
       <ToastContainer
         position="top-right"
