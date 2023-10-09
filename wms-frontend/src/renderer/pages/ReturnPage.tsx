@@ -115,14 +115,15 @@ export default function ReturnPage() {
 
   const handleSubmit = async () => {
     // Check whether all inputs are filled
-    if (mode === '') return Promise.reject('Please select a mode');
-    if (!invoiceNumber) return Promise.reject('Please input invoice number');
-    if (mode !== 'void' && selectedItems.length === 0)
-      return Promise.reject('Please select at least one item');
-    if (mode === 'void' && selectedNewItems.length === 0)
-      return Promise.reject('Please select at least one item');
+    if (mode === '') return Promise.reject('Pilih mode penukaran');
+    if (!invoiceNumber) return Promise.reject('Masukkan nomor invoice');
+    if (
+      (mode !== 'void' && selectedItems.length === 0) ||
+      (mode === 'void' && selectedNewItems.length === 0)
+    )
+      return Promise.reject('Pilih minimal 1 produk');
     if (mode === 'void' && !newTransaction.payment_method)
-      return Promise.reject('Please select a payment method');
+      return Promise.reject('Pilih metode transaksi');
 
     setLoading(true);
 
@@ -134,7 +135,7 @@ export default function ReturnPage() {
             // Get product data
             if (!item.id) return Promise.reject('Product id is undefined');
             const productRef = doc(db, 'product', item.id);
-            const productSnap = await getDoc(productRef);
+            const productSnap = await transaction.get(productRef);
             const product = productSnap.data() as Product;
 
             // Check if there is enough stock
@@ -162,6 +163,7 @@ export default function ReturnPage() {
 
             return Promise.resolve('Success');
           });
+          setLoading(false);
           await Promise.all(promises);
           return Promise.resolve('Success'); // If all promises are resolved, return 'Success
         } catch (err) {
@@ -224,6 +226,7 @@ export default function ReturnPage() {
           );
 
           const updateCount = increment(item.count);
+          delete item.id;
           transaction.set(
             brokenProductRef,
             {
@@ -241,7 +244,7 @@ export default function ReturnPage() {
         reduceSalesStats(invoice, false).catch((err) => console.log(err));
         return Promise.all(promises);
       });
-    } else
+    } else {
       await runTransaction(db, (transaction) => {
         // Delete the invoice
         transaction.delete(doc(db, 'invoice', invoiceNumber));
@@ -305,7 +308,8 @@ export default function ReturnPage() {
 
         return Promise.resolve();
       });
-
+    }
+    console.log('kesini');
     // Clear the form
     setInvoiceNumber('');
     setCheckedItems([]);
