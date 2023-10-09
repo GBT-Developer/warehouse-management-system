@@ -44,7 +44,7 @@ export const ReturnedProductListPage = () => {
                 'Gudang Bahan',
                 'Gudang Jadi',
               ]),
-          orderBy('brand', 'asc'),
+          where('count', '>', 0),
           limit(50)
         );
         setLoading(true);
@@ -264,6 +264,22 @@ export const ReturnedProductListPage = () => {
                           .includes(search.toLowerCase())
                       )
                         return product;
+                    })
+                    .sort((a, b) => {
+                      if (a.time === undefined || b.time === undefined)
+                        return 0;
+                      return a.time > b.time ? -1 : 1;
+                    })
+                    .sort((a, b) => {
+                      if (
+                        a.created_at === undefined ||
+                        b.created_at === undefined
+                      )
+                        return 0;
+                      return (
+                        new Date(b.created_at).getTime() -
+                        new Date(a.created_at).getTime()
+                      );
                     })
                     .map((product) => (
                       <tr
