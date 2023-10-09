@@ -18,6 +18,7 @@ import { useNavigate } from 'react-router-dom';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { InputField } from 'renderer/components/InputField';
+import { PdfViewer } from 'renderer/components/PdfViewer';
 import { SingleTableItem } from 'renderer/components/TableComponents/SingleTableItem';
 import { TableModal } from 'renderer/components/TableComponents/TableModal';
 import { db } from 'renderer/firebase';
@@ -54,6 +55,8 @@ export const TransactionPage = () => {
   const failNotify = (e?: string) =>
     toast.error(e ?? 'Transaksi gagal dilakukan');
   const [isEmpty, setIsEmpty] = useState(false);
+  const [clickedInvoice, setClickedInvoice] = useState<Invoice | null>(null);
+  const [pdfOpen, setPdfOpen] = useState(false);
   useEffect(() => {
     const fetchCustomer = async () => {
       try {
@@ -194,6 +197,19 @@ export const TransactionPage = () => {
           items: invoice.items,
         });
         setLoading(false);
+
+        setClickedInvoice({
+          customer_id: selectedCustomer?.id ?? '',
+          customer_name: selectedCustomer?.name ?? invoice.customer_name,
+          // Current date
+          date: invoice.date,
+          time: theTime,
+          total_price: totalPrice,
+          payment_method: invoice.payment_method,
+          warehouse_position: invoice.items[0].warehouse_position,
+          items: invoice.items,
+        });
+        setPdfOpen(true);
         successNotify();
         return Promise.resolve();
       }).catch((error) => {
@@ -518,6 +534,18 @@ export const TransactionPage = () => {
           <p className="text-red-500 text-sm ">{errorMessage}</p>
         )}
       </form>
+      {clickedInvoice && (
+        <PdfViewer
+          products={[]}
+          setInvoice={setClickedInvoice}
+          dispatchNote={undefined}
+          setDipatchNote={() => {}}
+          modalOpen={pdfOpen}
+          setModalOpen={setPdfOpen}
+          invoice={clickedInvoice}
+          destinationName={clickedInvoice.customer_name ?? ''}
+        />
+      )}
       <TableModal
         placeholder="Cari berdasarkan merek produk"
         modalOpen={modalOpen}
