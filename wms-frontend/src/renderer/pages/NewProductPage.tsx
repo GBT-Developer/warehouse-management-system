@@ -55,7 +55,7 @@ export const NewProductPage = () => {
   const [newProduct, setNewProduct] = useState<Product>(newProductInitialState);
   const navigate = useNavigate();
   const [initialLoad, setInitialLoad] = useState(true);
-  const { warehousePosition } = useAuth();
+  const { warehousePosition, user } = useAuth();
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const warehouseOptionRef = useRef<HTMLSelectElement>(null);
   const supplierOptionRef = useRef<HTMLSelectElement>(null);
@@ -412,7 +412,9 @@ export const NewProductPage = () => {
                     {supplier.company_name}
                   </option>
                 ))}
-                <option value="New Supplier">Add New Supplier</option>
+                {user?.role.toLowerCase() === 'owner' && (
+                  <option value="New Supplier">Tambah Supplier Baru</option>
+                )}
               </select>{' '}
             </div>
           </div>
@@ -422,7 +424,7 @@ export const NewProductPage = () => {
           <>
             <InputField
               loading={loading}
-              label="Company Name"
+              label="Nama Perusahaan"
               labelFor="company_name"
               value={newSupplier.company_name}
               placeholder="i.e. PT. Berkat Abadi"
@@ -432,7 +434,7 @@ export const NewProductPage = () => {
             />
             <InputField
               loading={loading}
-              label="Address"
+              label="Alamat"
               labelFor="address"
               value={newSupplier.address}
               placeholder="i.e. Jl.Soekarno-Hatta No. 123"
@@ -442,7 +444,7 @@ export const NewProductPage = () => {
             />
             <InputField
               loading={loading}
-              label="City"
+              label="Kota"
               labelFor="city"
               value={newSupplier.city}
               placeholder="i.e. 10120, Jakarta"
@@ -452,10 +454,10 @@ export const NewProductPage = () => {
             />
             <InputField
               loading={loading}
-              label="Contact Number"
+              label="Nomor Telepon"
               labelFor="phone_number"
               value={newSupplier.phone_number}
-              placeholder="Phone number or landline number"
+              placeholder="081234567890"
               onChange={(e) =>
                 setNewSupplier({ ...newSupplier, phone_number: e.target.value })
               }
@@ -475,7 +477,7 @@ export const NewProductPage = () => {
             />
             <InputField
               loading={loading}
-              label="Bank Number"
+              label="Nomor Rekening"
               labelFor="bank_number"
               value={newSupplier.bank_number}
               placeholder="1234567890"
@@ -486,7 +488,7 @@ export const NewProductPage = () => {
             <InputField
               loading={loading}
               labelFor="bank_owner"
-              label="Bank Owner"
+              label="Atas Nama"
               value={newSupplier.bank_owner}
               placeholder='i.e "John Doe"'
               onChange={(e) =>
@@ -495,12 +497,12 @@ export const NewProductPage = () => {
             />
             <AreaField
               loading={loading}
-              label="Remarks"
+              label="Catatan"
               labelFor="remarks"
               maxLength={300}
               rows={7}
               value={newSupplier.remarks ?? ''}
-              placeholder="Additional info... (max. 300 characters)"
+              placeholder="Info tambahan... (max. 300 characters)"
               onChange={(e) =>
                 setNewSupplier({ ...newSupplier, remarks: e.target.value })
               }
