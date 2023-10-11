@@ -13,6 +13,8 @@ import { useEffect, useState } from 'react';
 import { AiOutlineLoading3Quarters } from 'react-icons/ai';
 import { BiSolidTrash } from 'react-icons/bi';
 import { useNavigate } from 'react-router-dom';
+import { toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import { SingleTableItem } from 'renderer/components/TableComponents/SingleTableItem';
 import { TableHeader } from 'renderer/components/TableComponents/TableHeader';
 import { TableTitle } from 'renderer/components/TableComponents/TableTitle';
@@ -30,6 +32,8 @@ export default function CustomerListPage() {
   const [nextQuery, setNextQuery] = useState<QueryStartAtConstraint | null>(
     null
   );
+  const successNotify = () => toast.success('Customer berhasil dihapus');
+  const failNotify = (e?: string) => toast.error(e ?? 'Customer gagal dihapus');
 
   useEffect(() => {
     const fetchData = async () => {
@@ -178,9 +182,17 @@ export default function CustomerListPage() {
                                 'customer',
                                 customer.id
                               );
-                              deleteDoc(purchaseRef).catch((error) =>
-                                console.log(error)
-                              );
+                              deleteDoc(purchaseRef)
+                                .then(() => {
+                                  const newCustomerList = customerList.filter(
+                                    (item) => item.id !== customer.id
+                                  );
+                                  setCustomerList(newCustomerList);
+                                  successNotify();
+                                })
+                                .catch(() =>
+                                  failNotify('Customer gagal dihapus')
+                                );
                               customerList.splice(index, 1);
                               setLoading(false);
                             }}
