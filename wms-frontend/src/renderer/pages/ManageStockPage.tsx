@@ -340,30 +340,51 @@ export const ManageStockPage = () => {
 
           delete acceptedProduct.status;
           delete acceptedProduct.dispatch_note_id;
-          const theOldCount =
-            originalProducts.find((product) => {
-              return product.id === acceptedProduct.id;
-            })?.count ?? 0;
 
-          // Update product count
-          const updateStock = increment(acceptedProduct.count);
-          const productRef = doc(db, 'product', acceptedProduct.id);
-          transaction.set(
-            productRef,
-            {
+          // Check whether the product is already in the warehouse
+          const q = query(
+            collection(db, 'product'),
+            where('brand', '==', acceptedProduct.brand),
+            where('motor_type', '==', acceptedProduct.motor_type),
+            where('part', '==', acceptedProduct.part),
+            where('available_color', '==', acceptedProduct.available_color),
+            where('warehouse_position', '==', selectedWarehouse)
+          );
+
+          const querySnapshot = await getDocs(q);
+          const productList: Product[] = [];
+          querySnapshot.forEach((doc) => {
+            productList.push({
+              id: doc.id,
+              ...doc.data(),
+            } as Product);
+          });
+
+          // If the product is already in the warehouse, update the count
+          let isNewProduct = false;
+          if (productList.length === 1) {
+            const productId = productList[0].id;
+            if (!productId) return Promise.reject('Product id not found');
+            const productRef = doc(db, 'product', productId);
+            const updateStock = increment(acceptedProduct.count);
+            transaction.update(productRef, {
+              count: updateStock,
+            });
+          } else {
+            // If the product is not in the warehouse, create new product
+            const newProductDocRef = doc(collection(db, 'product'));
+            transaction.set(newProductDocRef, {
               brand: acceptedProduct.brand,
               motor_type: acceptedProduct.motor_type,
               part: acceptedProduct.part,
               available_color: acceptedProduct.available_color,
               sell_price: acceptedProduct.sell_price,
-              count: updateStock,
+              count: acceptedProduct.count,
               supplier: acceptedProduct.supplier,
               warehouse_position: 'Gudang Jadi',
-            },
-            {
-              merge: true,
-            }
-          );
+            });
+            isNewProduct = true;
+          }
 
           // Create new stock history
           const newStockHistoryDocRef = doc(collection(db, 'stock_history'));
@@ -379,9 +400,11 @@ export const ManageStockPage = () => {
                 acceptedProduct.part +
                 ' ' +
                 acceptedProduct.available_color,
-              old_count: theOldCount,
+              old_count: isNewProduct ? 0 : productList[0].count,
               difference: acceptedProduct.count,
-              count: acceptedProduct.count + theOldCount,
+              count:
+                acceptedProduct.count +
+                (isNewProduct ? 0 : productList[0].count),
               warehouse_position: selectedWarehouse,
               type: 'from_other_warehouse',
               created_at: currentDate,
