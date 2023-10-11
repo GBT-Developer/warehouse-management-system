@@ -302,6 +302,37 @@ export default function ProductDetailPage() {
                 editToggle ? '' : 'border-none outline-none bg-inherit'
               }`}
             />
+            <InputField
+              loading={loading || !editToggle}
+              labelFor="purchase_price"
+              label="Harga Beli"
+              value={
+                editToggle
+                  ? product?.purchase_price ?? ''
+                  : product
+                  ? new Intl.NumberFormat('id-ID', {
+                      style: 'currency',
+                      currency: 'IDR',
+                    }).format(product.purchase_price)
+                  : ''
+              }
+              onChange={(e) => {
+                if (
+                  !/^[0-9]*(\.[0-9]*)?$/.test(e.target.value) &&
+                  e.target.value !== ''
+                )
+                  return;
+                if (product === undefined) return;
+                setProduct({
+                  ...product,
+                  purchase_price: Number(e.target.value),
+                });
+              }}
+              additionalStyle={`${
+                editToggle ? '' : 'border-none outline-none bg-inherit'
+              }`}
+            />
+
             <div>
               <div className="flex justify-between">
                 <div className="w-1/3 flex items-center">
