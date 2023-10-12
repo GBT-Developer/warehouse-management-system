@@ -80,6 +80,53 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
           .getIdToken()
           .then(async (newToken) => {
             setAccessToken(newToken);
+
+            const { user_id } = JSON.parse(atob(newToken.split('.')[1])) as {
+              user_id: string | undefined;
+            };
+
+            if (!user_id) throw new Error('Token tidak valid');
+
+            // Retrieving user role
+            const userRef = doc(db, 'user', user_id);
+            const userSnapshot = await getDoc(userRef);
+            const userData = userSnapshot.data() as CustomUser | undefined;
+            if (!userData) throw new Error('User tidak ditemukan');
+            userData.id = userSnapshot.id;
+
+            const theUser = {
+              display_name: userData.display_name,
+              email: userData.email,
+              id: userData.id,
+              role: userData.role,
+            } as CustomUser;
+
+            // Retrieving company info
+            const companyRef = doc(db, 'company_info', 'my_company');
+            const companySnapshot = await getDoc(companyRef);
+            const companyData = companySnapshot.data() as
+              | CompanyInfo
+              | undefined;
+            if (companyData) {
+              const spaceRef = ref(storage, companyData.logo);
+
+              await getBlob(spaceRef)
+                .then((url) => {
+                  companyData.logo = URL.createObjectURL(url);
+                })
+                .catch(() => {
+                  companyData.logo = 'company_info/company_logo.png';
+                });
+            }
+
+            setUser(() => theUser);
+            setWarehouse(
+              theUser.role.toLowerCase() === 'owner'
+                ? 'Semua Gudang'
+                : theUser.role
+            );
+            setCompanyInfo(() => companyData ?? null);
+            navigate('/profile');
           })
           .catch(() => {
             setAccessToken(null);
@@ -117,19 +164,19 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         let errMessage = '';
         switch (error.code) {
           case 'auth/invalid-email':
-            errMessage = 'Invalid email';
+            errMessage = 'Email tidak valid';
             break;
           case 'auth/user-disabled':
-            errMessage = 'User disabled';
+            errMessage = 'User nonaktif';
             break;
           case 'auth/user-not-found':
-            errMessage = 'User not found';
+            errMessage = 'User tidak ditemukan';
             break;
           case 'auth/wrong-password':
-            errMessage = 'Wrong password';
+            errMessage = 'Password salah';
             break;
           default:
-            errMessage = 'Something went wrong';
+            errMessage = 'Terjadi kesalahan di sistem';
             break;
         }
         return Promise.reject(errMessage);
@@ -138,42 +185,10 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       const userSnapshot = await getDoc(userRef);
       const userData = userSnapshot.data() as CustomUser | undefined;
 
-      if (!userData) throw new Error('No user found');
-
-      // Retrieving user role
-      if (!userData) throw new Error('No user found');
-      userData.id = userSnapshot.id;
-
-      const theUser = {
-        display_name: userData.display_name,
-        email: userData.email,
-        id: userData.id,
-        role: userData.role,
-      } as CustomUser;
-
-      // Retrieving company info
-      const companyRef = doc(db, 'company_info', 'my_company');
-      const companySnapshot = await getDoc(companyRef);
-      const companyData = companySnapshot.data() as CompanyInfo | undefined;
-      if (companyData) {
-        const spaceRef = ref(storage, companyData.logo);
-
-        await getBlob(spaceRef)
-          .then((url) => {
-            companyData.logo = URL.createObjectURL(url);
-          })
-          .catch(() => {
-            companyData.logo = 'company_info/company_logo.png';
-          });
-        console.log(companyData);
+      if (!userData) {
+        await signOut(auth);
+        return Promise.reject('User tidak ditemukan');
       }
-
-      setUser(() => theUser);
-      setWarehouse(
-        theUser.role.toLowerCase() === 'owner' ? 'Semua Gudang' : theUser.role
-      );
-      setCompanyInfo(() => companyData ?? null);
-      navigate('/profile');
 
       return userData;
     } catch (error) {
