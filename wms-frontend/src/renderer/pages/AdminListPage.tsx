@@ -17,6 +17,7 @@ export const AdminListPage = () => {
   const [search, setSearch] = useState('');
   const [adminList, setAdminList] = useState<CustomUser[]>([]);
   const [loading, setLoading] = useState(false);
+  const [modalLoading, setModalLoading] = useState(false);
   const navigate = useNavigate();
   const successNotify = () => toast.success('Admin berhasil dihapus');
   const failNotify = (e?: string) => toast.error(e ?? 'Admin gagal dihapus');
@@ -59,13 +60,17 @@ export const AdminListPage = () => {
     setLoading(true);
     if (!adminId) return;
     const purchaseRef = doc(db, 'user', adminId);
+    setModalLoading(true);
     deleteDoc(purchaseRef)
       .then(() => {
         setAdminList(adminList.filter((adminList) => adminList.id !== adminId));
         successNotify();
+        setModalLoading(false);
+        setModalOpen(false);
       })
       .catch((error: FirebaseError) => {
         failNotify(error.message);
+        setModalLoading(false);
       });
     setConfirmed(false);
     setLoading(false);
@@ -159,7 +164,7 @@ export const AdminListPage = () => {
                   <div className="w-full h-full bg-transparent rounded-lg overflow-hidden">
                     <div className="relative shadow-md sm:rounded-lg overflow-auto h-full flex flex-col justify-between">
                       <div className="overflow-y-auto h-full relative">
-                        {loading && (
+                        {modalLoading && (
                           <div className="absolute flex justify-center items-center py-2 px-3 top-0 left-0 w-full h-full bg-gray-50 rounded-lg z-0 bg-opacity-50">
                             <AiOutlineLoading3Quarters className="animate-spin flex justify-center text-4xl" />
                           </div>
@@ -188,7 +193,7 @@ export const AdminListPage = () => {
                           {confirmed && (
                             <div className="my-2 text-red-600 font-bold">
                               <p>
-                                Jangan lupa delete admin di firebase! console!
+                                Jangan lupa delete admin di firebase console!
                               </p>
                             </div>
                           )}
@@ -200,7 +205,6 @@ export const AdminListPage = () => {
 
                                 if (confirmed) {
                                   handleDelete(e, activeAdmin.id);
-                                  setModalOpen(false);
                                 } else setConfirmed(true);
                               }}
                             >
