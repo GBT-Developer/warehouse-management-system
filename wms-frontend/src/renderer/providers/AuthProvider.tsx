@@ -165,7 +165,6 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
           .catch(() => {
             companyData.logo = 'company_info/company_logo.png';
           });
-        console.log(companyData);
       }
 
       setUser(() => theUser);
