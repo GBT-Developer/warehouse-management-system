@@ -130,10 +130,12 @@ export const ManageProductPage = () => {
   const handleDownload = async () => {
     try {
       // Query products starting from the last product in the products array
-      const lastVisibleProduct = products[products.length - 1];
       if (nextQuery === null) {
         setNextPostsEmpty(true);
         setNextPostsLoading(false);
+        setDownloadedProducts(() => products);
+        setPdfConfirmation(true);
+        setShowConfirmation(false);
         return;
       }
 
@@ -310,8 +312,14 @@ export const ManageProductPage = () => {
           </div>
         </div>
         {showConfirmation && (
-          <div className="absolute flex justify-center items-center py-2 px-3 top-0 left-0 rounded-lg z-10 w-full p-4 overflow-x-hidden overflow-y-auto h-full bg-black bg-opacity-50 backdrop-filter backdrop-blur-sm">
-            <div className="bg-white rounded-lg p-4 flex flex-col gap-4">
+          <div
+            className="absolute flex justify-center items-center py-2 px-3 top-0 left-0 rounded-lg z-10 w-full p-4 overflow-x-hidden overflow-y-auto h-full bg-black bg-opacity-50 backdrop-filter backdrop-blur-sm"
+            onClick={() => setShowConfirmation(false)}
+          >
+            <div
+              className="bg-white rounded-lg p-4 flex flex-col gap-4"
+              onClick={(e) => e.stopPropagation()}
+            >
               <p className="text-lg text-gray-900">
                 Apakah anda yakin ingin mengunduh data produk menjadi PDF?
               </p>
@@ -330,7 +338,8 @@ export const ManageProductPage = () => {
                   </button>
                   <button
                     className="bg-blue-700 hover:bg-blue-800 text-white font-bold py-2 px-4 rounded"
-                    onClick={() => {
+                    onClick={(e) => {
+                      e.stopPropagation();
                       handleDownload();
                     }}
                   >
