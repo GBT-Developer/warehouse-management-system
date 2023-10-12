@@ -32,7 +32,7 @@ export const AuthPage = () => {
       const res = await login({ email, password });
 
       if (!res) {
-        throw new Error('Failed logging in');
+        throw new Error('Gagal login');
       }
 
       setLoading(false);
@@ -98,6 +98,7 @@ export const AuthPage = () => {
               </label>
             </div>
             <button
+              disabled={loading}
               type="submit"
               className="w-full text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center flex justify-center"
             >

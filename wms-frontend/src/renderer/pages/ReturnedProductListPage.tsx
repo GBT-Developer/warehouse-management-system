@@ -120,9 +120,14 @@ export const ReturnedProductListPage = () => {
       }
     };
 
-    fetchData().catch((error) => {
-      console.log(error);
-    });
+    fetchData()
+      .then(() => {
+        setLoading(false);
+      })
+      .catch((error) => {
+        setLoading(false);
+        console.log(error);
+      });
   }, [warehousePosition]);
 
   // Fetch next posts

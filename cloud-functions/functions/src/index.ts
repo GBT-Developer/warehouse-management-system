@@ -19,10 +19,10 @@ export * from "./getUsers";
 if (process.env.NODE_ENV === "development") {
   const NUM_USERS = 10;
   const NUM_SUPPLIERS = 15;
-  const NUM_PRODUCTS = 100;
+  const NUM_PRODUCTS = 50;
   const NUM_BROKEN_PRODUCTS = 10;
   const NUM_CUSTOMER = 15;
-  const NUM_TRANSACTIONS = 47;
+  const NUM_TRANSACTIONS = 17;
 
   import("./seeding").then(async (module) => {
     await module.seedUser(NUM_USERS); // Create 10 users and one 'owner' user

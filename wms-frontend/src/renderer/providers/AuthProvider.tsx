@@ -153,7 +153,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
   const onLogin = React.useCallback(async (loginData: LoginData) => {
     if (!loginData.email || !loginData.password)
-      return Promise.reject('Please fill all fields');
+      return Promise.reject('Mohon isi semua kolom');
 
     try {
       const userCredential = await signInWithEmailAndPassword(

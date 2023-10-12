@@ -156,7 +156,7 @@ function InputSupplier() {
           label="Nomor Telepon"
           labelFor="phone_number"
           value={newSupplier.phone_number}
-          placeholder="Phone number or landline number"
+          placeholder="081234567890"
           onChange={(e) =>
             setNewSupplier({ ...newSupplier, phone_number: e.target.value })
           }

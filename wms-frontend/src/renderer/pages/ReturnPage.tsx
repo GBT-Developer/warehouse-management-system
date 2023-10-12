@@ -309,7 +309,7 @@ export default function ReturnPage() {
         return Promise.resolve();
       });
     }
-    console.log('kesini');
+
     // Clear the form
     setInvoiceNumber('');
     setCheckedItems([]);
