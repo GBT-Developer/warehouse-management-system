@@ -53,7 +53,7 @@ export const ChangePasswordPage = () => {
 
   return (
     <PageLayout>
-      <div className="flex flex-col items-center h-full w-full pt-44">
+      <div className="flex flex-col items-center justify-center h-full">
         <AuthCard>
           <div className="changePassword">
             <form
@@ -81,7 +81,7 @@ export const ChangePasswordPage = () => {
               />
               <input
                 type="password"
-                placeholder="konfirmasi Password Baru"
+                placeholder="Konfirmasi Password Baru"
                 className="bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
                 value={confirmNewPassword}
                 onChange={(event) => setConfirmNewPassword(event.target.value)}
