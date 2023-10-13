@@ -199,6 +199,7 @@ export const TransactionPage = () => {
         setLoading(false);
 
         setClickedInvoice({
+          id: newInvoiceRef.id,
           customer_id: selectedCustomer?.id ?? '',
           customer_name: selectedCustomer?.name ?? invoice.customer_name,
           date: currentDate,
