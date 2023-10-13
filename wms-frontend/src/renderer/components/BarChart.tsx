@@ -42,6 +42,7 @@ export const BarChart = ({
           : [],
         datasets: [
           {
+            label: 'Cash',
             data: data
               ? // Sort the values by the key
                 Object.keys(data.cash)
@@ -52,14 +53,15 @@ export const BarChart = ({
             borderColor: 'rgba(255, 99, 132, 1)',
           },
           {
+            label: 'Cashless',
             data: data
               ? // Sort the values by the key
                 Object.keys(data.cashless)
                   .sort((a, b) => parseInt(a) - parseInt(b))
                   .map((key) => data['cashless'][key])
               : [],
-            backgroundColor: 'rgba(255, 99, 132, 0.2)',
-            borderColor: 'rgba(255, 99, 132, 1)',
+            backgroundColor: 'rgba(99, 122, 255, 0.2)',
+            borderColor: 'rgba(99, 122, 255, 1)',
           },
         ],
       }}
@@ -69,6 +71,7 @@ export const BarChart = ({
             propagate: true,
             drawTime: 'beforeDraw',
           },
+
           title: {
             align: 'center',
             display: true,
@@ -100,7 +103,8 @@ export const BarChart = ({
             text: chartSubTitle,
           },
           legend: {
-            display: false,
+            display: true,
+            position: 'bottom',
           },
         },
         scales: {

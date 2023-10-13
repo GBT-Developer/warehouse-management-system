@@ -133,6 +133,10 @@ export const TransactionPage = () => {
       // Update product count
       runTransaction(db, (transaction) => {
         if (!invoice.items) return Promise.reject();
+
+        const currentDate = format(new Date(), 'yyyy-MM-dd');
+        const currentTime = format(new Date(), 'HH:mm:ss');
+
         for (const item of invoice.items) {
           if (!item.id) return Promise.reject('Product id not found');
           const decrementStock = increment(-1 * item.count);
@@ -144,12 +148,10 @@ export const TransactionPage = () => {
 
         // Update invoice stats
         const statsRef = doc(db, 'invoice', '--stats--');
-        const incrementTransaction = increment(1);
         const dailySales = new Map<string, FieldValue>();
         const datePriceMap = new Map<string, number>();
         invoice.items.forEach((item) => {
-          if (!invoice.date) return;
-          const date = format(new Date(invoice.date), 'dd');
+          const date = format(new Date(currentDate), 'dd');
           const total_price = item.sell_price * item.count;
           const currentTotal = datePriceMap.get(date);
           if (currentTotal) {
@@ -165,14 +167,13 @@ export const TransactionPage = () => {
         transaction.set(
           statsRef,
           {
-            transaction_count: incrementTransaction,
             daily_sales:
               invoice.payment_method?.toLowerCase() === 'cash'
                 ? {
-                    cash: dailySales,
+                    cash: Object.fromEntries(dailySales),
                   }
                 : {
-                    cashless: dailySales,
+                    cashless: Object.fromEntries(dailySales),
                   },
           },
           { merge: true }
@@ -184,8 +185,6 @@ export const TransactionPage = () => {
           (acc, item) => acc + item.sell_price * item.count,
           0
         );
-        const currentDate = format(new Date(), 'yyyy-MM-dd');
-        const currentTime = format(new Date(), 'HH:mm:ss');
 
         transaction.set(newInvoiceRef, {
           customer_id: selectedCustomer?.id ?? '',
@@ -202,8 +201,7 @@ export const TransactionPage = () => {
         setClickedInvoice({
           customer_id: selectedCustomer?.id ?? '',
           customer_name: selectedCustomer?.name ?? invoice.customer_name,
-          // Current date
-          date: invoice.date,
+          date: currentDate,
           time: currentTime,
           total_price: totalPrice,
           payment_method: invoice.payment_method,

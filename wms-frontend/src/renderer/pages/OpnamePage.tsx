@@ -242,19 +242,126 @@ export default function OpnamePage() {
         {user?.role.toLocaleLowerCase() === 'owner' && (
           <div className="w-full h-[fit-content] flex flex-col gap-4">
             <p className="text-2xl font-bold">Rangkuman</p>
-            <div className="w-full flex justify-between items-center">
-              <div className="w-1/3">
+            {/* <div className="w-full flex justify-between items-center">
+              <div className="w-1/3 h-full">
                 <p className="text-md">Total Penjualan: </p>
               </div>
-              <div className="w-2/3 flex gap-2 items-center">
-                <p>
-                  {new Intl.NumberFormat('id-ID', {
-                    style: 'currency',
-                    currency: 'IDR',
-                  }).format(totalSales)}
-                </p>
+              <div className="w-2/3 flex gap-2 items">
+                <div className="flex flex-col gap-2">
+                  <p>
+                    {new Intl.NumberFormat('id-ID', {
+                      style: 'currency',
+                      currency: 'IDR',
+                    }).format(totalSales)}
+                  </p>
+                  <div className="flex text-sm">
+                    <p>Cash:</p> &nbsp;
+                    <p>
+                      {new Intl.NumberFormat('id-ID', {
+                        style: 'currency',
+                        currency: 'IDR',
+                      }).format(
+                        salesStats?.daily_sales['cash']
+                          ? Object.keys(salesStats?.daily_sales['cash']).reduce(
+                              (prev, curr) =>
+                                prev + salesStats?.daily_sales['cash'][curr],
+                              0
+                            )
+                          : 0
+                      )}
+                    </p>
+                  </div>
+                  <div className="flex text-sm">
+                    <p>Cashless:</p> &nbsp;
+                    <p>
+                      {new Intl.NumberFormat('id-ID', {
+                        style: 'currency',
+                        currency: 'IDR',
+                      }).format(
+                        salesStats?.daily_sales['cashless']
+                          ? Object.keys(
+                              salesStats?.daily_sales['cashless']
+                            ).reduce(
+                              (prev, curr) =>
+                                prev +
+                                salesStats?.daily_sales['cashless'][curr],
+                              0
+                            )
+                          : 0
+                      )}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div> */}
+
+            <div className="flex flex-col gap-1">
+              <div className="w-full flex justify-between items-center">
+                <div className="w-1/3 h-full">
+                  <p className="text-md">Total Penjualan: </p>
+                </div>
+                <div className="w-2/3 flex gap-2 items">
+                  <div className="flex flex-col gap-2">
+                    <p>
+                      {new Intl.NumberFormat('id-ID', {
+                        style: 'currency',
+                        currency: 'IDR',
+                      }).format(totalSales)}
+                    </p>
+                  </div>
+                </div>
+              </div>
+              <div className="w-full flex justify-between items-center text-sm">
+                <div className="w-1/3 h-full">
+                  <p className="text-md">Cash: </p>
+                </div>
+                <div className="w-2/3 flex gap-2 items">
+                  <div className="flex flex-col gap-2">
+                    <p>
+                      {new Intl.NumberFormat('id-ID', {
+                        style: 'currency',
+                        currency: 'IDR',
+                      }).format(
+                        salesStats?.daily_sales['cash']
+                          ? Object.keys(salesStats?.daily_sales['cash']).reduce(
+                              (prev, curr) =>
+                                prev + salesStats?.daily_sales['cash'][curr],
+                              0
+                            )
+                          : 0
+                      )}
+                    </p>
+                  </div>
+                </div>
+              </div>
+              <div className="w-full flex justify-between items-center text-sm">
+                <div className="w-1/3 h-full">
+                  <p className="text-md">Cashless: </p>
+                </div>
+                <div className="w-2/3 flex gap-2 items">
+                  <div className="flex flex-col gap-2">
+                    <p>
+                      {new Intl.NumberFormat('id-ID', {
+                        style: 'currency',
+                        currency: 'IDR',
+                      }).format(
+                        salesStats?.daily_sales['cashless']
+                          ? Object.keys(
+                              salesStats?.daily_sales['cashless']
+                            ).reduce(
+                              (prev, curr) =>
+                                prev +
+                                salesStats?.daily_sales['cashless'][curr],
+                              0
+                            )
+                          : 0
+                      )}
+                    </p>
+                  </div>
+                </div>
               </div>
             </div>
+
             <div className="w-full flex justify-between items-center">
               <div className="w-1/3">
                 <p className="text-md">Total Keuntungan: </p>
