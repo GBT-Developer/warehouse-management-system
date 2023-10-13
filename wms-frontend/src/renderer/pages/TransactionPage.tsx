@@ -202,7 +202,8 @@ export const TransactionPage = () => {
         setClickedInvoice({
           customer_id: selectedCustomer?.id ?? '',
           customer_name: selectedCustomer?.name ?? invoice.customer_name,
-          date: currentDate,
+          // Current date
+          date: invoice.date,
           time: currentTime,
           total_price: totalPrice,
           payment_method: invoice.payment_method,
