@@ -1066,7 +1066,7 @@ export default function ReturnPage() {
         ) : (
           <tr className="border-b">
             <SingleTableItem>
-              <p className="flex justify-center">Produk tidak ditemukan</p>
+              <p className="flex justify-center">Cari produk</p>
             </SingleTableItem>
           </tr>
         )}

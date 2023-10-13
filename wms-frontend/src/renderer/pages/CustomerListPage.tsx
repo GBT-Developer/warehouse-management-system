@@ -65,6 +65,14 @@ export default function CustomerListPage() {
         );
         const querySnapshot = await getDocs(q);
 
+        if (querySnapshot.empty) {
+          setNextPostsEmpty(true);
+          setNextPostsLoading(false);
+          setCustomerList([]);
+          setLoading(false);
+          return;
+        }
+
         const customerData: Customer[] = [];
         querySnapshot.forEach((theCustomer) => {
           const data = theCustomer.data() as Customer;
@@ -95,6 +103,7 @@ export default function CustomerListPage() {
       setNextPostsLoading(false);
       return;
     }
+
     setNextPostsLoading(true);
     try {
       const q = query(
@@ -149,13 +158,7 @@ export default function CustomerListPage() {
                 <th className=" py-3"></th>
               </TableHeader>
               <tbody className="overflow-y-auto">
-                {customerList.length === 0 ? (
-                  <tr className="border-b">
-                    <td className="py-3" colSpan={3}>
-                      <p className="flex justify-center">Data tidak tersedia</p>
-                    </td>
-                  </tr>
-                ) : (
+                {customerList.length > 0 &&
                   customerList
                     .filter((customer) => {
                       if (search === '') return customer;
@@ -221,8 +224,7 @@ export default function CustomerListPage() {
                           </button>
                         </SingleTableItem>
                       </tr>
-                    ))
-                )}
+                    ))}
               </tbody>
             </table>
             {nextPosts_empty ? (

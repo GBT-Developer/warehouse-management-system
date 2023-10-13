@@ -196,6 +196,8 @@ export default function OpnamePage() {
       if (querySnapshot.empty) {
         setNextPostsEmpty(true);
         setNextQuery(null);
+        setNextPostsEmpty(true);
+        setNextPostsLoading(false);
         return;
       }
 

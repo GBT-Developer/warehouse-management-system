@@ -55,6 +55,8 @@ export const ManageProductPage = () => {
         if (querySnapshot.empty) {
           setProducts([]);
           setLoading(false);
+          setNextPostsEmpty(true);
+          setNextPostsLoading(false);
           return;
         }
 
@@ -210,13 +212,7 @@ export const ManageProductPage = () => {
                 <th className=" py-3">Posisi Gudang</th>
               </TableHeader>
               <tbody>
-                {products.length === 0 ? (
-                  <tr className="border-b">
-                    <td className="py-3" colSpan={4}>
-                      <p className="flex justify-center">Data tidak tersedia</p>
-                    </td>
-                  </tr>
-                ) : (
+                {products.length > 0 &&
                   products
                     .filter((product) => {
                       if (search === '') return product;
@@ -277,8 +273,7 @@ export const ManageProductPage = () => {
                           {product.warehouse_position}
                         </SingleTableItem>
                       </tr>
-                    ))
-                )}
+                    ))}
               </tbody>
             </table>
             {nextPosts_empty ? (

@@ -64,6 +64,8 @@ function StockHistoryPage() {
       if (querySnapshot.empty) {
         setStockHistory([]);
         setLoading(false);
+        setNextPostsEmpty(true);
+        setNextPostsLoading(false);
         return;
       }
 
@@ -148,6 +150,8 @@ function StockHistoryPage() {
     if (querySnapshot.empty) {
       setNextPostsEmpty(true);
       setNextPostsLoading(false);
+      setNextPostsEmpty(true);
+      setNextPostsLoading(false);
       return;
     }
 
@@ -219,13 +223,7 @@ function StockHistoryPage() {
                 <th className=" py-3">Selisih</th>
               </TableHeader>
               <tbody className="overflow-y-auto">
-                {stockHistory.length === 0 ? (
-                  <tr className="border-b">
-                    <td className="py-3" colSpan={6}>
-                      <p className="flex justify-center">Data tidak tersedia</p>
-                    </td>
-                  </tr>
-                ) : (
+                {stockHistory.length > 0 &&
                   filteredStockHistory
                     .filter((stockHistory) => {
                       if (search === '') return stockHistory;
@@ -296,8 +294,7 @@ function StockHistoryPage() {
                           </div>
                         </SingleTableItem>
                       </tr>
-                    ))
-                )}
+                    ))}
               </tbody>
             </table>
             {nextPosts_empty ? (

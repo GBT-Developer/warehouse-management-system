@@ -41,6 +41,12 @@ export default function SupplierList() {
         );
         const querySnapshot = await getDocs(q);
 
+        if (querySnapshot.empty) {
+          setNextPostsEmpty(true);
+          setNextPostsLoading(false);
+          return;
+        }
+
         const supplierData: Supplier[] = [];
         querySnapshot.forEach((theProduct) => {
           const data = theProduct.data() as Supplier;
@@ -127,13 +133,7 @@ export default function SupplierList() {
                 <th className=" py-3"></th>
               </TableHeader>
               <tbody className="overflow-y-auto">
-                {supplierList.length === 0 ? (
-                  <tr className="border-b">
-                    <td className="py-3" colSpan={4}>
-                      <p className="flex justify-center">Data tidak tersedia</p>
-                    </td>
-                  </tr>
-                ) : (
+                {supplierList.length > 0 &&
                   supplierList
                     .filter((supplier) => {
                       if (search === '') return supplier;
@@ -203,8 +203,7 @@ export default function SupplierList() {
                           </button>
                         </SingleTableItem>
                       </tr>
-                    ))
-                )}
+                    ))}
               </tbody>
             </table>
             {nextPosts_empty ? (

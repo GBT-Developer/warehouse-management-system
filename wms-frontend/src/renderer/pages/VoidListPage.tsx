@@ -69,6 +69,8 @@ export default function VoidListPage() {
         if (querySnapshot.docs.length === 0) {
           setVoidList([]);
           setLoading(false);
+          setNextPostsEmpty(true);
+          setNextPostsLoading(false);
           return;
         }
 
@@ -204,13 +206,7 @@ export default function VoidListPage() {
                 <th className="py-3">Total Harga</th>
               </TableHeader>
               <tbody className="overflow-y-auto">
-                {voidList.length === 0 ? (
-                  <tr className="border-b">
-                    <td className="py-3" colSpan={6}>
-                      <p className="flex justify-center">Data tidak tersedia</p>
-                    </td>
-                  </tr>
-                ) : (
+                {voidList.length > 0 &&
                   filteredVoidList
                     .filter((void_list) => {
                       if (!void_list.id || !void_list.customer_name)
@@ -286,8 +282,7 @@ export default function VoidListPage() {
                           </tr>
                         )}
                       </React.Fragment>
-                    ))
-                )}
+                    ))}
               </tbody>
             </table>
             {nextPosts_empty ? (

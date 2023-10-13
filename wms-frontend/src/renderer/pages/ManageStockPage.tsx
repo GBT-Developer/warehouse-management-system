@@ -887,7 +887,7 @@ export const ManageStockPage = () => {
                             Number(e.target.value) < 0 ||
                             e.target.value === ''
                           ) {
-                            setErrorMessage('Judul tidak valid');
+                            setErrorMessage('Jumlah tidak valid');
                             // Set e target value with the value without the last character
                             e.target.value = e.target.value.slice(0, -1);
                             setTimeout(() => {

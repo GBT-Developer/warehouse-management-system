@@ -90,6 +90,8 @@ export const BrokenProductListPage = () => {
         if (querySnapshot.empty) {
           setProducts([]);
           setLoading(false);
+          setNextPostsEmpty(true);
+          setNextPostsLoading(false);
           return;
         }
 
@@ -316,13 +318,7 @@ export const BrokenProductListPage = () => {
                 <th className=" py-3">Jumlah</th>
               </TableHeader>
               <tbody>
-                {products.length === 0 ? (
-                  <tr className="border-b">
-                    <td className="py-3" colSpan={3}>
-                      <p className="flex justify-center">Data tidak tersedia</p>
-                    </td>
-                  </tr>
-                ) : (
+                {products.length > 0 &&
                   products
                     .filter((product) => {
                       if (search === '') return product;
@@ -394,8 +390,7 @@ export const BrokenProductListPage = () => {
                         </SingleTableItem>
                         <SingleTableItem>{product.count}</SingleTableItem>
                       </tr>
-                    ))
-                )}
+                    ))}
               </tbody>
             </table>
             {clickedDispatchNote && (

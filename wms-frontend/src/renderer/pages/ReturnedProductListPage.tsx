@@ -53,6 +53,8 @@ export const ReturnedProductListPage = () => {
         if (querySnapshot.docs.length === 0) {
           setProducts([]);
           setLoading(false);
+          setNextPostsEmpty(true);
+          setNextPostsLoading(false);
           return;
         }
 
@@ -153,6 +155,8 @@ export const ReturnedProductListPage = () => {
       if (querySnapshot.docs.length === 0) {
         setNextPostsEmpty(true);
         setNextPostsLoading(false);
+        setNextPostsEmpty(true);
+        setNextPostsLoading(false);
         return;
       }
 
@@ -244,13 +248,7 @@ export const ReturnedProductListPage = () => {
                 <th className=" py-3">Jumlah</th>
               </TableHeader>
               <tbody>
-                {products.length === 0 ? (
-                  <tr className="border-b">
-                    <td className="py-3" colSpan={6}>
-                      <p className="flex justify-center">Data tidak tersedia</p>
-                    </td>
-                  </tr>
-                ) : (
+                {products.length > 0 &&
                   products
                     .filter((product) => {
                       if (search === '') return product;
@@ -314,8 +312,7 @@ export const ReturnedProductListPage = () => {
                         </SingleTableItem>
                         <SingleTableItem>{product.count}</SingleTableItem>
                       </tr>
-                    ))
-                )}
+                    ))}
               </tbody>
             </table>
             {nextPosts_empty ? (
