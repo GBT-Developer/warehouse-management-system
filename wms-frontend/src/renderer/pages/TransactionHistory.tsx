@@ -1,13 +1,15 @@
 import { format } from 'date-fns';
 import {
+  FieldValue,
   QueryStartAtConstraint,
   collection,
-  deleteDoc,
   doc,
   getDocs,
+  increment,
   limit,
   orderBy,
   query,
+  runTransaction,
   startAfter,
   where,
 } from 'firebase/firestore';
@@ -167,6 +169,63 @@ export default function TransactionHistory() {
       [purchaseId]: !prevState[purchaseId],
     }));
   };
+
+  const handleDeleteInvoice = async (mapInvoiceHistory: Invoice) => {
+    setLoading(true);
+
+    await runTransaction(db, async (transaction) => {
+      if (!mapInvoiceHistory.id) return;
+
+      // Delete the invoice
+      const purchaseRef = doc(db, 'invoice', mapInvoiceHistory.id);
+      transaction.delete(purchaseRef);
+      setInvoiceHistory((prev) =>
+        prev.filter((invoice) => invoice.id !== mapInvoiceHistory.id)
+      );
+
+      // Decrement the daily sales on invoice/--stats-- document
+      const statsRef = doc(db, 'invoice', '--stats--');
+      const dailySales = new Map<string, FieldValue>();
+      const datePriceMap = new Map<string, number>();
+      const currentDate = format(new Date(), 'yyyy-MM-dd');
+
+      mapInvoiceHistory?.items?.forEach((item) => {
+        const date = format(new Date(currentDate), 'dd');
+        const total_price = item.sell_price * item.count;
+        const currentTotal = datePriceMap.get(date);
+        if (currentTotal) {
+          const currentIncrement = increment(-1 * (total_price + currentTotal));
+          datePriceMap.set(date, currentTotal + total_price);
+          dailySales.set(date, currentIncrement);
+        } else {
+          const currentIncrement = increment(-1 * total_price);
+          datePriceMap.set(date, total_price);
+          dailySales.set(date, currentIncrement);
+        }
+      });
+
+      transaction.set(
+        statsRef,
+        {
+          daily_sales:
+            mapInvoiceHistory.payment_method?.toLowerCase() === 'cash'
+              ? {
+                  cash: Object.fromEntries(dailySales),
+                }
+              : {
+                  cashless: Object.fromEntries(dailySales),
+                },
+        },
+        {
+          merge: true,
+        }
+      );
+    });
+
+    setLoading(false);
+    successNotify();
+  };
+
   return (
     <PageLayout>
       <div className="w-full h-full bg-transparent overflow-hidden">
@@ -278,25 +337,9 @@ export default function TransactionHistory() {
                             className="text-red-500 text-lg p-2 hover:text-red-700 cursor-pointer bg-transparent rounded-md"
                             onClick={(e) => {
                               e.stopPropagation();
-                              setLoading(true);
-                              if (!mapInvoiceHistory.id) return;
-                              const purchaseRef = doc(
-                                db,
-                                'invoice',
-                                mapInvoiceHistory.id
+                              handleDeleteInvoice(mapInvoiceHistory).catch(
+                                (error) => failNotify(error)
                               );
-                              deleteDoc(purchaseRef)
-                                .then(() => {
-                                  setInvoiceHistory((prev) =>
-                                    prev.filter(
-                                      (invoice) =>
-                                        invoice.id !== mapInvoiceHistory.id
-                                    )
-                                  );
-                                })
-                                .catch(() => failNotify());
-                              setLoading(false);
-                              successNotify();
                             }}
                           >
                             <BiSolidTrash />
