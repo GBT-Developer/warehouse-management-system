@@ -21,6 +21,7 @@ export const CreateAdminPage = () => {
   const [newAdmin, setNewAdmin] = useState<CustomUser>(initNewAdmin);
   const [errorMessage, setErrorMessage] = useState('');
   const successNotify = () => toast.success('Admin berhasil dibuat');
+  const failNotify = (e?: string) => toast.error(e ?? 'Admin gagal dibuat');
   const { register } = useAuth().actions;
   const [isEmpty, setIsEmpty] = useState(false);
 
@@ -65,10 +66,7 @@ export const CreateAdminPage = () => {
       })
       .catch((err) => {
         const errMessage = err as string;
-        setErrorMessage(errMessage);
-        setTimeout(() => {
-          setErrorMessage('');
-        }, 3000);
+        failNotify(errMessage);
       });
     setLoading(false);
   };
