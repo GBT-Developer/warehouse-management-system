@@ -20,6 +20,7 @@ import { useNavigate } from 'react-router-dom';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { InputField } from 'renderer/components/InputField';
+import { PdfViewer } from 'renderer/components/PdfViewer';
 import { SingleTableItem } from 'renderer/components/TableComponents/SingleTableItem';
 import { TableModal } from 'renderer/components/TableComponents/TableModal';
 import { db } from 'renderer/firebase';
@@ -55,6 +56,8 @@ export default function ReturnPage() {
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(
     null
   );
+  const [clickedInvoice, setClickedInvoice] = useState<Invoice | null>(null);
+  const [pdfOpen, setPdfOpen] = useState(false);
   const [newTransaction, setNewTransaction] =
     useState<Invoice>(invoiceInitialState);
 
@@ -271,7 +274,9 @@ export default function ReturnPage() {
         const currentDate = format(new Date(), 'yyyy-MM-dd');
         const currentTime = format(new Date(), 'HH:mm:ss');
 
-        transaction.set(doc(collection(db, 'invoice')), {
+        const newInvoiceRef = doc(collection(db, 'invoice'));
+
+        transaction.set(newInvoiceRef, {
           customer_id: selectedCustomer?.id ?? '',
           customer_name: selectedCustomer?.name ?? invoice.customer_name ?? '',
           total_price: total_price,
@@ -306,6 +311,23 @@ export default function ReturnPage() {
           true
         ).catch((err) => console.log(err));
 
+        setClickedInvoice({
+          //invoice id
+          id: newInvoiceRef.id,
+          customer_id: selectedCustomer?.id ?? '',
+          customer_name: selectedCustomer?.name ?? invoice.customer_name ?? '',
+          total_price: total_price,
+          items: selectedNewItems.map((selectedNewItem) => {
+            return {
+              ...selectedNewItem,
+              is_returned: false,
+            };
+          }),
+          date: new Date().toISOString().slice(0, 10),
+          payment_method: newTransaction.payment_method,
+          time: currentTime,
+        });
+        setPdfOpen(true);
         return Promise.resolve();
       });
     }
@@ -922,6 +944,19 @@ export default function ReturnPage() {
             <p className="text-red-500 text-sm ">{errorMessage}</p>
           )}
         </form>
+      )}
+
+      {clickedInvoice && (
+        <PdfViewer
+          products={[]}
+          setInvoice={setClickedInvoice}
+          dispatchNote={undefined}
+          setDipatchNote={() => {}}
+          modalOpen={pdfOpen}
+          setModalOpen={setPdfOpen}
+          invoice={clickedInvoice}
+          destinationName={clickedInvoice.customer_name ?? ''}
+        />
       )}
 
       <TableModal
