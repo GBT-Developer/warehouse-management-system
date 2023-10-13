@@ -1,5 +1,7 @@
 import { format } from 'date-fns';
 import {
+  DocumentData,
+  DocumentReference,
   collection,
   doc,
   getDocs,
@@ -39,6 +41,8 @@ const newSupplierInitialState = {
   phone_number: '',
   bank_number: '',
   remarks: '',
+  contact_person: '',
+  bank_owner: '',
 } as Supplier;
 
 const newPurchaseInitialState = {
@@ -96,6 +100,10 @@ export const NewProductPage = () => {
       console.log(error);
     });
   }, []);
+
+  useEffect(() => {
+    console.log(newProduct);
+  }, [newProduct]);
 
   // Check all of the input empty or not
   useEffect(() => {
@@ -161,7 +169,8 @@ export const NewProductPage = () => {
 
     await runTransaction(db, (transaction) => {
       setLoading(true);
-      let newSupplierRef = null;
+      let newSupplierRef: DocumentReference<DocumentData, DocumentData> | null =
+        null;
 
       if (showSupplierForm) {
         newSupplierRef = doc(collection(db, 'supplier'));
@@ -171,7 +180,7 @@ export const NewProductPage = () => {
       if (newProduct.supplier?.id == null) {
         transaction.set(newProductRef, {
           ...newProduct,
-          supplier: '',
+          supplier: newSupplierRef ? newSupplierRef.id : null,
         });
       } else if (newProduct.supplier?.id != '') {
         transaction.set(newProductRef, {
@@ -247,7 +256,7 @@ export const NewProductPage = () => {
         }`}
       >
         {loading && (
-          <div className="absolute flex justify-center items-center py-2 px-3 top-0 left-0 w-full h-full bg-gray-50 rounded-lg z-0">
+          <div className="absolute flex justify-center items-center py-2 px-3 top-0 left-0 w-full h-full bg-gray-50 rounded-lg z-50">
             <AiOutlineLoading3Quarters className="animate-spin flex justify-center text-4xl" />
           </div>
         )}
@@ -278,17 +287,22 @@ export const NewProductPage = () => {
             setNewProduct({ ...newProduct, part: e.target.value })
           }
         />
-        {warehousePosition !== 'Gudang Bahan' && (
-          <InputField
-            loading={loading}
-            labelFor="available_color"
-            label="Warna"
-            value={newProduct.available_color}
-            onChange={(e) =>
-              setNewProduct({ ...newProduct, available_color: e.target.value })
-            }
-          />
-        )}
+        {(warehousePosition === 'Semua Gudang' ||
+          warehousePosition === 'Gudang Jadi') &&
+          newProduct.warehouse_position !== 'Gudang Bahan' && (
+            <InputField
+              loading={loading}
+              labelFor="available_color"
+              label="Warna"
+              value={newProduct.available_color}
+              onChange={(e) =>
+                setNewProduct({
+                  ...newProduct,
+                  available_color: e.target.value,
+                })
+              }
+            />
+          )}
         <InputField
           loading={loading}
           labelFor="count"

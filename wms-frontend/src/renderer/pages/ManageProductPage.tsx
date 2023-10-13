@@ -188,7 +188,7 @@ export const ManageProductPage = () => {
           </TableTitle>
           <div className="overflow-y-auto h-full relative">
             {loading && (
-              <div className="absolute flex justify-center items-center py-2 px-3 top-0 left-0 w-full h-full bg-gray-50 rounded-lg z-0 bg-opacity-50">
+              <div className="absolute flex justify-center items-center py-2 px-3 top-0 left-0 w-full h-full bg-gray-50 rounded-lg z-50 bg-opacity-50">
                 <AiOutlineLoading3Quarters className="animate-spin flex justify-center text-4xl" />
               </div>
             )}
@@ -326,7 +326,7 @@ export const ManageProductPage = () => {
               <div className="w-full flex justify-end mt-3">
                 <div className="flex relative w-[fit-content] gap-3">
                   {loading && (
-                    <p className="absolute flex justify-center items-center py-2 px-3 top-0 left-0 w-full h-full bg-gray-50 rounded-sm z-0 bg-opacity-50">
+                    <p className="absolute flex justify-center items-center py-2 px-3 top-0 left-0 w-full h-full bg-gray-50 rounded-sm z-50 bg-opacity-50">
                       <AiOutlineLoading3Quarters className="animate-spin flex justify-center text-xl" />
                     </p>
                   )}

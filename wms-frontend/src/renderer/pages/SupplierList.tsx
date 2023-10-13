@@ -113,7 +113,7 @@ export default function SupplierList() {
           </TableTitle>
           <div className="overflow-y-auto h-full relative">
             {loading && (
-              <div className="absolute flex justify-center items-center py-2 px-3 top-0 left-0 w-full h-full bg-gray-50 rounded-lg z-0 bg-opacity-50">
+              <div className="absolute flex justify-center items-center py-2 px-3 top-0 left-0 w-full h-full bg-gray-50 rounded-lg z-50 bg-opacity-50">
                 <AiOutlineLoading3Quarters className="animate-spin flex justify-center text-4xl" />
               </div>
             )}
@@ -173,8 +173,8 @@ export default function SupplierList() {
                           <span className="font-medium text-md">
                             {supplier.phone_number}
                             <br />
-                            <span className="text-sm font-normal">
-                              {'a.n.' + supplier.contact_person}
+                            <span className="text-sm font-normal text-gray-500">
+                              {'a.n. ' + supplier.contact_person}
                             </span>
                           </span>
                         </SingleTableItem>
@@ -182,8 +182,8 @@ export default function SupplierList() {
                           <span className="font-medium text-md">
                             {supplier.bank_number}
                             <br />
-                            <span className="text-sm font-normal">
-                              {'a.n.' + supplier.bank_owner}
+                            <span className="text-sm font-normal text-gray-500">
+                              {'a.n. ' + supplier.bank_owner}
                             </span>
                           </span>
                         </SingleTableItem>
