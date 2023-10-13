@@ -13,6 +13,7 @@ import {
 } from 'firebase/firestore';
 import { useEffect, useState } from 'react';
 import { AiOutlineLoading3Quarters } from 'react-icons/ai';
+import { BarChart } from 'renderer/components/BarChart';
 import DateRangeComp from 'renderer/components/DateRangeComp';
 import { SingleTableItem } from 'renderer/components/TableComponents/SingleTableItem';
 import { TableHeader } from 'renderer/components/TableComponents/TableHeader';
@@ -23,8 +24,6 @@ import { useAuth } from 'renderer/providers/AuthProvider';
 
 export default function OpnamePage() {
   const [salesStats, setSalesStats] = useState<{
-    total_sales: number;
-    transaction_count: number;
     daily_sales: Record<string, Record<string, number>>;
     month: number;
   }>();
@@ -34,6 +33,7 @@ export default function OpnamePage() {
   const [purchasePrice, setPurchasePrice] = useState(0);
   const [loading, setLoading] = useState(false);
   const [invoiceList, setInvoiceList] = useState<Invoice[]>([]);
+  const [totalSales, setTotalSales] = useState(0);
   // Take the first date of the month as the start date
   const [startDate, setStartDate] = useState(
     format(
@@ -117,8 +117,6 @@ export default function OpnamePage() {
         const statsDocRef = doc(db, 'invoice', '--stats--');
         const statsDoc = await getDoc(statsDocRef);
         const statsDocData = statsDoc.data() as {
-          total_sales: number;
-          transaction_count: number;
           daily_sales: Record<string, Record<string, number>>;
           month: number;
         } | null;
@@ -128,26 +126,29 @@ export default function OpnamePage() {
           return;
         }
 
-        for (
-          let date = new Date(startDate);
-          date <= new Date(endDate);
-          date.setDate(date.getDate() + 1)
-        ) {
-          // Take the date of the current iteration
-          const currentDate = format(date, 'dd');
-          if (!statsDocData.daily_sales['Cash']) {
-            statsDocData.daily_sales['Cash'] = {
-              [currentDate]: 0,
-            };
+        const payment_methods = ['cash', 'cashless'];
+        let currentTotalSales = 0;
+        payment_methods.forEach((method) => {
+          for (
+            let date = new Date(startDate);
+            date <= new Date(endDate);
+            date.setDate(date.getDate() + 1)
+          ) {
+            // Take the date of the current iteration
+            const currentDate = format(date, 'dd');
+            if (!statsDocData.daily_sales[method]) {
+              statsDocData.daily_sales[method] = {
+                [currentDate]: 0,
+              };
+            } else if (!statsDocData.daily_sales[method][currentDate]) {
+              statsDocData.daily_sales[method][currentDate] = 0;
+            }
+            currentTotalSales += statsDocData.daily_sales[method][currentDate];
           }
-          if (!statsDocData.daily_sales['Cashless']) {
-            statsDocData.daily_sales['Cashless'] = {
-              [currentDate]: 0,
-            };
-          }
-        }
+        });
 
         setSalesStats(statsDocData);
+        setTotalSales(currentTotalSales);
 
         setLoading(false);
       } catch (error) {
@@ -160,8 +161,6 @@ export default function OpnamePage() {
       .then((invoices) => {
         if (!invoices || invoices?.length === 0) {
           setSalesStats({
-            total_sales: 0,
-            transaction_count: 0,
             daily_sales: {},
             month: new Date().getMonth(),
           });
@@ -235,10 +234,10 @@ export default function OpnamePage() {
           />
         </div>
         <div className="w-full min-h-[30rem]">
-          {/* <BarChart
+          <BarChart
             data={salesStats?.daily_sales}
             chartTitle="Grafik Penjualan"
-          /> */}
+          />
         </div>
         {user?.role.toLocaleLowerCase() === 'owner' && (
           <div className="w-full h-[fit-content] flex flex-col gap-4">
@@ -252,9 +251,7 @@ export default function OpnamePage() {
                   {new Intl.NumberFormat('id-ID', {
                     style: 'currency',
                     currency: 'IDR',
-                  }).format(
-                    salesStats?.total_sales ? salesStats.total_sales : 0
-                  )}
+                  }).format(totalSales)}
                 </p>
               </div>
             </div>
@@ -267,7 +264,7 @@ export default function OpnamePage() {
                   {new Intl.NumberFormat('id-ID', {
                     style: 'currency',
                     currency: 'IDR',
-                  }).format((salesStats?.total_sales ?? 0) - purchasePrice)}
+                  }).format(totalSales - purchasePrice)}
                 </p>
               </div>
             </div>
@@ -280,7 +277,7 @@ export default function OpnamePage() {
                   {new Intl.NumberFormat('id-ID', {
                     style: 'currency',
                     currency: 'IDR',
-                  }).format(salesStats?.total_sales ?? 0)}
+                  }).format(totalSales)}
                 </p>
                 <p>x</p>
                 <input
@@ -303,7 +300,7 @@ export default function OpnamePage() {
                   {new Intl.NumberFormat('id-ID', {
                     style: 'currency',
                     currency: 'IDR',
-                  }).format(((salesStats?.total_sales ?? 0) * tax) / 100)}
+                  }).format((totalSales * tax) / 100)}
                 </p>
               </div>
             </div>

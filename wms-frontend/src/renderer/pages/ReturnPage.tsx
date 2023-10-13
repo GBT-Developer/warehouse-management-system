@@ -422,9 +422,6 @@ export default function ReturnPage() {
       }
 
       const incrementTransaction = increment(positive ? 1 : -1);
-      const incrementTotalSales = increment(
-        positive ? invoice.total_price : -invoice.total_price
-      );
       const statsDocRef = doc(db, 'invoice', '--stats--');
       const dailySales = new Map<string, FieldValue>();
       const datePriceMap = new Map<string, number>();
@@ -456,8 +453,14 @@ export default function ReturnPage() {
         statsDocRef,
         {
           transaction_count: incrementTransaction,
-          total_sales: incrementTotalSales,
-          daily_sales: Object.fromEntries(dailySales),
+          daily_sales:
+            invoice.payment_method?.toLowerCase() === 'cash'
+              ? {
+                  cash: dailySales,
+                }
+              : {
+                  cashless: dailySales,
+                },
         },
         { merge: true }
       );

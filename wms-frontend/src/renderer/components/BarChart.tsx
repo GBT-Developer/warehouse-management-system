@@ -36,15 +36,27 @@ export const BarChart = ({
     <Bar
       data={{
         labels: data
-          ? Object.keys(data).sort((a, b) => parseInt(a) - parseInt(b))
+          ? Object.keys(data.cash ? data.cash : data.cashless).sort(
+              (a, b) => parseInt(a) - parseInt(b)
+            )
           : [],
         datasets: [
           {
             data: data
               ? // Sort the values by the key
-                Object.keys(data)
+                Object.keys(data.cash)
                   .sort((a, b) => parseInt(a) - parseInt(b))
-                  .map((key) => data[key])
+                  .map((key) => data['cash'][key])
+              : [],
+            backgroundColor: 'rgba(255, 99, 132, 0.2)',
+            borderColor: 'rgba(255, 99, 132, 1)',
+          },
+          {
+            data: data
+              ? // Sort the values by the key
+                Object.keys(data.cashless)
+                  .sort((a, b) => parseInt(a) - parseInt(b))
+                  .map((key) => data['cashless'][key])
               : [],
             backgroundColor: 'rgba(255, 99, 132, 0.2)',
             borderColor: 'rgba(255, 99, 132, 1)',
