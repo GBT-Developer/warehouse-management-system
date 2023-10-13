@@ -53,48 +53,55 @@ export const ChangePasswordPage = () => {
 
   return (
     <PageLayout>
-      <AuthCard>
-        <div className="changePassword">
-          <form className="flex flex-col gap-[0.5rem]" onSubmit={handleSubmit}>
-            <h1 className="text-xl font-medium text-gray-900">Ubah Password</h1>
-            <input
-              type="password"
-              placeholder="Password Sekarang"
-              className="bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
-              value={password}
-              onChange={(event) => setPassword(event.target.value)}
-              required
-            />
-            <input
-              type="password"
-              placeholder="Password Baru"
-              className="bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
-              value={newPassword}
-              onChange={(event) => setNewPassword(event.target.value)}
-              required
-            />
-            <input
-              type="password"
-              placeholder="konfirmasi Password Baru"
-              className="bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
-              value={confirmNewPassword}
-              onChange={(event) => setConfirmNewPassword(event.target.value)}
-              required
-            />
-            <button
-              disabled={isEmpty}
-              type="submit"
-              style={{
-                backgroundColor: isEmpty ? 'gray' : 'blue',
-                // Add other styles as needed
-              }}
-              className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5"
+      <div className="flex flex-col items-center h-full w-full pt-44">
+        <AuthCard>
+          <div className="changePassword">
+            <form
+              className="flex flex-col gap-[0.5rem]"
+              onSubmit={handleSubmit}
             >
-              Submit
-            </button>
-          </form>
-        </div>
-      </AuthCard>
+              <h1 className="text-xl font-medium text-gray-900">
+                Ubah Password
+              </h1>
+              <input
+                type="password"
+                placeholder="Password Sekarang"
+                className="bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
+                value={password}
+                onChange={(event) => setPassword(event.target.value)}
+                required
+              />
+              <input
+                type="password"
+                placeholder="Password Baru"
+                className="bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
+                value={newPassword}
+                onChange={(event) => setNewPassword(event.target.value)}
+                required
+              />
+              <input
+                type="password"
+                placeholder="konfirmasi Password Baru"
+                className="bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
+                value={confirmNewPassword}
+                onChange={(event) => setConfirmNewPassword(event.target.value)}
+                required
+              />
+              <button
+                disabled={isEmpty}
+                type="submit"
+                style={{
+                  backgroundColor: isEmpty ? 'gray' : 'blue',
+                  // Add other styles as needed
+                }}
+                className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5"
+              >
+                Submit
+              </button>
+            </form>
+          </div>
+        </AuthCard>
+      </div>
       <ToastContainer
         position="top-right"
         autoClose={2000}
