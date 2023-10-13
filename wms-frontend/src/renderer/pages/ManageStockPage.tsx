@@ -729,7 +729,7 @@ export const ManageStockPage = () => {
               <button
                 disabled={loading}
                 type="button"
-                className="absolute right-2 text-white bg-gray-600 hover:bg-gray-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm p-[0.25rem]"
+                className="absolute top-0 right-0 h-full flex items-center justify-center px-3"
                 onClick={() => {
                   handleFetchDispatchNote().catch(() => console.log('error'));
                 }}
