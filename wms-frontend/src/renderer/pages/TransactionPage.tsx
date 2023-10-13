@@ -134,9 +134,6 @@ export const TransactionPage = () => {
         setIsEmpty(false); // Set to false if all items have count !== 0
       }
     }
-    invoice.items?.map((item) => {
-      console.log(item.brand + ' ' + item.count);
-    });
   }, [invoice]);
 
   const handleSubmit = (e: FormEvent) => {
