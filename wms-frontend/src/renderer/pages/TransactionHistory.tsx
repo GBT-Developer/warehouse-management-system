@@ -17,7 +17,7 @@ import React, { useEffect, useState } from 'react';
 import { AiOutlineLoading3Quarters } from 'react-icons/ai';
 import { BiSolidTrash } from 'react-icons/bi';
 import { PiFilePdfBold } from 'react-icons/pi';
-import { ToastContainer, toast } from 'react-toastify';
+import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import DateRangeComp from 'renderer/components/DateRangeComp';
 import { PdfViewer } from 'renderer/components/PdfViewer';
@@ -38,9 +38,28 @@ export default function TransactionHistory() {
   const [showProductsMap, setShowProductsMap] = useState<
     Record<string, boolean>
   >({});
-  const successNotify = () => toast.success('Transaksi berhasil dihapus');
+  const successNotify = () =>
+    toast.success('Transaksi berhasil dihapus', {
+      position: 'top-right',
+      autoClose: 2000,
+      hideProgressBar: false,
+      closeOnClick: true,
+      pauseOnHover: true,
+      draggable: true,
+      progress: undefined,
+      theme: 'light',
+    });
   const failNotify = (e?: string) =>
-    toast.error(e ?? 'Transaksi gagal dihapus');
+    toast.error(e ?? 'Transaksi gagal dihapus', {
+      position: 'top-right',
+      autoClose: 2000,
+      hideProgressBar: false,
+      closeOnClick: true,
+      pauseOnHover: true,
+      draggable: true,
+      progress: undefined,
+      theme: 'light',
+    });
   const [nextPosts_loading, setNextPostsLoading] = useState(false);
   const [nextPosts_empty, setNextPostsEmpty] = useState(false);
   const [nextQuery, setNextQuery] = useState<QueryStartAtConstraint | null>(
@@ -418,18 +437,6 @@ export default function TransactionHistory() {
           )}
         </div>
       </div>
-      <ToastContainer
-        position="top-right"
-        autoClose={2000}
-        hideProgressBar={false}
-        newestOnTop={false}
-        closeOnClick
-        rtl={false}
-        pauseOnFocusLoss
-        draggable
-        pauseOnHover
-        theme="light"
-      />
     </PageLayout>
   );
 }

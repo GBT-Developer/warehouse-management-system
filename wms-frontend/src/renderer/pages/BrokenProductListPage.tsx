@@ -14,7 +14,7 @@ import {
 } from 'firebase/firestore';
 import { useEffect, useState } from 'react';
 import { AiOutlineLoading3Quarters } from 'react-icons/ai';
-import { ToastContainer, toast } from 'react-toastify';
+import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { PdfViewer } from 'renderer/components/PdfViewer';
 import { ReturnModal } from 'renderer/components/ReturnModal';
@@ -37,9 +37,28 @@ export const BrokenProductListPage = () => {
   const [errorMessage, setErrorMessage] = useState('');
   const { warehousePosition } = useAuth();
   const [painterName, setPainterName] = useState('');
-  const successNotify = () => toast.success('Produk berhasil dikembalikan');
+  const successNotify = () =>
+    toast.success('Produk berhasil dikembalikan', {
+      position: 'top-right',
+      autoClose: 2000,
+      hideProgressBar: false,
+      closeOnClick: true,
+      pauseOnHover: true,
+      draggable: true,
+      progress: undefined,
+      theme: 'light',
+    });
   const failNotify = (e?: string) =>
-    toast.error(e ?? 'Product gagal dikembalikan');
+    toast.error(e ?? 'Product gagal dikembalikan', {
+      position: 'top-right',
+      autoClose: 2000,
+      hideProgressBar: false,
+      closeOnClick: true,
+      pauseOnHover: true,
+      draggable: true,
+      progress: undefined,
+      theme: 'light',
+    });
   const [lastBrandKey, setLastBrandKey] = useState(null);
   const [nextPosts_loading, setNextPostsLoading] = useState(false);
   const [nextPosts_empty, setNextPostsEmpty] = useState(false);
@@ -479,18 +498,6 @@ export const BrokenProductListPage = () => {
           </div>
         </div>
       </div>
-      <ToastContainer
-        position="top-right"
-        autoClose={2000}
-        hideProgressBar={false}
-        newestOnTop={false}
-        closeOnClick
-        rtl={false}
-        pauseOnFocusLoss
-        draggable
-        pauseOnHover
-        theme="light"
-      />
     </PageLayout>
   );
 };

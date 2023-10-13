@@ -32,8 +32,28 @@ export default function CustomerListPage() {
   const [nextQuery, setNextQuery] = useState<QueryStartAtConstraint | null>(
     null
   );
-  const successNotify = () => toast.success('Customer berhasil dihapus');
-  const failNotify = (e?: string) => toast.error(e ?? 'Customer gagal dihapus');
+  const successNotify = () =>
+    toast.success('Customer berhasil dihapus', {
+      position: 'top-right',
+      autoClose: 2000,
+      hideProgressBar: false,
+      closeOnClick: true,
+      pauseOnHover: true,
+      draggable: true,
+      progress: undefined,
+      theme: 'light',
+    });
+  const failNotify = (e?: string) =>
+    toast.error(e ?? 'Customer gagal dihapus', {
+      position: 'top-right',
+      autoClose: 2000,
+      hideProgressBar: false,
+      closeOnClick: true,
+      pauseOnHover: true,
+      draggable: true,
+      progress: undefined,
+      theme: 'light',
+    });
 
   useEffect(() => {
     const fetchData = async () => {

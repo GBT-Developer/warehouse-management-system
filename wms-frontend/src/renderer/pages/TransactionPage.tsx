@@ -15,7 +15,7 @@ import { FormEvent, useEffect, useState } from 'react';
 import { AiOutlineLoading3Quarters } from 'react-icons/ai';
 import { BiSolidTrash } from 'react-icons/bi';
 import { useNavigate } from 'react-router-dom';
-import { ToastContainer, toast } from 'react-toastify';
+import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { InputField } from 'renderer/components/InputField';
 import { PdfViewer } from 'renderer/components/PdfViewer';
@@ -51,9 +51,28 @@ export const TransactionPage = () => {
   const [selectedProducts, setSelectedProducts] = useState<Product[]>([]);
   const [modalOpen, setModalOpen] = useState(false);
   const [guestFormOpen, setGuestFormOpen] = useState(false);
-  const successNotify = () => toast.success('Transaksi berhasil dilakukan');
+  const successNotify = () =>
+    toast.success('Transaksi berhasil dilakukan', {
+      position: 'top-right',
+      autoClose: 2000,
+      hideProgressBar: false,
+      closeOnClick: true,
+      pauseOnHover: true,
+      draggable: true,
+      progress: undefined,
+      theme: 'light',
+    });
   const failNotify = (e?: string) =>
-    toast.error(e ?? 'Transaksi gagal dilakukan');
+    toast.error(e ?? 'Transaksi gagal dilakukan', {
+      position: 'top-right',
+      autoClose: 2000,
+      hideProgressBar: false,
+      closeOnClick: true,
+      pauseOnHover: true,
+      draggable: true,
+      progress: undefined,
+      theme: 'light',
+    });
   const [isEmpty, setIsEmpty] = useState(false);
   const [clickedInvoice, setClickedInvoice] = useState<Invoice | null>(null);
   const [pdfOpen, setPdfOpen] = useState(false);
@@ -108,10 +127,10 @@ export const TransactionPage = () => {
     } else if (invoice.payment_method != '' && invoice.items?.length != 0)
       invoice.items?.map((item) => {
         if (item.count === 0) {
-          setIsEmpty(true);
+          setIsEmpty(false);
           return;
         } else {
-          setIsEmpty(false);
+          setIsEmpty(true);
           return;
         }
       });
@@ -636,18 +655,6 @@ export const TransactionPage = () => {
           </tr>
         )}
       </TableModal>
-      <ToastContainer
-        position="top-right"
-        autoClose={2000}
-        hideProgressBar={false}
-        newestOnTop={false}
-        closeOnClick
-        rtl={false}
-        pauseOnFocusLoss
-        draggable
-        pauseOnHover
-        theme="light"
-      />
     </PageLayout>
   );
 };

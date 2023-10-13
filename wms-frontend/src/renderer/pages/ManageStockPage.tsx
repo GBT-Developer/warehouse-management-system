@@ -18,7 +18,7 @@ import {
   AiOutlineReload,
 } from 'react-icons/ai';
 import { useNavigate } from 'react-router-dom';
-import { ToastContainer, toast } from 'react-toastify';
+import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { InputField } from 'renderer/components/InputField';
 import { SingleTableItem } from 'renderer/components/TableComponents/SingleTableItem';
@@ -72,8 +72,28 @@ export const ManageStockPage = () => {
   const [returnedProduct, setReturnedProduct] = useState(false);
   const [initialLoad, setInitialLoad] = useState(true);
 
-  const successNotify = () => toast.success('Stock berhasil diupdate');
-  const failNotify = (e?: string) => toast.error(e ?? 'Stock gagal diupdate');
+  const successNotify = () =>
+    toast.success('Stock berhasil diupdate', {
+      position: 'top-right',
+      autoClose: 2000,
+      hideProgressBar: false,
+      closeOnClick: true,
+      pauseOnHover: true,
+      draggable: true,
+      progress: undefined,
+      theme: 'light',
+    });
+  const failNotify = (e?: string) =>
+    toast.error(e ?? 'Stock gagal diupdate', {
+      position: 'top-right',
+      autoClose: 2000,
+      hideProgressBar: false,
+      closeOnClick: true,
+      pauseOnHover: true,
+      draggable: true,
+      progress: undefined,
+      theme: 'light',
+    });
   // If the input Field is Empty
   const [isEmpty, setIsEmpty] = useState(false);
 
@@ -1060,18 +1080,6 @@ export const ManageStockPage = () => {
           </tr>
         )}
       </TableModal>
-      <ToastContainer
-        position="top-right"
-        autoClose={2000}
-        hideProgressBar={false}
-        newestOnTop={false}
-        closeOnClick
-        rtl={false}
-        pauseOnFocusLoss
-        draggable
-        pauseOnHover
-        theme="light"
-      />
     </PageLayout>
   );
 };

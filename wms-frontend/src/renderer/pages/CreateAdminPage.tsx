@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { AiOutlineLoading3Quarters } from 'react-icons/ai';
 import { useNavigate } from 'react-router-dom';
-import { ToastContainer, toast } from 'react-toastify';
+import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { InputField } from 'renderer/components/InputField';
 import { CustomUser } from 'renderer/interfaces/CustomUser';
@@ -20,8 +20,28 @@ export const CreateAdminPage = () => {
   const [loading, setLoading] = useState(false);
   const [newAdmin, setNewAdmin] = useState<CustomUser>(initNewAdmin);
   const [errorMessage, setErrorMessage] = useState('');
-  const successNotify = () => toast.success('Admin berhasil dibuat');
-  const failNotify = (e?: string) => toast.error(e ?? 'Admin gagal dibuat');
+  const successNotify = () =>
+    toast.success('Admin berhasil dibuat', {
+      position: 'top-right',
+      autoClose: 2000,
+      hideProgressBar: false,
+      closeOnClick: true,
+      pauseOnHover: true,
+      draggable: true,
+      progress: undefined,
+      theme: 'light',
+    });
+  const failNotify = (e?: string) =>
+    toast.error(e ?? 'Admin gagal dibuat', {
+      position: 'top-right',
+      autoClose: 2000,
+      hideProgressBar: false,
+      closeOnClick: true,
+      pauseOnHover: true,
+      draggable: true,
+      progress: undefined,
+      theme: 'light',
+    });
   const { register } = useAuth().actions;
   const [isEmpty, setIsEmpty] = useState(false);
 
@@ -186,18 +206,6 @@ export const CreateAdminPage = () => {
           <p className="text-red-500 text-sm ">{errorMessage}</p>
         )}
       </form>
-      <ToastContainer
-        position="top-right"
-        autoClose={2000}
-        hideProgressBar={false}
-        newestOnTop={false}
-        closeOnClick
-        rtl={false}
-        pauseOnFocusLoss
-        draggable
-        pauseOnHover
-        theme="light"
-      />
     </PageLayout>
   );
 };

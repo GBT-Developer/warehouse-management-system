@@ -4,7 +4,7 @@ import {
   updatePassword,
 } from 'firebase/auth';
 import { FormEvent, useEffect, useState } from 'react';
-import { ToastContainer, toast } from 'react-toastify';
+import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { AuthCard } from 'renderer/components/AuthCard';
 import { auth } from 'renderer/firebase';
@@ -25,8 +25,28 @@ export const ChangePasswordPage = () => {
     }
   }, [password, newPassword, confirmNewPassword]);
 
-  const successNotify = () => toast.success('Password berhasil diubah');
-  const failNotify = (e?: string) => toast.error(e ?? 'Password gagal diubah');
+  const successNotify = () =>
+    toast.success('Password berhasil diubah', {
+      position: 'top-right',
+      autoClose: 2000,
+      hideProgressBar: false,
+      closeOnClick: true,
+      pauseOnHover: true,
+      draggable: true,
+      progress: undefined,
+      theme: 'light',
+    });
+  const failNotify = (e?: string) =>
+    toast.error(e ?? 'Password gagal diubah', {
+      position: 'top-right',
+      autoClose: 2000,
+      hideProgressBar: false,
+      closeOnClick: true,
+      pauseOnHover: true,
+      draggable: true,
+      progress: undefined,
+      theme: 'light',
+    });
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const user = auth.currentUser;
@@ -102,18 +122,6 @@ export const ChangePasswordPage = () => {
           </div>
         </AuthCard>
       </div>
-      <ToastContainer
-        position="top-right"
-        autoClose={2000}
-        hideProgressBar={false}
-        newestOnTop={false}
-        closeOnClick
-        rtl={false}
-        pauseOnFocusLoss
-        draggable
-        pauseOnHover
-        theme="light"
-      />
     </PageLayout>
   );
 };
