@@ -124,16 +124,19 @@ export const TransactionPage = () => {
         setIsEmpty(true);
         return;
       }
-    } else if (invoice.payment_method != '' && invoice.items?.length != 0)
-      invoice.items?.map((item) => {
-        if (item.count === 0) {
-          setIsEmpty(false);
-          return;
-        } else {
-          setIsEmpty(true);
-          return;
-        }
-      });
+    } else if (invoice.payment_method != '' && invoice.items?.length != 0) {
+      const hasZeroCount = invoice.items?.some((item) => item.count === 0);
+      const allItemsNonZero = invoice.items?.every((item) => item.count !== 0);
+
+      if (hasZeroCount) {
+        setIsEmpty(true); // Set to true if any item has count === 0
+      } else if (allItemsNonZero) {
+        setIsEmpty(false); // Set to false if all items have count !== 0
+      }
+    }
+    invoice.items?.map((item) => {
+      console.log(item.brand + ' ' + item.count);
+    });
   }, [invoice]);
 
   const handleSubmit = (e: FormEvent) => {
