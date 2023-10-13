@@ -202,7 +202,7 @@ export const TransactionPage = () => {
           customer_id: selectedCustomer?.id ?? '',
           customer_name: selectedCustomer?.name ?? invoice.customer_name,
           // Current date
-          date: currentDate,
+          date: invoice.date,
           time: currentTime,
           total_price: totalPrice,
           payment_method: invoice.payment_method,
