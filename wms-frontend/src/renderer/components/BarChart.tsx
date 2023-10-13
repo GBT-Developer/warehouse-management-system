@@ -22,7 +22,7 @@ ChartJS.register(
 );
 
 interface BarChartProps {
-  data: Record<string, number> | undefined;
+  data: Record<string, Record<string, number>> | undefined;
   chartTitle?: string;
   chartSubTitle?: string;
 }

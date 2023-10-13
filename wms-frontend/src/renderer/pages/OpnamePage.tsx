@@ -13,7 +13,6 @@ import {
 } from 'firebase/firestore';
 import { useEffect, useState } from 'react';
 import { AiOutlineLoading3Quarters } from 'react-icons/ai';
-import { BarChart } from 'renderer/components/BarChart';
 import DateRangeComp from 'renderer/components/DateRangeComp';
 import { SingleTableItem } from 'renderer/components/TableComponents/SingleTableItem';
 import { TableHeader } from 'renderer/components/TableComponents/TableHeader';
@@ -26,7 +25,7 @@ export default function OpnamePage() {
   const [salesStats, setSalesStats] = useState<{
     total_sales: number;
     transaction_count: number;
-    daily_sales: Record<string, number>;
+    daily_sales: Record<string, Record<string, number>>;
     month: number;
   }>();
   const { user } = useAuth();
@@ -120,7 +119,7 @@ export default function OpnamePage() {
         const statsDocData = statsDoc.data() as {
           total_sales: number;
           transaction_count: number;
-          daily_sales: Record<string, number>;
+          daily_sales: Record<string, Record<string, number>>;
           month: number;
         } | null;
 
@@ -136,8 +135,16 @@ export default function OpnamePage() {
         ) {
           // Take the date of the current iteration
           const currentDate = format(date, 'dd');
-          if (!statsDocData.daily_sales[currentDate])
-            statsDocData.daily_sales[currentDate] = 0;
+          if (!statsDocData.daily_sales['Cash']) {
+            statsDocData.daily_sales['Cash'] = {
+              [currentDate]: 0,
+            };
+          }
+          if (!statsDocData.daily_sales['Cashless']) {
+            statsDocData.daily_sales['Cashless'] = {
+              [currentDate]: 0,
+            };
+          }
         }
 
         setSalesStats(statsDocData);
@@ -228,10 +235,10 @@ export default function OpnamePage() {
           />
         </div>
         <div className="w-full min-h-[30rem]">
-          <BarChart
+          {/* <BarChart
             data={salesStats?.daily_sales}
             chartTitle="Grafik Penjualan"
-          />
+          /> */}
         </div>
         {user?.role.toLocaleLowerCase() === 'owner' && (
           <div className="w-full h-[fit-content] flex flex-col gap-4">

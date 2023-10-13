@@ -427,7 +427,9 @@ export const seedTransaction = async (num_of_transaction: number) => {
       .set({
         total_sales: totalSales,
         transaction_count: num_of_transaction,
-        daily_sales: daily_sales,
+        daily_sales: {
+          cash: daily_sales,
+        },
         month: parseInt(
           new Date().toLocaleDateString("en-US", {
             month: "numeric",

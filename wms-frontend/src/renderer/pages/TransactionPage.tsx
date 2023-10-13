@@ -142,14 +142,9 @@ export const TransactionPage = () => {
           });
         }
 
-        const incrementTransaction = increment(1);
-        const incrementTotalSales = increment(
-          invoice.items.reduce(
-            (acc, item) => acc + item.sell_price * item.count,
-            0
-          )
-        );
+        // Update invoice stats
         const statsRef = doc(db, 'invoice', '--stats--');
+        const incrementTransaction = increment(1);
         const dailySales = new Map<string, FieldValue>();
         const datePriceMap = new Map<string, number>();
         invoice.items.forEach((item) => {
@@ -171,24 +166,30 @@ export const TransactionPage = () => {
           statsRef,
           {
             transaction_count: incrementTransaction,
-            total_sales: incrementTotalSales,
-            daily_sales: Object.fromEntries(dailySales),
+            daily_sales:
+              invoice.payment_method?.toLowerCase() === 'cash'
+                ? {
+                    cash: dailySales,
+                  }
+                : {
+                    cashless: dailySales,
+                  },
           },
           { merge: true }
         );
+
+        // Add new invoice
+        const newInvoiceRef = doc(collection(db, 'invoice'));
         const totalPrice = invoice.items.reduce(
           (acc, item) => acc + item.sell_price * item.count,
           0
         );
-        const newInvoiceRef = doc(collection(db, 'invoice'));
-
         const currentDate = format(new Date(), 'yyyy-MM-dd');
         const currentTime = format(new Date(), 'HH:mm:ss');
 
         transaction.set(newInvoiceRef, {
           customer_id: selectedCustomer?.id ?? '',
           customer_name: selectedCustomer?.name ?? invoice.customer_name,
-          // Current date
           date: currentDate,
           time: currentTime,
           total_price: totalPrice,
@@ -201,7 +202,6 @@ export const TransactionPage = () => {
         setClickedInvoice({
           customer_id: selectedCustomer?.id ?? '',
           customer_name: selectedCustomer?.name ?? invoice.customer_name,
-          // Current date
           date: currentDate,
           time: currentTime,
           total_price: totalPrice,
