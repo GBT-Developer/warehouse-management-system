@@ -378,6 +378,7 @@ export const ManageStockPage = () => {
               motor_type: acceptedProduct.motor_type,
               part: acceptedProduct.part,
               available_color: acceptedProduct.available_color,
+              purchase_price: acceptedProduct.purchase_price,
               sell_price: acceptedProduct.sell_price,
               count: acceptedProduct.count,
               supplier: acceptedProduct.supplier,

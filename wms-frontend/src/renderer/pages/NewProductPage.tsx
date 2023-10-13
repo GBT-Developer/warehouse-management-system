@@ -176,6 +176,7 @@ export const NewProductPage = () => {
       } else if (newProduct.supplier?.id != '') {
         transaction.set(newProductRef, {
           ...newProduct,
+          purchase_price: newProduct.purchase_price ?? 0,
           supplier: newProduct.supplier?.id,
         });
       }
