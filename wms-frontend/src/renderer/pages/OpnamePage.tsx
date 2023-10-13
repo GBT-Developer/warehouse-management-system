@@ -161,7 +161,10 @@ export default function OpnamePage() {
       .then((invoices) => {
         if (!invoices || invoices?.length === 0) {
           setSalesStats({
-            daily_sales: {},
+            daily_sales: {
+              cash: {},
+              cashless: {},
+            },
             month: new Date().getMonth(),
           });
           setPurchasePrice(0);
@@ -242,59 +245,6 @@ export default function OpnamePage() {
         {user?.role.toLocaleLowerCase() === 'owner' && (
           <div className="w-full h-[fit-content] flex flex-col gap-4">
             <p className="text-2xl font-bold">Rangkuman</p>
-            {/* <div className="w-full flex justify-between items-center">
-              <div className="w-1/3 h-full">
-                <p className="text-md">Total Penjualan: </p>
-              </div>
-              <div className="w-2/3 flex gap-2 items">
-                <div className="flex flex-col gap-2">
-                  <p>
-                    {new Intl.NumberFormat('id-ID', {
-                      style: 'currency',
-                      currency: 'IDR',
-                    }).format(totalSales)}
-                  </p>
-                  <div className="flex text-sm">
-                    <p>Cash:</p> &nbsp;
-                    <p>
-                      {new Intl.NumberFormat('id-ID', {
-                        style: 'currency',
-                        currency: 'IDR',
-                      }).format(
-                        salesStats?.daily_sales['cash']
-                          ? Object.keys(salesStats?.daily_sales['cash']).reduce(
-                              (prev, curr) =>
-                                prev + salesStats?.daily_sales['cash'][curr],
-                              0
-                            )
-                          : 0
-                      )}
-                    </p>
-                  </div>
-                  <div className="flex text-sm">
-                    <p>Cashless:</p> &nbsp;
-                    <p>
-                      {new Intl.NumberFormat('id-ID', {
-                        style: 'currency',
-                        currency: 'IDR',
-                      }).format(
-                        salesStats?.daily_sales['cashless']
-                          ? Object.keys(
-                              salesStats?.daily_sales['cashless']
-                            ).reduce(
-                              (prev, curr) =>
-                                prev +
-                                salesStats?.daily_sales['cashless'][curr],
-                              0
-                            )
-                          : 0
-                      )}
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div> */}
-
             <div className="flex flex-col gap-1">
               <div className="w-full flex justify-between items-center">
                 <div className="w-1/3 h-full">
@@ -428,13 +378,7 @@ export default function OpnamePage() {
                 <th className=" py-3">Nomor Invoice</th>
               </TableHeader>
               <tbody>
-                {invoiceList.length === 0 ? (
-                  <tr className="border-b">
-                    <td className="py-3" colSpan={4}>
-                      <p className="flex justify-center">Data tidak tersedia</p>
-                    </td>
-                  </tr>
-                ) : (
+                {invoiceList.length > 0 &&
                   invoiceList.map((invoice) => (
                     <tr key={invoice.id} className="border-b">
                       <SingleTableItem>
@@ -458,8 +402,7 @@ export default function OpnamePage() {
                       </SingleTableItem>
                       <SingleTableItem>{invoice.id}</SingleTableItem>
                     </tr>
-                  ))
-                )}
+                  ))}
               </tbody>
             </table>
             {nextPosts_empty ? (
