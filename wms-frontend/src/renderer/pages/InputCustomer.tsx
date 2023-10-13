@@ -311,7 +311,7 @@ function InputCustomerPage() {
         modalOpen={modalOpen}
         handleSearch={handleSearch}
         setModalOpen={setModalOpen}
-        title={'Choose Product'}
+        title={'Pilih Produk'}
         headerList={
           products.length > 0
             ? ['', 'Nama Product', 'Harga Jual', 'Posisi Gudang']
