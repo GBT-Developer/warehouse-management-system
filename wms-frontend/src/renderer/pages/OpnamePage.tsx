@@ -372,7 +372,7 @@ export default function OpnamePage() {
                   {new Intl.NumberFormat('id-ID', {
                     style: 'currency',
                     currency: 'IDR',
-                  }).format(totalSales - purchasePrice)}
+                  }).format(totalSales > 0 ? totalSales - purchasePrice : 0)}
                 </p>
               </div>
             </div>
