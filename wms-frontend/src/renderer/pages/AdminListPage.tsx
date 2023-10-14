@@ -213,7 +213,7 @@ export const AdminListPage = () => {
                           {confirmed && (
                             <div className="my-2 text-red-600 font-bold">
                               <p>
-                                Jangan lupa delete admin di firebase console!
+                                Jangan lupa hapus admin di firebase console!
                               </p>
                             </div>
                           )}
@@ -228,7 +228,7 @@ export const AdminListPage = () => {
                                 } else setConfirmed(true);
                               }}
                             >
-                              {<span>{confirmed ? 'Confirm' : 'Delete'}</span>}
+                              {<span>{confirmed ? 'Konfirm' : 'Hapus'}</span>}
                             </button>
                             <button
                               className="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded"
@@ -237,7 +237,7 @@ export const AdminListPage = () => {
                                 setConfirmed(false);
                               }}
                             >
-                              Cancel
+                              Batal
                             </button>
                           </div>
                         </div>
