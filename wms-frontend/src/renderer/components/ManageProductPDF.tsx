@@ -82,7 +82,7 @@ const styles = StyleSheet.create({
 
 export const ProductPdf = ({ products, companyInfo }: ProductPdf) => (
   <Document
-    title={`Stok Produkt ${new Date().toLocaleDateString('id-ID', {
+    title={`Stok Produk ${new Date().toLocaleDateString('id-ID', {
       year: 'numeric',
       month: 'long',
       day: 'numeric',

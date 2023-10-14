@@ -1075,7 +1075,7 @@ export const ManageStockPage = () => {
         ) : (
           <tr className="border-b">
             <SingleTableItem>
-              <p className="flex justify-center">Produkt tidak ditemukan</p>
+              <p className="flex justify-center">Produk tidak ditemukan</p>
             </SingleTableItem>
           </tr>
         )}
