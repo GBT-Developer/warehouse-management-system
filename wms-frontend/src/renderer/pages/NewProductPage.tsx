@@ -1,4 +1,4 @@
-import { format } from 'date-fns';
+import { FirebaseError } from 'firebase/app';
 import {
   DocumentData,
   DocumentReference,
@@ -204,40 +204,6 @@ export const NewProductPage = () => {
           supplier: newProduct.supplier?.id,
         });
       }
-      if (
-        newProduct.count != 0 &&
-        newProduct.purchase_price != 0 &&
-        newProduct.sell_price != 0 &&
-        newProduct.supplier?.id != ''
-      ) {
-        const currentDateandTime = new Date();
-        const newPurchaseRef = doc(collection(db, 'purchase_history'));
-        const todayDate = format(currentDateandTime, 'yyyy-MM-dd');
-        let theTime = '';
-        // If invoice date is the same as current date, take the current time
-        if (newPurchase.created_at === format(currentDateandTime, 'yyyy-MM-dd'))
-          theTime = format(currentDateandTime, 'HH:mm:ss');
-        else theTime = '23:59:59';
-
-        transaction.set(newPurchaseRef, {
-          ...newPurchase,
-          created_at: todayDate,
-          time: theTime,
-          purchase_price: newProduct.purchase_price,
-          payment_status: newPurchase.payment_status,
-          warehouse_position: newProduct.warehouse_position,
-          supplier: newSupplierRef
-            ? newSupplierRef.id
-            : newProduct.supplier?.id,
-          products: [
-            {
-              id: newProductRef.id,
-              name: `${newProduct.brand} ${newProduct.motor_type} ${newProduct.part} ${newProduct.available_color}`,
-              quantity: newProduct.count,
-            },
-          ],
-        });
-      }
       setLoading(false);
       setIsEmpty(false);
       successNotify();
@@ -252,8 +218,9 @@ export const NewProductPage = () => {
       return Promise.resolve(newProductRef);
     }).catch((error) => {
       setLoading(false);
-      const errorMessage = error as unknown as string;
-      failNotify(errorMessage);
+      const errorMessage = error as unknown as FirebaseError;
+      console.log(error);
+      failNotify(errorMessage.message);
     });
   }
 
