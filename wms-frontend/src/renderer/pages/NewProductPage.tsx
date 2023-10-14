@@ -120,10 +120,6 @@ export const NewProductPage = () => {
     });
   }, []);
 
-  useEffect(() => {
-    console.log(newProduct);
-  }, [newProduct]);
-
   // Check all of the input empty or not
   useEffect(() => {
     if (
@@ -252,6 +248,7 @@ export const NewProductPage = () => {
       if (supplierOptionRef.current) supplierOptionRef.current.value = '';
       //make the warehouse select empty
       if (warehouseOptionRef.current) warehouseOptionRef.current.value = '';
+      setShowSupplierForm(false);
       return Promise.resolve(newProductRef);
     }).catch((error) => {
       setLoading(false);
