@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { AiOutlineLoading3Quarters } from 'react-icons/ai';
+import { AiOutlineClose, AiOutlineLoading3Quarters } from 'react-icons/ai';
 import { TableHeader } from './TableHeader';
 import { TableTitle } from './TableTitle';
 
@@ -44,6 +44,15 @@ export const TableModal = ({
       >
         <div className="w-full h-full bg-transparent rounded-lg overflow-hidden">
           <div className="relative shadow-md sm:rounded-lg overflow-auto h-full flex flex-col justify-between">
+            <div className={`w-full flex justify-between items-center gap-2`}>
+              <div className="w-full h-[1px] bg-gray-100"></div>
+              <p
+                className="rounded-md p-2 bg-gray-100 hover:bg-gray-200 cursor-pointer"
+                onClick={toggleModal}
+              >
+                <AiOutlineClose />
+              </p>
+            </div>
             {handleSearch && (
               <form
                 onSubmit={(e) => {
