@@ -71,7 +71,7 @@ export const AdminListPage = () => {
     setLoading(false);
   }, []);
 
-  const handleDelete = (
+  const handleDelete = async (
     e: React.MouseEvent<HTMLButtonElement>,
     adminId: string | undefined
   ) => {
@@ -81,17 +81,17 @@ export const AdminListPage = () => {
     if (!adminId) return;
     const purchaseRef = doc(db, 'user', adminId);
     setModalLoading(true);
-    deleteDoc(purchaseRef)
+    await deleteDoc(purchaseRef)
       .then(() => {
         setAdminList(adminList.filter((adminList) => adminList.id !== adminId));
         setModalLoading(false);
         setModalOpen(false);
+        successNotify();
       })
       .catch((error: FirebaseError) => {
         failNotify(error.message);
         setModalLoading(false);
       });
-    successNotify();
     setConfirmed(false);
     setLoading(false);
   };
@@ -199,7 +199,7 @@ export const AdminListPage = () => {
                             </p>
                           </div>
                           <div className="flex">
-                            <p className="w-2/5 font-bold">Name:</p>
+                            <p className="w-2/5 font-bold">Nama:</p>
                             <p className="w-3/5">{activeAdmin?.display_name}</p>
                           </div>
                           <div className="flex">
