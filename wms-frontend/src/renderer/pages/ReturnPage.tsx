@@ -660,7 +660,7 @@ export default function ReturnPage() {
                               item.part +
                               ' ' +
                               item.available_color}
-                            {item.is_returned && ' (Returned)'}
+                            {item.is_returned && ' (Dikembalikan)'}
                           </label>
                         </div>
                       </div>
