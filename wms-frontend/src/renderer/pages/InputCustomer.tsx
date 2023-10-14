@@ -113,6 +113,7 @@ function InputCustomerPage() {
         setLoading(false);
         successNotify();
         setNewCustomer(newCustomerInitialState);
+        setSelectedProducts([]);
       })
       .catch((error) => {
         setLoading(false);
