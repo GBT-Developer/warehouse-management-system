@@ -1,3 +1,4 @@
+import { FirebaseError } from 'firebase/app';
 import {
   EmailAuthProvider,
   reauthenticateWithCredential,
@@ -66,14 +67,32 @@ export const ChangePasswordPage = () => {
       setConfirmNewPassword('');
       successNotify();
     } catch (err) {
-      const errString = (err as Error).message as string;
-      failNotify(errString);
+      const error = err as unknown as FirebaseError;
+      let errMessage = '';
+      switch (error.code) {
+        case 'auth/invalid-email':
+          errMessage = 'Email tidak valid';
+          break;
+        case 'auth/user-disabled':
+          errMessage = 'User nonaktif';
+          break;
+        case 'auth/user-not-found':
+          errMessage = 'User tidak ditemukan';
+          break;
+        case 'auth/wrong-password':
+          errMessage = 'Password salah';
+          break;
+        default:
+          errMessage = 'Terjadi kesalahan di sistem';
+          break;
+      }
+      failNotify(errMessage);
     }
   };
 
   return (
     <PageLayout>
-      <div className="flex flex-col items-center justify-center h-full">
+      <div className="flex flex-col items-center justify-center h-full mt-[-2.5rem]">
         <AuthCard>
           <div className="changePassword">
             <form
