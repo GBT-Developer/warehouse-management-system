@@ -1,3 +1,4 @@
+import { format } from 'date-fns';
 import {
   collection,
   deleteDoc,
@@ -16,6 +17,7 @@ import { IoChevronBackOutline } from 'react-icons/io5';
 import { useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import DateRangeComp from 'renderer/components/DateRangeComp';
 import { InputField } from 'renderer/components/InputField';
 import { SingleTableItem } from 'renderer/components/TableComponents/SingleTableItem';
 import { TableHeader } from 'renderer/components/TableComponents/TableHeader';
@@ -36,6 +38,19 @@ export default function ProductDetailPage() {
   const [stockHistory, setStockHistory] = useState<StockHistory[]>([]);
   const navigate = useNavigate();
   const [showConfirmation, setShowConfirmation] = useState(false);
+  const [startDate, setStartDate] = useState(
+    format(
+      new Date(new Date().getFullYear(), new Date().getMonth(), 1),
+      'yyyy-MM-dd'
+    )
+  );
+  // Take the last date of the month as the end date
+  const [endDate, setEndDate] = useState(
+    format(
+      new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0),
+      'yyyy-MM-dd'
+    )
+  );
   const successNotify = () =>
     toast.success('Detail Produk berhasil diubah', {
       position: 'top-right',
@@ -485,6 +500,13 @@ export default function ProductDetailPage() {
             <div className="w-full">
               <p className="text-2xl font-medium">Riwayat Stock</p>
             </div>
+            <div className="flex flex-col justify-center">
+              <p>Periode tanggal:</p>
+              <DateRangeComp
+                showTop={true}
+                {...{ startDate, endDate, setStartDate, setEndDate }}
+              />
+            </div>
             <table className="w-full text-sm text-left text-gray-500">
               <TableHeader>
                 <td className=" py-3">Tanggal</td>
@@ -493,25 +515,52 @@ export default function ProductDetailPage() {
                 <td className=" py-3">Selisih</td>
               </TableHeader>
               <tbody className="overflow-y-auto">
-                {stockHistory.map((stock_history: StockHistory, index) => (
-                  <tr key={index} className="border-b dark:border-gray-700">
-                    <SingleTableItem>
-                      {stock_history.created_at}
-                    </SingleTableItem>
-                    <SingleTableItem>{stock_history.old_count}</SingleTableItem>
-                    <SingleTableItem>{stock_history.count}</SingleTableItem>
-                    <SingleTableItem>
-                      <div className="flex items-center justify-between">
-                        {stock_history.difference}
-                        {Number(stock_history.difference) > 0 ? (
-                          <GoTriangleUp size={23} className="text-green-500" />
-                        ) : (
-                          <GoTriangleDown size={23} className="text-red-500" />
-                        )}
-                      </div>
-                    </SingleTableItem>
+                {stockHistory.filter((stock_history) => {
+                  const date = new Date(stock_history.created_at ?? '');
+                  return (
+                    date >= new Date(startDate) && date <= new Date(endDate)
+                  );
+                }).length > 0 ? (
+                  stockHistory.map((stock_history: StockHistory, index) => (
+                    <tr key={index} className="border-b">
+                      <SingleTableItem>
+                        <span className="font-medium text-md">
+                          {stock_history.created_at}
+                          <br />
+                          <span className="text-sm font-normal">
+                            {stock_history.time}
+                          </span>
+                        </span>
+                      </SingleTableItem>
+                      <SingleTableItem>
+                        {stock_history.old_count}
+                      </SingleTableItem>
+                      <SingleTableItem>{stock_history.count}</SingleTableItem>
+                      <SingleTableItem>
+                        <div className="flex items-center justify-between">
+                          {stock_history.difference}
+                          {Number(stock_history.difference) > 0 ? (
+                            <GoTriangleUp
+                              size={23}
+                              className="text-green-500"
+                            />
+                          ) : (
+                            <GoTriangleDown
+                              size={23}
+                              className="text-red-500"
+                            />
+                          )}
+                        </div>
+                      </SingleTableItem>
+                    </tr>
+                  ))
+                ) : (
+                  <tr className="border-b">
+                    <td colSpan={4} className="py-3 text-center">
+                      Data tidak tersedia
+                    </td>
                   </tr>
-                ))}
+                )}
               </tbody>
             </table>
           </div>
