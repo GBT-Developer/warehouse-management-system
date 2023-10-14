@@ -205,6 +205,7 @@ export default function CustomerListPage() {
                                 'customer',
                                 customer.id
                               );
+                              setLoading(true);
                               deleteDoc(purchaseRef)
                                 .then(() => {
                                   const newCustomerList = customerList.filter(
@@ -212,12 +213,17 @@ export default function CustomerListPage() {
                                   );
                                   setCustomerList(newCustomerList);
                                   successNotify();
+                                  setLoading(false);
+                                  setCustomerList((prev) =>
+                                    prev.filter(
+                                      (item) => item.id !== customer.id
+                                    )
+                                  );
                                 })
-                                .catch(() =>
-                                  failNotify('Customer gagal dihapus')
-                                );
-                              customerList.splice(index, 1);
-                              setLoading(false);
+                                .catch(() => {
+                                  failNotify('Customer gagal dihapus');
+                                  setLoading(false);
+                                });
                             }}
                           >
                             <BiSolidTrash />
