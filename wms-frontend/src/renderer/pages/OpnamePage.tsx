@@ -24,9 +24,11 @@ import { useAuth } from 'renderer/providers/AuthProvider';
 
 export default function OpnamePage() {
   const [salesStats, setSalesStats] = useState<{
-    total_sales: number;
-    transaction_count: number;
-    daily_sales: Record<string, number>;
+    daily_sales: Record<string, Record<string, number>>;
+    month: number;
+  }>();
+  const [filteredSalesStats, setFilteredSalesStats] = useState<{
+    daily_sales: Record<string, Record<string, number>>;
     month: number;
   }>();
   const { user } = useAuth();
@@ -35,6 +37,7 @@ export default function OpnamePage() {
   const [purchasePrice, setPurchasePrice] = useState(0);
   const [loading, setLoading] = useState(false);
   const [invoiceList, setInvoiceList] = useState<Invoice[]>([]);
+  const [totalSales, setTotalSales] = useState(0);
   // Take the first date of the month as the start date
   const [startDate, setStartDate] = useState(
     format(
@@ -118,9 +121,7 @@ export default function OpnamePage() {
         const statsDocRef = doc(db, 'invoice', '--stats--');
         const statsDoc = await getDoc(statsDocRef);
         const statsDocData = statsDoc.data() as {
-          total_sales: number;
-          transaction_count: number;
-          daily_sales: Record<string, number>;
+          daily_sales: Record<string, Record<string, number>>;
           month: number;
         } | null;
 
@@ -129,18 +130,30 @@ export default function OpnamePage() {
           return;
         }
 
-        for (
-          let date = new Date(startDate);
-          date <= new Date(endDate);
-          date.setDate(date.getDate() + 1)
-        ) {
-          // Take the date of the current iteration
-          const currentDate = format(date, 'dd');
-          if (!statsDocData.daily_sales[currentDate])
-            statsDocData.daily_sales[currentDate] = 0;
-        }
+        const payment_methods = ['cash', 'cashless'];
+        let currentTotalSales = 0;
+        payment_methods.forEach((method) => {
+          for (
+            let date = new Date(startDate);
+            date <= new Date(endDate);
+            date.setDate(date.getDate() + 1)
+          ) {
+            // Take the date of the current iteration
+            const currentDate = format(date, 'dd');
+            if (!statsDocData.daily_sales[method]) {
+              statsDocData.daily_sales[method] = {
+                [currentDate]: 0,
+              };
+            } else if (!statsDocData.daily_sales[method][currentDate]) {
+              statsDocData.daily_sales[method][currentDate] = 0;
+            }
+            currentTotalSales += statsDocData.daily_sales[method][currentDate];
+          }
+        });
 
         setSalesStats(statsDocData);
+        setFilteredSalesStats(statsDocData);
+        setTotalSales(currentTotalSales);
 
         setLoading(false);
       } catch (error) {
@@ -153,9 +166,10 @@ export default function OpnamePage() {
       .then((invoices) => {
         if (!invoices || invoices?.length === 0) {
           setSalesStats({
-            total_sales: 0,
-            transaction_count: 0,
-            daily_sales: {},
+            daily_sales: {
+              cash: {},
+              cashless: {},
+            },
             month: new Date().getMonth(),
           });
           setPurchasePrice(0);
@@ -164,7 +178,46 @@ export default function OpnamePage() {
         fetchInvoiceStats();
       })
       .catch(() => console.log('error'));
-  }, [startDate, endDate, warehousePosition]);
+  }, []);
+
+  useEffect(() => {
+    // Filter data based on the date and warehouse position
+
+    const filteredSalesStats: Record<string, Record<string, number>> = {
+      cash: {},
+      cashless: {},
+    };
+    const payment_methods = ['cash', 'cashless'];
+    let currentTotalSales = 0;
+    payment_methods.forEach((method) => {
+      for (
+        let date = new Date(startDate);
+        date <= new Date(endDate);
+        date.setDate(date.getDate() + 1)
+      ) {
+        // Take the date of the current iteration
+        const currentDate = format(date, 'dd');
+        if (!salesStats?.daily_sales[method]) {
+          filteredSalesStats[method] = {
+            [currentDate]: 0,
+          };
+        } else if (!salesStats?.daily_sales[method][currentDate]) {
+          filteredSalesStats[method][currentDate] = 0;
+        } else {
+          filteredSalesStats[method][currentDate] =
+            salesStats?.daily_sales[method][currentDate];
+        }
+        currentTotalSales += filteredSalesStats[method][currentDate];
+      }
+    });
+
+    setFilteredSalesStats({
+      daily_sales: filteredSalesStats,
+      month: new Date().getMonth(),
+    });
+    setTotalSales(currentTotalSales);
+    console.log('filtering');
+  }, [startDate, endDate, warehousePosition, salesStats]);
 
   const fetchMoreData = async () => {
     try {
@@ -187,6 +240,8 @@ export default function OpnamePage() {
       if (querySnapshot.empty) {
         setNextPostsEmpty(true);
         setNextQuery(null);
+        setNextPostsEmpty(true);
+        setNextPostsLoading(false);
         return;
       }
 
@@ -215,7 +270,7 @@ export default function OpnamePage() {
           Opname
         </h1>
       </div>
-      <div className="relative flex flex-col w-2/3 h-[fit-content] pt-4">
+      <div className="relative flex flex-col w-full h-[fit-content] pt-4">
         {loading && (
           <div className="absolute flex justify-center items-center py-2 px-3 top-0 left-0 w-full h-full bg-gray-50 rounded-lg z-50 bg-opacity-50">
             <AiOutlineLoading3Quarters className="animate-spin flex justify-center text-4xl" />
@@ -229,28 +284,85 @@ export default function OpnamePage() {
         </div>
         <div className="w-full min-h-[30rem]">
           <BarChart
-            data={salesStats?.daily_sales}
+            data={filteredSalesStats?.daily_sales}
             chartTitle="Grafik Penjualan"
           />
         </div>
         {user?.role.toLocaleLowerCase() === 'owner' && (
           <div className="w-full h-[fit-content] flex flex-col gap-4">
             <p className="text-2xl font-bold">Rangkuman</p>
-            <div className="w-full flex justify-between items-center">
-              <div className="w-1/3">
-                <p className="text-md">Total Penjualan: </p>
+            <div className="flex flex-col gap-1">
+              <div className="w-full flex justify-between items-center">
+                <div className="w-1/3 h-full">
+                  <p className="text-md">Total Penjualan: </p>
+                </div>
+                <div className="w-2/3 flex gap-2 items">
+                  <div className="flex flex-col gap-2">
+                    <p>
+                      {new Intl.NumberFormat('id-ID', {
+                        style: 'currency',
+                        currency: 'IDR',
+                      }).format(totalSales)}
+                    </p>
+                  </div>
+                </div>
               </div>
-              <div className="w-2/3 flex gap-2 items-center">
-                <p>
-                  {new Intl.NumberFormat('id-ID', {
-                    style: 'currency',
-                    currency: 'IDR',
-                  }).format(
-                    salesStats?.total_sales ? salesStats.total_sales : 0
-                  )}
-                </p>
+              <div className="w-full flex justify-between items-center text-sm">
+                <div className="w-1/3 h-full">
+                  <p className="text-md">Cash: </p>
+                </div>
+                <div className="w-2/3 flex gap-2 items">
+                  <div className="flex flex-col gap-2">
+                    <p>
+                      {new Intl.NumberFormat('id-ID', {
+                        style: 'currency',
+                        currency: 'IDR',
+                      }).format(
+                        filteredSalesStats?.daily_sales['cash']
+                          ? Object.keys(
+                              filteredSalesStats?.daily_sales['cash']
+                            ).reduce(
+                              (prev, curr) =>
+                                prev +
+                                filteredSalesStats?.daily_sales['cash'][curr],
+                              0
+                            )
+                          : 0
+                      )}
+                    </p>
+                  </div>
+                </div>
+              </div>
+              <div className="w-full flex justify-between items-center text-sm">
+                <div className="w-1/3 h-full">
+                  <p className="text-md">Cashless: </p>
+                </div>
+                <div className="w-2/3 flex gap-2 items">
+                  <div className="flex flex-col gap-2">
+                    <p>
+                      {new Intl.NumberFormat('id-ID', {
+                        style: 'currency',
+                        currency: 'IDR',
+                      }).format(
+                        filteredSalesStats?.daily_sales['cashless']
+                          ? Object.keys(
+                              filteredSalesStats?.daily_sales['cashless']
+                            ).reduce(
+                              (prev, curr) =>
+                                prev +
+                                filteredSalesStats?.daily_sales['cashless'][
+                                  curr
+                                ],
+                              0
+                            )
+                          : 0
+                      )}
+                    </p>
+                  </div>
+                </div>
               </div>
             </div>
+
             <div className="w-full flex justify-between items-center">
               <div className="w-1/3">
                 <p className="text-md">Total Keuntungan: </p>
@@ -260,7 +372,7 @@ export default function OpnamePage() {
                   {new Intl.NumberFormat('id-ID', {
                     style: 'currency',
                     currency: 'IDR',
-                  }).format((salesStats?.total_sales ?? 0) - purchasePrice)}
+                  }).format(totalSales - purchasePrice)}
                 </p>
               </div>
             </div>
@@ -273,7 +385,7 @@ export default function OpnamePage() {
                   {new Intl.NumberFormat('id-ID', {
                     style: 'currency',
                     currency: 'IDR',
-                  }).format(salesStats?.total_sales ?? 0)}
+                  }).format(totalSales)}
                 </p>
                 <p>x</p>
                 <input
@@ -296,7 +408,7 @@ export default function OpnamePage() {
                   {new Intl.NumberFormat('id-ID', {
                     style: 'currency',
                     currency: 'IDR',
-                  }).format(((salesStats?.total_sales ?? 0) * tax) / 100)}
+                  }).format((totalSales * tax) / 100)}
                 </p>
               </div>
             </div>
@@ -317,13 +429,7 @@ export default function OpnamePage() {
                 <th className=" py-3">Nomor Invoice</th>
               </TableHeader>
               <tbody>
-                {invoiceList.length === 0 ? (
-                  <tr className="border-b">
-                    <td className="py-3" colSpan={4}>
-                      <p className="flex justify-center">Data tidak tersedia</p>
-                    </td>
-                  </tr>
-                ) : (
+                {invoiceList.length > 0 &&
                   invoiceList.map((invoice) => (
                     <tr key={invoice.id} className="border-b">
                       <SingleTableItem>
@@ -347,8 +453,7 @@ export default function OpnamePage() {
                       </SingleTableItem>
                       <SingleTableItem>{invoice.id}</SingleTableItem>
                     </tr>
-                  ))
-                )}
+                  ))}
               </tbody>
             </table>
             {nextPosts_empty ? (

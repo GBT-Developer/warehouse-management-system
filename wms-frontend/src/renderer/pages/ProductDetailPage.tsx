@@ -1,5 +1,7 @@
+import { format } from 'date-fns';
 import {
   collection,
+  deleteDoc,
   doc,
   getDoc,
   getDocs,
@@ -13,8 +15,9 @@ import { GiCancel } from 'react-icons/gi';
 import { GoTriangleDown, GoTriangleUp } from 'react-icons/go';
 import { IoChevronBackOutline } from 'react-icons/io5';
 import { useNavigate, useParams } from 'react-router-dom';
-import { ToastContainer, toast } from 'react-toastify';
+import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import DateRangeComp from 'renderer/components/DateRangeComp';
 import { InputField } from 'renderer/components/InputField';
 import { SingleTableItem } from 'renderer/components/TableComponents/SingleTableItem';
 import { TableHeader } from 'renderer/components/TableComponents/TableHeader';
@@ -34,9 +37,42 @@ export default function ProductDetailPage() {
   const [suppliers, setSupplier] = useState<Supplier[]>([]);
   const [stockHistory, setStockHistory] = useState<StockHistory[]>([]);
   const navigate = useNavigate();
-  const successNotify = () => toast.success('Detail Produk berhasil diubah');
+  const [showConfirmation, setShowConfirmation] = useState(false);
+  const [startDate, setStartDate] = useState(
+    format(
+      new Date(new Date().getFullYear(), new Date().getMonth(), 1),
+      'yyyy-MM-dd'
+    )
+  );
+  // Take the last date of the month as the end date
+  const [endDate, setEndDate] = useState(
+    format(
+      new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0),
+      'yyyy-MM-dd'
+    )
+  );
+  const successNotify = () =>
+    toast.success('Detail Produk berhasil diubah', {
+      position: 'top-right',
+      autoClose: 2000,
+      hideProgressBar: false,
+      closeOnClick: true,
+      pauseOnHover: true,
+      draggable: true,
+      progress: undefined,
+      theme: 'light',
+    });
   const failNotify = (e?: string) =>
-    toast.error(e ?? 'Detail Product gagal diubah');
+    toast.error(e ?? 'Detail Product gagal diubah', {
+      position: 'top-right',
+      autoClose: 2000,
+      hideProgressBar: false,
+      closeOnClick: true,
+      pauseOnHover: true,
+      draggable: true,
+      progress: undefined,
+      theme: 'light',
+    });
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -162,6 +198,21 @@ export default function ProductDetailPage() {
     setEditToggle(false);
   }
 
+  const handleDeleteProduct = async () => {
+    if (!product || !product.id) return;
+
+    const productRef = doc(db, 'product', product.id);
+    setLoading(true);
+    try {
+      await deleteDoc(productRef);
+      navigate(-1);
+    } catch (error) {
+      console.log(error);
+      failNotify(error as unknown as string);
+    }
+    setLoading(false);
+  };
+
   return (
     <PageLayout>
       <div className="flex w-2/3 flex-col md:flex-row items-center justify-between space-y-3 md:space-y-0 md:space-x-4 py-4 mb-[2rem]">
@@ -204,7 +255,7 @@ export default function ProductDetailPage() {
             } transform transition-all duration-300`}
           >
             {loading && (
-              <div className="absolute flex justify-center items-center py-2 px-3 top-0 left-0 w-full h-full bg-gray-50 rounded-lg z-0">
+              <div className="absolute flex justify-center items-center py-2 px-3 top-0 left-0 w-full h-full bg-gray-50 rounded-lg z-50">
                 <AiOutlineLoading3Quarters className="animate-spin flex justify-center text-4xl" />
               </div>
             )}
@@ -417,15 +468,25 @@ export default function ProductDetailPage() {
                 )}
               </div>
             </div>
-            <div className="flex gap-2 w-full justify-end mt-4">
+            <div className="flex gap-2 w-full justify-between mt-4">
               {editToggle && (
-                <button
-                  disabled={loading}
-                  type="submit"
-                  className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2 focus:outline-none"
-                >
-                  Simpan
-                </button>
+                <>
+                  <div className="flex items-center">
+                    <p
+                      className="text-red-500 hover:text-red-600 cursor-pointer hover:underline text-sm"
+                      onClick={() => setShowConfirmation(true)}
+                    >
+                      Hapus Produk
+                    </p>
+                  </div>
+                  <button
+                    disabled={loading}
+                    type="submit"
+                    className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2 focus:outline-none"
+                  >
+                    Simpan
+                  </button>
+                </>
               )}
             </div>
             {errorMessage && (
@@ -439,6 +500,13 @@ export default function ProductDetailPage() {
             <div className="w-full">
               <p className="text-2xl font-medium">Riwayat Stock</p>
             </div>
+            <div className="flex flex-col justify-center">
+              <p>Periode tanggal:</p>
+              <DateRangeComp
+                showTop={true}
+                {...{ startDate, endDate, setStartDate, setEndDate }}
+              />
+            </div>
             <table className="w-full text-sm text-left text-gray-500">
               <TableHeader>
                 <td className=" py-3">Tanggal</td>
@@ -447,42 +515,96 @@ export default function ProductDetailPage() {
                 <td className=" py-3">Selisih</td>
               </TableHeader>
               <tbody className="overflow-y-auto">
-                {stockHistory.map((stock_history: StockHistory, index) => (
-                  <tr key={index} className="border-b dark:border-gray-700">
-                    <SingleTableItem>
-                      {stock_history.created_at}
-                    </SingleTableItem>
-                    <SingleTableItem>{stock_history.old_count}</SingleTableItem>
-                    <SingleTableItem>{stock_history.count}</SingleTableItem>
-                    <SingleTableItem>
-                      <div className="flex items-center justify-between">
-                        {stock_history.difference}
-                        {Number(stock_history.difference) > 0 ? (
-                          <GoTriangleUp size={23} className="text-green-500" />
-                        ) : (
-                          <GoTriangleDown size={23} className="text-red-500" />
-                        )}
-                      </div>
-                    </SingleTableItem>
+                {stockHistory.filter((stock_history) => {
+                  const date = new Date(stock_history.created_at ?? '');
+                  return (
+                    date >= new Date(startDate) && date <= new Date(endDate)
+                  );
+                }).length > 0 ? (
+                  stockHistory.map((stock_history: StockHistory, index) => (
+                    <tr key={index} className="border-b">
+                      <SingleTableItem>
+                        <span className="font-medium text-md">
+                          {stock_history.created_at}
+                          <br />
+                          <span className="text-sm font-normal">
+                            {stock_history.time}
+                          </span>
+                        </span>
+                      </SingleTableItem>
+                      <SingleTableItem>
+                        {stock_history.old_count}
+                      </SingleTableItem>
+                      <SingleTableItem>{stock_history.count}</SingleTableItem>
+                      <SingleTableItem>
+                        <div className="flex items-center justify-between">
+                          {stock_history.difference}
+                          {Number(stock_history.difference) > 0 ? (
+                            <GoTriangleUp
+                              size={23}
+                              className="text-green-500"
+                            />
+                          ) : (
+                            <GoTriangleDown
+                              size={23}
+                              className="text-red-500"
+                            />
+                          )}
+                        </div>
+                      </SingleTableItem>
+                    </tr>
+                  ))
+                ) : (
+                  <tr className="border-b">
+                    <td colSpan={4} className="py-3 text-center">
+                      Data tidak tersedia
+                    </td>
                   </tr>
-                ))}
+                )}
               </tbody>
             </table>
           </div>
         </div>
+        {showConfirmation && (
+          <div
+            className="absolute flex justify-center items-center py-2 px-3 top-0 left-0 rounded-lg z-10 w-full p-4 overflow-x-hidden overflow-y-auto h-full bg-black bg-opacity-50 backdrop-filter backdrop-blur-sm"
+            onClick={() => setShowConfirmation(false)}
+          >
+            <div
+              className="bg-white rounded-lg p-4 flex flex-col gap-4"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <p className="text-lg text-gray-900">
+                Apakah anda yakin ingin menghapus produk ini?
+              </p>
+              <div className="w-full flex justify-end mt-3">
+                <div className="flex relative w-[fit-content] gap-3">
+                  {loading && (
+                    <p className="absolute flex justify-center items-center py-2 px-3 top-0 left-0 w-full h-full bg-gray-50 rounded-sm z-50 bg-opacity-50">
+                      <AiOutlineLoading3Quarters className="animate-spin flex justify-center text-xl" />
+                    </p>
+                  )}
+                  <button
+                    className="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded"
+                    onClick={() => setShowConfirmation(false)}
+                  >
+                    Tidak
+                  </button>
+                  <button
+                    className="bg-blue-700 hover:bg-blue-800 text-white font-bold py-2 px-4 rounded"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDeleteProduct();
+                    }}
+                  >
+                    Ya
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
-      <ToastContainer
-        position="top-right"
-        autoClose={2000}
-        hideProgressBar={false}
-        newestOnTop={false}
-        closeOnClick
-        rtl={false}
-        pauseOnFocusLoss
-        draggable
-        pauseOnHover
-        theme="light"
-      />
     </PageLayout>
   );
 }

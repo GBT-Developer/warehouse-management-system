@@ -4,7 +4,7 @@ import { FormEvent, useEffect, useState } from 'react';
 import { AiOutlineLoading3Quarters } from 'react-icons/ai';
 import { IoRemoveCircleOutline } from 'react-icons/io5';
 import { useNavigate } from 'react-router-dom';
-import { ToastContainer, toast } from 'react-toastify';
+import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { InputField } from 'renderer/components/InputField';
 import { SingleTableItem } from 'renderer/components/TableComponents/SingleTableItem';
@@ -32,9 +32,27 @@ function InputCustomerPage() {
   const [selectedProducts, setSelectedProducts] = useState<Product[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const successNotify = () =>
-    toast.success('Customer baru berhasil ditambahkan');
+    toast.success('Customer baru berhasil ditambahkan', {
+      position: 'top-right',
+      autoClose: 2000,
+      hideProgressBar: false,
+      closeOnClick: true,
+      pauseOnHover: true,
+      draggable: true,
+      progress: undefined,
+      theme: 'light',
+    });
   const failNotify = (e?: string) =>
-    toast.error(e ?? 'Gagal menambahkan customer');
+    toast.error(e ?? 'Gagal menambahkan customer', {
+      position: 'top-right',
+      autoClose: 2000,
+      hideProgressBar: false,
+      closeOnClick: true,
+      pauseOnHover: true,
+      draggable: true,
+      progress: undefined,
+      theme: 'light',
+    });
   const [isEmpty, setIsEmpty] = useState(false);
 
   useEffect(() => {
@@ -95,6 +113,7 @@ function InputCustomerPage() {
         setLoading(false);
         successNotify();
         setNewCustomer(newCustomerInitialState);
+        setSelectedProducts([]);
       })
       .catch((error) => {
         setLoading(false);
@@ -156,7 +175,7 @@ function InputCustomerPage() {
         }`}
       >
         {loading && (
-          <div className="absolute flex justify-center items-center py-2 px-3 top-0 left-0 w-full h-full bg-gray-50 rounded-lg z-0">
+          <div className="absolute flex justify-center items-center py-2 px-3 top-0 left-0 w-full h-full bg-gray-50 rounded-lg z-50">
             <AiOutlineLoading3Quarters className="animate-spin flex justify-center text-4xl" />
           </div>
         )}
@@ -311,7 +330,7 @@ function InputCustomerPage() {
         modalOpen={modalOpen}
         handleSearch={handleSearch}
         setModalOpen={setModalOpen}
-        title={'Choose Product'}
+        title={'Pilih Produk'}
         headerList={
           products.length > 0
             ? ['', 'Nama Product', 'Harga Jual', 'Posisi Gudang']
@@ -369,23 +388,11 @@ function InputCustomerPage() {
         ) : (
           <tr className="border-b">
             <SingleTableItem>
-              <p className="flex justify-center">Produk tidak ditemukan</p>
+              <p className="flex justify-center">Cari produk</p>
             </SingleTableItem>
           </tr>
         )}
       </TableModal>
-      <ToastContainer
-        position="top-right"
-        autoClose={2000}
-        hideProgressBar={false}
-        newestOnTop={false}
-        closeOnClick
-        rtl={false}
-        pauseOnFocusLoss
-        draggable
-        pauseOnHover
-        theme="light"
-      />
     </PageLayout>
   );
 }

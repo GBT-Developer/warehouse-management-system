@@ -3,7 +3,7 @@ import { ref, uploadBytes } from 'firebase/storage';
 import { useRef, useState } from 'react';
 import { AiFillEdit, AiOutlineLoading3Quarters } from 'react-icons/ai';
 import { GiCancel } from 'react-icons/gi';
-import { ToastContainer, toast } from 'react-toastify';
+import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { InputField } from 'renderer/components/InputField';
 import { db, storage } from 'renderer/firebase';
@@ -27,9 +27,27 @@ export default function CompanyDetail() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
   const successNotify = () =>
-    toast.success('Detail perusahaan berhasil diubah');
+    toast.success('Detail perusahaan berhasil diubah', {
+      position: 'top-right',
+      autoClose: 2000,
+      hideProgressBar: false,
+      closeOnClick: true,
+      pauseOnHover: true,
+      draggable: true,
+      progress: undefined,
+      theme: 'light',
+    });
   const failNotify = (e?: string) =>
-    toast.error(e ?? 'Detail perusahaan gagal diubah');
+    toast.error(e ?? 'Detail perusahaan gagal diubah', {
+      position: 'top-right',
+      autoClose: 2000,
+      hideProgressBar: false,
+      closeOnClick: true,
+      pauseOnHover: true,
+      draggable: true,
+      progress: undefined,
+      theme: 'light',
+    });
 
   const handleSubmit = async (e: { preventDefault: () => void }) => {
     e.preventDefault();
@@ -238,18 +256,6 @@ export default function CompanyDetail() {
           <p className="text-red-500 text-sm ">{errorMessage}</p>
         )}
       </div>
-      <ToastContainer
-        position="top-right"
-        autoClose={2000}
-        hideProgressBar={false}
-        newestOnTop={false}
-        closeOnClick
-        rtl={false}
-        pauseOnFocusLoss
-        draggable
-        pauseOnHover
-        theme="light"
-      />
     </PageLayout>
   );
 }

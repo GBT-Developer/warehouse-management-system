@@ -55,6 +55,8 @@ export const ManageProductPage = () => {
         if (querySnapshot.empty) {
           setProducts([]);
           setLoading(false);
+          setNextPostsEmpty(true);
+          setNextPostsLoading(false);
           return;
         }
 
@@ -130,10 +132,12 @@ export const ManageProductPage = () => {
   const handleDownload = async () => {
     try {
       // Query products starting from the last product in the products array
-      const lastVisibleProduct = products[products.length - 1];
       if (nextQuery === null) {
         setNextPostsEmpty(true);
         setNextPostsLoading(false);
+        setDownloadedProducts(() => products);
+        setPdfConfirmation(true);
+        setShowConfirmation(false);
         return;
       }
 
@@ -186,7 +190,7 @@ export const ManageProductPage = () => {
           </TableTitle>
           <div className="overflow-y-auto h-full relative">
             {loading && (
-              <div className="absolute flex justify-center items-center py-2 px-3 top-0 left-0 w-full h-full bg-gray-50 rounded-lg z-0 bg-opacity-50">
+              <div className="absolute flex justify-center items-center py-2 px-3 top-0 left-0 w-full h-full bg-gray-50 rounded-lg z-50 bg-opacity-50">
                 <AiOutlineLoading3Quarters className="animate-spin flex justify-center text-4xl" />
               </div>
             )}
@@ -208,13 +212,7 @@ export const ManageProductPage = () => {
                 <th className=" py-3">Posisi Gudang</th>
               </TableHeader>
               <tbody>
-                {products.length === 0 ? (
-                  <tr className="border-b">
-                    <td className="py-3" colSpan={4}>
-                      <p className="flex justify-center">Data tidak tersedia</p>
-                    </td>
-                  </tr>
-                ) : (
+                {products.length > 0 &&
                   products
                     .filter((product) => {
                       if (search === '') return product;
@@ -275,8 +273,7 @@ export const ManageProductPage = () => {
                           {product.warehouse_position}
                         </SingleTableItem>
                       </tr>
-                    ))
-                )}
+                    ))}
               </tbody>
             </table>
             {nextPosts_empty ? (
@@ -310,15 +307,21 @@ export const ManageProductPage = () => {
           </div>
         </div>
         {showConfirmation && (
-          <div className="absolute flex justify-center items-center py-2 px-3 top-0 left-0 rounded-lg z-10 w-full p-4 overflow-x-hidden overflow-y-auto h-full bg-black bg-opacity-50 backdrop-filter backdrop-blur-sm">
-            <div className="bg-white rounded-lg p-4 flex flex-col gap-4">
+          <div
+            className="absolute flex justify-center items-center py-2 px-3 top-0 left-0 rounded-lg z-10 w-full p-4 overflow-x-hidden overflow-y-auto h-full bg-black bg-opacity-50 backdrop-filter backdrop-blur-sm"
+            onClick={() => setShowConfirmation(false)}
+          >
+            <div
+              className="bg-white rounded-lg p-4 flex flex-col gap-4"
+              onClick={(e) => e.stopPropagation()}
+            >
               <p className="text-lg text-gray-900">
                 Apakah anda yakin ingin mengunduh data produk menjadi PDF?
               </p>
               <div className="w-full flex justify-end mt-3">
                 <div className="flex relative w-[fit-content] gap-3">
                   {loading && (
-                    <p className="absolute flex justify-center items-center py-2 px-3 top-0 left-0 w-full h-full bg-gray-50 rounded-sm z-0 bg-opacity-50">
+                    <p className="absolute flex justify-center items-center py-2 px-3 top-0 left-0 w-full h-full bg-gray-50 rounded-sm z-50 bg-opacity-50">
                       <AiOutlineLoading3Quarters className="animate-spin flex justify-center text-xl" />
                     </p>
                   )}
@@ -330,7 +333,8 @@ export const ManageProductPage = () => {
                   </button>
                   <button
                     className="bg-blue-700 hover:bg-blue-800 text-white font-bold py-2 px-4 rounded"
-                    onClick={() => {
+                    onClick={(e) => {
+                      e.stopPropagation();
                       handleDownload();
                     }}
                   >

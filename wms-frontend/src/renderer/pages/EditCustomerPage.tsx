@@ -4,7 +4,7 @@ import { FormEvent, useEffect, useState } from 'react';
 import { AiOutlineLoading3Quarters } from 'react-icons/ai';
 import { IoRemoveCircleOutline } from 'react-icons/io5';
 import { useNavigate, useParams } from 'react-router-dom';
-import { ToastContainer, toast } from 'react-toastify';
+import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { InputField } from 'renderer/components/InputField';
 import { SingleTableItem } from 'renderer/components/TableComponents/SingleTableItem';
@@ -33,9 +33,28 @@ function EditCustomerPage() {
   const [selectedProducts, setSelectedProducts] = useState<SpecialPrice[]>([]);
   const [products, setProducts] = useState<SpecialPrice[]>([]);
 
-  const successNotify = () => toast.success('Data Customer berhasil diubah');
+  const successNotify = () =>
+    toast.success('Data Customer berhasil diubah', {
+      position: 'top-right',
+      autoClose: 2000,
+      hideProgressBar: false,
+      closeOnClick: true,
+      pauseOnHover: true,
+      draggable: true,
+      progress: undefined,
+      theme: 'light',
+    });
   const failNotify = (e?: string) =>
-    toast.error(e ?? 'Data Customer gagal diubah');
+    toast.error(e ?? 'Data Customer gagal diubah', {
+      position: 'top-right',
+      autoClose: 2000,
+      hideProgressBar: false,
+      closeOnClick: true,
+      pauseOnHover: true,
+      draggable: true,
+      progress: undefined,
+      theme: 'light',
+    });
 
   useEffect(() => {
     const fetchData = async () => {
@@ -167,7 +186,7 @@ function EditCustomerPage() {
         }`}
       >
         {loading && (
-          <div className="absolute flex justify-center items-center py-2 px-3 top-0 left-0 w-full h-full bg-gray-50 rounded-lg z-0">
+          <div className="absolute flex justify-center items-center py-2 px-3 top-0 left-0 w-full h-full bg-gray-50 rounded-lg z-50">
             <AiOutlineLoading3Quarters className="animate-spin flex justify-center text-4xl" />
           </div>
         )}
@@ -382,18 +401,6 @@ function EditCustomerPage() {
           </tr>
         )}
       </TableModal>
-      <ToastContainer
-        position="top-right"
-        autoClose={2000}
-        hideProgressBar={false}
-        newestOnTop={false}
-        closeOnClick
-        rtl={false}
-        pauseOnFocusLoss
-        draggable
-        pauseOnHover
-        theme="light"
-      />
     </PageLayout>
   );
 }

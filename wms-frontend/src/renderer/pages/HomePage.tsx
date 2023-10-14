@@ -132,7 +132,7 @@ function HomePage() {
       <div className="w-full h-full bg-transparent overflow-hidden pr-10">
         <div className="relative sm:rounded-lg overflow-auto h-full flex flex-col">
           {loading && (
-            <div className="absolute flex justify-center items-center py-2 px-3 top-0 left-0 w-full h-full bg-gray-50 rounded-lg z-0 bg-opacity-50">
+            <div className="absolute flex justify-center items-center py-2 px-3 top-0 left-0 w-full h-full bg-gray-50 rounded-lg z-50 bg-opacity-50">
               <AiOutlineLoading3Quarters className="animate-spin flex justify-center text-4xl" />
             </div>
           )}

@@ -1,13 +1,15 @@
 import { format } from 'date-fns';
 import {
+  FieldValue,
   QueryStartAtConstraint,
   collection,
-  deleteDoc,
   doc,
   getDocs,
+  increment,
   limit,
   orderBy,
   query,
+  runTransaction,
   startAfter,
   where,
 } from 'firebase/firestore';
@@ -15,7 +17,7 @@ import React, { useEffect, useState } from 'react';
 import { AiOutlineLoading3Quarters } from 'react-icons/ai';
 import { BiSolidTrash } from 'react-icons/bi';
 import { PiFilePdfBold } from 'react-icons/pi';
-import { ToastContainer, toast } from 'react-toastify';
+import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import DateRangeComp from 'renderer/components/DateRangeComp';
 import { PdfViewer } from 'renderer/components/PdfViewer';
@@ -36,9 +38,28 @@ export default function TransactionHistory() {
   const [showProductsMap, setShowProductsMap] = useState<
     Record<string, boolean>
   >({});
-  const successNotify = () => toast.success('Transaksi berhasil dihapus');
+  const successNotify = () =>
+    toast.success('Transaksi berhasil dihapus', {
+      position: 'top-right',
+      autoClose: 2000,
+      hideProgressBar: false,
+      closeOnClick: true,
+      pauseOnHover: true,
+      draggable: true,
+      progress: undefined,
+      theme: 'light',
+    });
   const failNotify = (e?: string) =>
-    toast.error(e ?? 'Transaksi gagal dihapus');
+    toast.error(e ?? 'Transaksi gagal dihapus', {
+      position: 'top-right',
+      autoClose: 2000,
+      hideProgressBar: false,
+      closeOnClick: true,
+      pauseOnHover: true,
+      draggable: true,
+      progress: undefined,
+      theme: 'light',
+    });
   const [nextPosts_loading, setNextPostsLoading] = useState(false);
   const [nextPosts_empty, setNextPostsEmpty] = useState(false);
   const [nextQuery, setNextQuery] = useState<QueryStartAtConstraint | null>(
@@ -167,6 +188,63 @@ export default function TransactionHistory() {
       [purchaseId]: !prevState[purchaseId],
     }));
   };
+
+  const handleDeleteInvoice = async (mapInvoiceHistory: Invoice) => {
+    setLoading(true);
+
+    await runTransaction(db, async (transaction) => {
+      if (!mapInvoiceHistory.id) return;
+
+      // Delete the invoice
+      const purchaseRef = doc(db, 'invoice', mapInvoiceHistory.id);
+      transaction.delete(purchaseRef);
+      setInvoiceHistory((prev) =>
+        prev.filter((invoice) => invoice.id !== mapInvoiceHistory.id)
+      );
+
+      // Decrement the daily sales on invoice/--stats-- document
+      const statsRef = doc(db, 'invoice', '--stats--');
+      const dailySales = new Map<string, FieldValue>();
+      const datePriceMap = new Map<string, number>();
+      const currentDate = format(new Date(), 'yyyy-MM-dd');
+
+      mapInvoiceHistory?.items?.forEach((item) => {
+        const date = format(new Date(currentDate), 'dd');
+        const total_price = item.sell_price * item.count;
+        const currentTotal = datePriceMap.get(date);
+        if (currentTotal) {
+          const currentIncrement = increment(-1 * (total_price + currentTotal));
+          datePriceMap.set(date, currentTotal + total_price);
+          dailySales.set(date, currentIncrement);
+        } else {
+          const currentIncrement = increment(-1 * total_price);
+          datePriceMap.set(date, total_price);
+          dailySales.set(date, currentIncrement);
+        }
+      });
+
+      transaction.set(
+        statsRef,
+        {
+          daily_sales:
+            mapInvoiceHistory.payment_method?.toLowerCase() === 'cash'
+              ? {
+                  cash: Object.fromEntries(dailySales),
+                }
+              : {
+                  cashless: Object.fromEntries(dailySales),
+                },
+        },
+        {
+          merge: true,
+        }
+      );
+    });
+
+    setLoading(false);
+    successNotify();
+  };
+
   return (
     <PageLayout>
       <div className="w-full h-full bg-transparent overflow-hidden">
@@ -184,7 +262,7 @@ export default function TransactionHistory() {
           </div>
           <div className="overflow-y-auto h-full">
             {loading && (
-              <div className="absolute flex justify-center items-center py-2 px-3 top-0 left-0 w-full h-full bg-gray-50 rounded-lg z-0 bg-opacity-50">
+              <div className="absolute flex justify-center items-center py-2 px-3 top-0 left-0 w-full h-full bg-gray-50 rounded-lg z-50 bg-opacity-50">
                 <AiOutlineLoading3Quarters className="animate-spin flex justify-center text-4xl" />
               </div>
             )}
@@ -278,25 +356,9 @@ export default function TransactionHistory() {
                             className="text-red-500 text-lg p-2 hover:text-red-700 cursor-pointer bg-transparent rounded-md"
                             onClick={(e) => {
                               e.stopPropagation();
-                              setLoading(true);
-                              if (!mapInvoiceHistory.id) return;
-                              const purchaseRef = doc(
-                                db,
-                                'invoice',
-                                mapInvoiceHistory.id
+                              handleDeleteInvoice(mapInvoiceHistory).catch(
+                                (error) => failNotify(error)
                               );
-                              deleteDoc(purchaseRef)
-                                .then(() => {
-                                  setInvoiceHistory((prev) =>
-                                    prev.filter(
-                                      (invoice) =>
-                                        invoice.id !== mapInvoiceHistory.id
-                                    )
-                                  );
-                                })
-                                .catch(() => failNotify());
-                              setLoading(false);
-                              successNotify();
                             }}
                           >
                             <BiSolidTrash />
@@ -375,18 +437,6 @@ export default function TransactionHistory() {
           )}
         </div>
       </div>
-      <ToastContainer
-        position="top-right"
-        autoClose={2000}
-        hideProgressBar={false}
-        newestOnTop={false}
-        closeOnClick
-        rtl={false}
-        pauseOnFocusLoss
-        draggable
-        pauseOnHover
-        theme="light"
-      />
     </PageLayout>
   );
 }

@@ -1,5 +1,7 @@
-import { format } from 'date-fns';
+import { FirebaseError } from 'firebase/app';
 import {
+  DocumentData,
+  DocumentReference,
   collection,
   doc,
   getDocs,
@@ -9,7 +11,7 @@ import {
 import { FormEvent, useEffect, useRef, useState } from 'react';
 import { AiOutlineLoading3Quarters } from 'react-icons/ai';
 import { useNavigate } from 'react-router-dom';
-import { ToastContainer, toast } from 'react-toastify';
+import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { AreaField } from 'renderer/components/AreaField';
 import { InputField } from 'renderer/components/InputField';
@@ -39,6 +41,8 @@ const newSupplierInitialState = {
   phone_number: '',
   bank_number: '',
   remarks: '',
+  contact_person: '',
+  bank_owner: '',
 } as Supplier;
 
 const newPurchaseInitialState = {
@@ -68,9 +72,28 @@ export const NewProductPage = () => {
   const [newPurchase, setNewPurchase] = useState<PurchaseHistory>(
     newPurchaseInitialState
   );
-  const successNotify = () => toast.success('Produk berhasil ditambahkan');
+  const successNotify = () =>
+    toast.success('Produk berhasil ditambahkan', {
+      position: 'top-right',
+      autoClose: 2000,
+      hideProgressBar: false,
+      closeOnClick: true,
+      pauseOnHover: true,
+      draggable: true,
+      progress: undefined,
+      theme: 'light',
+    });
   const failNotify = (e?: string) =>
-    toast.error(e ?? 'Product gagal ditambahkan');
+    toast.error(e ?? 'Product gagal ditambahkan', {
+      position: 'top-right',
+      autoClose: 2000,
+      hideProgressBar: false,
+      closeOnClick: true,
+      pauseOnHover: true,
+      draggable: true,
+      progress: undefined,
+      theme: 'light',
+    });
   const [isEmpty, setIsEmpty] = useState(false);
   // Take product from firebase
   useEffect(() => {
@@ -161,7 +184,8 @@ export const NewProductPage = () => {
 
     await runTransaction(db, (transaction) => {
       setLoading(true);
-      let newSupplierRef = null;
+      let newSupplierRef: DocumentReference<DocumentData, DocumentData> | null =
+        null;
 
       if (showSupplierForm) {
         newSupplierRef = doc(collection(db, 'supplier'));
@@ -171,46 +195,13 @@ export const NewProductPage = () => {
       if (newProduct.supplier?.id == null) {
         transaction.set(newProductRef, {
           ...newProduct,
-          supplier: '',
+          supplier: newSupplierRef ? newSupplierRef.id : null,
         });
       } else if (newProduct.supplier?.id != '') {
         transaction.set(newProductRef, {
           ...newProduct,
+          purchase_price: newProduct.purchase_price ?? 0,
           supplier: newProduct.supplier?.id,
-        });
-      }
-      if (
-        newProduct.count != 0 &&
-        newProduct.purchase_price != 0 &&
-        newProduct.sell_price != 0 &&
-        newProduct.supplier?.id != ''
-      ) {
-        const currentDateandTime = new Date();
-        const newPurchaseRef = doc(collection(db, 'purchase_history'));
-        const todayDate = format(currentDateandTime, 'yyyy-MM-dd');
-        let theTime = '';
-        // If invoice date is the same as current date, take the current time
-        if (newPurchase.created_at === format(currentDateandTime, 'yyyy-MM-dd'))
-          theTime = format(currentDateandTime, 'HH:mm:ss');
-        else theTime = '23:59:59';
-
-        transaction.set(newPurchaseRef, {
-          ...newPurchase,
-          created_at: todayDate,
-          time: theTime,
-          purchase_price: newProduct.purchase_price,
-          payment_status: newPurchase.payment_status,
-          warehouse_position: newProduct.warehouse_position,
-          supplier: newSupplierRef
-            ? newSupplierRef.id
-            : newProduct.supplier?.id,
-          products: [
-            {
-              id: newProductRef.id,
-              name: `${newProduct.brand} ${newProduct.motor_type} ${newProduct.part} ${newProduct.available_color}`,
-              quantity: newProduct.count,
-            },
-          ],
         });
       }
       setLoading(false);
@@ -223,11 +214,13 @@ export const NewProductPage = () => {
       if (supplierOptionRef.current) supplierOptionRef.current.value = '';
       //make the warehouse select empty
       if (warehouseOptionRef.current) warehouseOptionRef.current.value = '';
+      setShowSupplierForm(false);
       return Promise.resolve(newProductRef);
     }).catch((error) => {
       setLoading(false);
-      const errorMessage = error as unknown as string;
-      failNotify(errorMessage);
+      const errorMessage = error as unknown as FirebaseError;
+      console.log(error);
+      failNotify(errorMessage.message);
     });
   }
 
@@ -247,7 +240,7 @@ export const NewProductPage = () => {
         }`}
       >
         {loading && (
-          <div className="absolute flex justify-center items-center py-2 px-3 top-0 left-0 w-full h-full bg-gray-50 rounded-lg z-0">
+          <div className="absolute flex justify-center items-center py-2 px-3 top-0 left-0 w-full h-full bg-gray-50 rounded-lg z-50">
             <AiOutlineLoading3Quarters className="animate-spin flex justify-center text-4xl" />
           </div>
         )}
@@ -278,17 +271,22 @@ export const NewProductPage = () => {
             setNewProduct({ ...newProduct, part: e.target.value })
           }
         />
-        {warehousePosition !== 'Gudang Bahan' && (
-          <InputField
-            loading={loading}
-            labelFor="available_color"
-            label="Warna"
-            value={newProduct.available_color}
-            onChange={(e) =>
-              setNewProduct({ ...newProduct, available_color: e.target.value })
-            }
-          />
-        )}
+        {(warehousePosition === 'Semua Gudang' ||
+          warehousePosition === 'Gudang Jadi') &&
+          newProduct.warehouse_position !== 'Gudang Bahan' && (
+            <InputField
+              loading={loading}
+              labelFor="available_color"
+              label="Warna"
+              value={newProduct.available_color}
+              onChange={(e) =>
+                setNewProduct({
+                  ...newProduct,
+                  available_color: e.target.value,
+                })
+              }
+            />
+          )}
         <InputField
           loading={loading}
           labelFor="count"
@@ -534,18 +532,6 @@ export const NewProductPage = () => {
           <p className="text-red-500 text-sm ">{errorMessage}</p>
         )}
       </form>
-      <ToastContainer
-        position="top-right"
-        autoClose={2000}
-        hideProgressBar={false}
-        newestOnTop={false}
-        closeOnClick
-        rtl={false}
-        pauseOnFocusLoss
-        draggable
-        pauseOnHover
-        theme="light"
-      />
     </PageLayout>
   );
 };

@@ -1,10 +1,10 @@
-import { doc, getDoc, updateDoc } from 'firebase/firestore';
+import { deleteDoc, doc, getDoc, updateDoc } from 'firebase/firestore';
 import { useEffect, useState } from 'react';
 import { AiFillEdit, AiOutlineLoading3Quarters } from 'react-icons/ai';
 import { GiCancel } from 'react-icons/gi';
 import { IoChevronBackOutline } from 'react-icons/io5';
 import { useNavigate, useParams } from 'react-router-dom';
-import { ToastContainer, toast } from 'react-toastify';
+import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { AreaField } from 'renderer/components/AreaField';
 import { InputField } from 'renderer/components/InputField';
@@ -18,10 +18,29 @@ export default function SupplierDetailPage() {
   const [supplier, setSupplier] = useState<Supplier>();
   const [editToggle, setEditToggle] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [showConfirmation, setShowConfirmation] = useState(false);
   const successNotify = () =>
-    toast.success('Data supplier berhasil diperbarui');
+    toast.success('Data supplier berhasil diperbarui', {
+      position: 'top-right',
+      autoClose: 2000,
+      hideProgressBar: false,
+      closeOnClick: true,
+      pauseOnHover: true,
+      draggable: true,
+      progress: undefined,
+      theme: 'light',
+    });
   const failNotify = (e?: string) =>
-    toast.error(e ?? 'Data supplier gagal diperbarui');
+    toast.error(e ?? 'Data supplier gagal diperbarui', {
+      position: 'top-right',
+      autoClose: 2000,
+      hideProgressBar: false,
+      closeOnClick: true,
+      pauseOnHover: true,
+      draggable: true,
+      progress: undefined,
+      theme: 'light',
+    });
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -98,6 +117,22 @@ export default function SupplierDetailPage() {
     setLoading(false);
     setEditToggle(false);
   }
+
+  const handleDeleteSupplier = async () => {
+    if (!supplier || !supplier.id) return;
+
+    const supplierRef = doc(db, 'supplier', supplier.id);
+    setLoading(true);
+    try {
+      await deleteDoc(supplierRef);
+      navigate(-1);
+    } catch (error) {
+      console.log(error);
+      failNotify(error as unknown as string);
+    }
+    setLoading(false);
+  };
+
   return (
     <PageLayout>
       <div className="flex w-2/3 flex-col md:flex-row items-center justify-between space-y-3 md:space-y-0 md:space-x-4 py-4 mb-[2rem]">
@@ -140,7 +175,7 @@ export default function SupplierDetailPage() {
             } transform transition-all duration-300`}
           >
             {loading && (
-              <div className="absolute flex justify-center items-center py-2 px-3 top-0 left-0 w-full h-full bg-gray-50 rounded-lg z-0">
+              <div className="absolute flex justify-center items-center py-2 px-3 top-0 left-0 w-full h-full bg-gray-50 rounded-lg z-50">
                 <AiOutlineLoading3Quarters className="animate-spin flex justify-center text-4xl" />
               </div>
             )}
@@ -251,15 +286,26 @@ export default function SupplierDetailPage() {
                 editToggle ? '' : 'border-none outline-none bg-inherit'
               }`}
             />
-            <div className="flex gap-2 w-full justify-end mt-4">
+            <div className="flex gap-2 w-full justify-between mt-4">
               {editToggle && (
-                <button
-                  disabled={loading}
-                  type="submit"
-                  className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2 focus:outline-none"
-                >
-                  Simpan
-                </button>
+                <>
+                  <div className="flex items-center">
+                    <p
+                      className="text-red-500 hover:text-red-600 cursor-pointer hover:underline text-sm"
+                      onClick={() => setShowConfirmation(true)}
+                    >
+                      Hapus Supplier
+                    </p>
+                  </div>
+
+                  <button
+                    disabled={loading}
+                    type="submit"
+                    className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2 focus:outline-none"
+                  >
+                    Simpan
+                  </button>
+                </>
               )}
             </div>
           </form>
@@ -267,19 +313,46 @@ export default function SupplierDetailPage() {
         {errorMessage && (
           <p className="text-red-500 text-sm ">{errorMessage}</p>
         )}
+        {showConfirmation && (
+          <div
+            className="absolute flex justify-center items-center py-2 px-3 top-0 left-0 rounded-lg z-10 w-full p-4 overflow-x-hidden overflow-y-auto h-full bg-black bg-opacity-50 backdrop-filter backdrop-blur-sm"
+            onClick={() => setShowConfirmation(false)}
+          >
+            <div
+              className="bg-white rounded-lg p-4 flex flex-col gap-4"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <p className="text-lg text-gray-900">
+                Apakah anda yakin ingin menghapus supplier ini?
+              </p>
+              <div className="w-full flex justify-end mt-3">
+                <div className="flex relative w-[fit-content] gap-3">
+                  {loading && (
+                    <p className="absolute flex justify-center items-center py-2 px-3 top-0 left-0 w-full h-full bg-gray-50 rounded-sm z-50 bg-opacity-50">
+                      <AiOutlineLoading3Quarters className="animate-spin flex justify-center text-xl" />
+                    </p>
+                  )}
+                  <button
+                    className="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded"
+                    onClick={() => setShowConfirmation(false)}
+                  >
+                    Tidak
+                  </button>
+                  <button
+                    className="bg-blue-700 hover:bg-blue-800 text-white font-bold py-2 px-4 rounded"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDeleteSupplier();
+                    }}
+                  >
+                    Ya
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
-      <ToastContainer
-        position="top-right"
-        autoClose={2000}
-        hideProgressBar={false}
-        newestOnTop={false}
-        closeOnClick
-        rtl={false}
-        pauseOnFocusLoss
-        draggable
-        pauseOnHover
-        theme="light"
-      />
     </PageLayout>
   );
 }

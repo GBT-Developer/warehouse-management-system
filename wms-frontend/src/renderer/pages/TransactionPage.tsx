@@ -15,7 +15,7 @@ import { FormEvent, useEffect, useState } from 'react';
 import { AiOutlineLoading3Quarters } from 'react-icons/ai';
 import { BiSolidTrash } from 'react-icons/bi';
 import { useNavigate } from 'react-router-dom';
-import { ToastContainer, toast } from 'react-toastify';
+import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { InputField } from 'renderer/components/InputField';
 import { PdfViewer } from 'renderer/components/PdfViewer';
@@ -51,9 +51,28 @@ export const TransactionPage = () => {
   const [selectedProducts, setSelectedProducts] = useState<Product[]>([]);
   const [modalOpen, setModalOpen] = useState(false);
   const [guestFormOpen, setGuestFormOpen] = useState(false);
-  const successNotify = () => toast.success('Transaksi berhasil dilakukan');
+  const successNotify = () =>
+    toast.success('Transaksi berhasil dilakukan', {
+      position: 'top-right',
+      autoClose: 2000,
+      hideProgressBar: false,
+      closeOnClick: true,
+      pauseOnHover: true,
+      draggable: true,
+      progress: undefined,
+      theme: 'light',
+    });
   const failNotify = (e?: string) =>
-    toast.error(e ?? 'Transaksi gagal dilakukan');
+    toast.error(e ?? 'Transaksi gagal dilakukan', {
+      position: 'top-right',
+      autoClose: 2000,
+      hideProgressBar: false,
+      closeOnClick: true,
+      pauseOnHover: true,
+      draggable: true,
+      progress: undefined,
+      theme: 'light',
+    });
   const [isEmpty, setIsEmpty] = useState(false);
   const [clickedInvoice, setClickedInvoice] = useState<Invoice | null>(null);
   const [pdfOpen, setPdfOpen] = useState(false);
@@ -105,16 +124,16 @@ export const TransactionPage = () => {
         setIsEmpty(true);
         return;
       }
-    } else if (invoice.payment_method != '' && invoice.items?.length != 0)
-      invoice.items?.map((item) => {
-        if (item.count === 0) {
-          setIsEmpty(true);
-          return;
-        } else {
-          setIsEmpty(false);
-          return;
-        }
-      });
+    } else if (invoice.payment_method != '' && invoice.items?.length != 0) {
+      const hasZeroCount = invoice.items?.some((item) => item.count === 0);
+      const allItemsNonZero = invoice.items?.every((item) => item.count !== 0);
+
+      if (hasZeroCount) {
+        setIsEmpty(true); // Set to true if any item has count === 0
+      } else if (allItemsNonZero) {
+        setIsEmpty(false); // Set to false if all items have count !== 0
+      }
+    }
   }, [invoice]);
 
   const handleSubmit = (e: FormEvent) => {
@@ -133,6 +152,10 @@ export const TransactionPage = () => {
       // Update product count
       runTransaction(db, (transaction) => {
         if (!invoice.items) return Promise.reject();
+
+        const currentDate = format(new Date(), 'yyyy-MM-dd');
+        const currentTime = format(new Date(), 'HH:mm:ss');
+
         for (const item of invoice.items) {
           if (!item.id) return Promise.reject('Product id not found');
           const decrementStock = increment(-1 * item.count);
@@ -142,19 +165,12 @@ export const TransactionPage = () => {
           });
         }
 
-        const incrementTransaction = increment(1);
-        const incrementTotalSales = increment(
-          invoice.items.reduce(
-            (acc, item) => acc + item.sell_price * item.count,
-            0
-          )
-        );
+        // Update invoice stats
         const statsRef = doc(db, 'invoice', '--stats--');
         const dailySales = new Map<string, FieldValue>();
         const datePriceMap = new Map<string, number>();
         invoice.items.forEach((item) => {
-          if (!invoice.date) return;
-          const date = format(new Date(invoice.date), 'dd');
+          const date = format(new Date(currentDate), 'dd');
           const total_price = item.sell_price * item.count;
           const currentTotal = datePriceMap.get(date);
           if (currentTotal) {
@@ -170,25 +186,28 @@ export const TransactionPage = () => {
         transaction.set(
           statsRef,
           {
-            transaction_count: incrementTransaction,
-            total_sales: incrementTotalSales,
-            daily_sales: Object.fromEntries(dailySales),
+            daily_sales:
+              invoice.payment_method?.toLowerCase() === 'cash'
+                ? {
+                    cash: Object.fromEntries(dailySales),
+                  }
+                : {
+                    cashless: Object.fromEntries(dailySales),
+                  },
           },
           { merge: true }
         );
+
+        // Add new invoice
+        const newInvoiceRef = doc(collection(db, 'invoice'));
         const totalPrice = invoice.items.reduce(
           (acc, item) => acc + item.sell_price * item.count,
           0
         );
-        const newInvoiceRef = doc(collection(db, 'invoice'));
-
-        const currentDate = format(new Date(), 'yyyy-MM-dd');
-        const currentTime = format(new Date(), 'HH:mm:ss');
 
         transaction.set(newInvoiceRef, {
           customer_id: selectedCustomer?.id ?? '',
           customer_name: selectedCustomer?.name ?? invoice.customer_name,
-          // Current date
           date: currentDate,
           time: currentTime,
           total_price: totalPrice,
@@ -199,11 +218,11 @@ export const TransactionPage = () => {
         setLoading(false);
 
         setClickedInvoice({
+          id: newInvoiceRef.id,
           customer_id: selectedCustomer?.id ?? '',
           customer_name: selectedCustomer?.name ?? invoice.customer_name,
-          // Current date
-          date: invoice.date,
-          time: theTime,
+          date: currentDate,
+          time: currentTime,
           total_price: totalPrice,
           payment_method: invoice.payment_method,
           warehouse_position: invoice.items[0].warehouse_position,
@@ -297,7 +316,7 @@ export const TransactionPage = () => {
         }`}
       >
         {loading && (
-          <div className="absolute flex justify-center items-center py-2 px-3 top-0 left-0 w-full h-full bg-gray-50 rounded-lg z-0">
+          <div className="absolute flex justify-center items-center py-2 px-3 top-0 left-0 w-full h-full bg-gray-50 rounded-lg z-50">
             <AiOutlineLoading3Quarters className="animate-spin flex justify-center text-4xl" />
           </div>
         )}
@@ -631,23 +650,11 @@ export const TransactionPage = () => {
         ) : (
           <tr className="border-b">
             <SingleTableItem>
-              <p className="flex justify-center">Produk tidak ditemukan</p>
+              <p className="flex justify-center">Cari produk</p>
             </SingleTableItem>
           </tr>
         )}
       </TableModal>
-      <ToastContainer
-        position="top-right"
-        autoClose={2000}
-        hideProgressBar={false}
-        newestOnTop={false}
-        closeOnClick
-        rtl={false}
-        pauseOnFocusLoss
-        draggable
-        pauseOnHover
-        theme="light"
-      />
     </PageLayout>
   );
 };

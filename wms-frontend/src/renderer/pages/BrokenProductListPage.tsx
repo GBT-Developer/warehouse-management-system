@@ -14,7 +14,7 @@ import {
 } from 'firebase/firestore';
 import { useEffect, useState } from 'react';
 import { AiOutlineLoading3Quarters } from 'react-icons/ai';
-import { ToastContainer, toast } from 'react-toastify';
+import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { PdfViewer } from 'renderer/components/PdfViewer';
 import { ReturnModal } from 'renderer/components/ReturnModal';
@@ -37,9 +37,28 @@ export const BrokenProductListPage = () => {
   const [errorMessage, setErrorMessage] = useState('');
   const { warehousePosition } = useAuth();
   const [painterName, setPainterName] = useState('');
-  const successNotify = () => toast.success('Produk berhasil dikembalikan');
+  const successNotify = () =>
+    toast.success('Produk berhasil dikembalikan', {
+      position: 'top-right',
+      autoClose: 2000,
+      hideProgressBar: false,
+      closeOnClick: true,
+      pauseOnHover: true,
+      draggable: true,
+      progress: undefined,
+      theme: 'light',
+    });
   const failNotify = (e?: string) =>
-    toast.error(e ?? 'Product gagal dikembalikan');
+    toast.error(e ?? 'Product gagal dikembalikan', {
+      position: 'top-right',
+      autoClose: 2000,
+      hideProgressBar: false,
+      closeOnClick: true,
+      pauseOnHover: true,
+      draggable: true,
+      progress: undefined,
+      theme: 'light',
+    });
   const [lastBrandKey, setLastBrandKey] = useState(null);
   const [nextPosts_loading, setNextPostsLoading] = useState(false);
   const [nextPosts_empty, setNextPostsEmpty] = useState(false);
@@ -71,6 +90,8 @@ export const BrokenProductListPage = () => {
         if (querySnapshot.empty) {
           setProducts([]);
           setLoading(false);
+          setNextPostsEmpty(true);
+          setNextPostsLoading(false);
           return;
         }
 
@@ -285,7 +306,7 @@ export const BrokenProductListPage = () => {
           </TableTitle>
           <div className="overflow-y-auto h-full relative">
             {loading && (
-              <div className="absolute flex justify-center items-center py-2 px-3 top-0 left-0 w-full h-full bg-gray-50 rounded-lg z-0 bg-opacity-50">
+              <div className="absolute flex justify-center items-center py-2 px-3 top-0 left-0 w-full h-full bg-gray-50 rounded-lg z-50 bg-opacity-50">
                 <AiOutlineLoading3Quarters className="animate-spin flex justify-center text-4xl" />
               </div>
             )}
@@ -297,13 +318,7 @@ export const BrokenProductListPage = () => {
                 <th className=" py-3">Jumlah</th>
               </TableHeader>
               <tbody>
-                {products.length === 0 ? (
-                  <tr className="border-b">
-                    <td className="py-3" colSpan={3}>
-                      <p className="flex justify-center">Data tidak tersedia</p>
-                    </td>
-                  </tr>
-                ) : (
+                {products.length > 0 &&
                   products
                     .filter((product) => {
                       if (search === '') return product;
@@ -375,8 +390,7 @@ export const BrokenProductListPage = () => {
                         </SingleTableItem>
                         <SingleTableItem>{product.count}</SingleTableItem>
                       </tr>
-                    ))
-                )}
+                    ))}
               </tbody>
             </table>
             {clickedDispatchNote && (
@@ -479,18 +493,6 @@ export const BrokenProductListPage = () => {
           </div>
         </div>
       </div>
-      <ToastContainer
-        position="top-right"
-        autoClose={2000}
-        hideProgressBar={false}
-        newestOnTop={false}
-        closeOnClick
-        rtl={false}
-        pauseOnFocusLoss
-        draggable
-        pauseOnHover
-        theme="light"
-      />
     </PageLayout>
   );
 };

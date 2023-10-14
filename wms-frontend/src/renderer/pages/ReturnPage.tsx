@@ -17,9 +17,10 @@ import React, { useEffect, useState } from 'react';
 import { AiOutlineLoading3Quarters, AiOutlineReload } from 'react-icons/ai';
 import { BiSolidTrash } from 'react-icons/bi';
 import { useNavigate } from 'react-router-dom';
-import { ToastContainer, toast } from 'react-toastify';
+import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { InputField } from 'renderer/components/InputField';
+import { PdfViewer } from 'renderer/components/PdfViewer';
 import { SingleTableItem } from 'renderer/components/TableComponents/SingleTableItem';
 import { TableModal } from 'renderer/components/TableComponents/TableModal';
 import { db } from 'renderer/firebase';
@@ -55,6 +56,8 @@ export default function ReturnPage() {
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(
     null
   );
+  const [clickedInvoice, setClickedInvoice] = useState<Invoice | null>(null);
+  const [pdfOpen, setPdfOpen] = useState(false);
   const [newTransaction, setNewTransaction] =
     useState<Invoice>(invoiceInitialState);
 
@@ -69,8 +72,28 @@ export default function ReturnPage() {
       is_returned?: boolean;
     })[]
   >([]);
-  const successNotify = () => toast.success('Barang berhasil ditukar');
-  const failNotify = (e?: string) => toast.error(e ?? 'Barang gagal ditukar');
+  const successNotify = () =>
+    toast.success('Barang berhasil ditukar', {
+      position: 'top-right',
+      autoClose: 2000,
+      hideProgressBar: false,
+      closeOnClick: true,
+      pauseOnHover: true,
+      draggable: true,
+      progress: undefined,
+      theme: 'light',
+    });
+  const failNotify = (e?: string) =>
+    toast.error(e ?? 'Barang gagal ditukar', {
+      position: 'top-right',
+      autoClose: 2000,
+      hideProgressBar: false,
+      closeOnClick: true,
+      pauseOnHover: true,
+      draggable: true,
+      progress: undefined,
+      theme: 'light',
+    });
   const getSpecialPriceForProduct = (productId: string) => {
     const specialPrice = selectedCustomer?.SpecialPrice.find(
       (p) => p.product_id === productId
@@ -271,7 +294,9 @@ export default function ReturnPage() {
         const currentDate = format(new Date(), 'yyyy-MM-dd');
         const currentTime = format(new Date(), 'HH:mm:ss');
 
-        transaction.set(doc(collection(db, 'invoice')), {
+        const newInvoiceRef = doc(collection(db, 'invoice'));
+
+        transaction.set(newInvoiceRef, {
           customer_id: selectedCustomer?.id ?? '',
           customer_name: selectedCustomer?.name ?? invoice.customer_name ?? '',
           total_price: total_price,
@@ -306,6 +331,23 @@ export default function ReturnPage() {
           true
         ).catch((err) => console.log(err));
 
+        setClickedInvoice({
+          //invoice id
+          id: newInvoiceRef.id,
+          customer_id: selectedCustomer?.id ?? '',
+          customer_name: selectedCustomer?.name ?? invoice.customer_name ?? '',
+          total_price: total_price,
+          items: selectedNewItems.map((selectedNewItem) => {
+            return {
+              ...selectedNewItem,
+              is_returned: false,
+            };
+          }),
+          date: new Date().toISOString().slice(0, 10),
+          payment_method: newTransaction.payment_method,
+          time: currentTime,
+        });
+        setPdfOpen(true);
         return Promise.resolve();
       });
     }
@@ -422,9 +464,6 @@ export default function ReturnPage() {
       }
 
       const incrementTransaction = increment(positive ? 1 : -1);
-      const incrementTotalSales = increment(
-        positive ? invoice.total_price : -invoice.total_price
-      );
       const statsDocRef = doc(db, 'invoice', '--stats--');
       const dailySales = new Map<string, FieldValue>();
       const datePriceMap = new Map<string, number>();
@@ -456,8 +495,14 @@ export default function ReturnPage() {
         statsDocRef,
         {
           transaction_count: incrementTransaction,
-          total_sales: incrementTotalSales,
-          daily_sales: Object.fromEntries(dailySales),
+          daily_sales:
+            invoice.payment_method?.toLowerCase() === 'cash'
+              ? {
+                  cash: dailySales,
+                }
+              : {
+                  cashless: dailySales,
+                },
         },
         { merge: true }
       );
@@ -485,7 +530,7 @@ export default function ReturnPage() {
         }`}
       >
         {loading && (
-          <div className="absolute flex justify-center items-center py-2 px-3 top-0 left-0 w-full h-full bg-gray-50 rounded-lg z-0">
+          <div className="absolute flex justify-center items-center py-2 px-3 top-0 left-0 w-full h-full bg-gray-50 rounded-lg z-50">
             <AiOutlineLoading3Quarters className="animate-spin flex justify-center text-4xl" />
           </div>
         )}
@@ -615,7 +660,7 @@ export default function ReturnPage() {
                               item.part +
                               ' ' +
                               item.available_color}
-                            {item.is_returned && ' (Returned)'}
+                            {item.is_returned && ' (Dikembalikan)'}
                           </label>
                         </div>
                       </div>
@@ -921,6 +966,19 @@ export default function ReturnPage() {
         </form>
       )}
 
+      {clickedInvoice && (
+        <PdfViewer
+          products={[]}
+          setInvoice={setClickedInvoice}
+          dispatchNote={undefined}
+          setDipatchNote={() => {}}
+          modalOpen={pdfOpen}
+          setModalOpen={setPdfOpen}
+          invoice={clickedInvoice}
+          destinationName={clickedInvoice.customer_name ?? ''}
+        />
+      )}
+
       <TableModal
         placeholder="Cari berdasarkan merek produk"
         modalOpen={modalOpen}
@@ -1008,23 +1066,11 @@ export default function ReturnPage() {
         ) : (
           <tr className="border-b">
             <SingleTableItem>
-              <p className="flex justify-center">Produk tidak ditemukan</p>
+              <p className="flex justify-center">Cari produk</p>
             </SingleTableItem>
           </tr>
         )}
       </TableModal>
-      <ToastContainer
-        position="top-right"
-        autoClose={2000}
-        hideProgressBar={false}
-        newestOnTop={false}
-        closeOnClick
-        rtl={false}
-        pauseOnFocusLoss
-        draggable
-        pauseOnHover
-        theme="light"
-      />
     </PageLayout>
   );
 }

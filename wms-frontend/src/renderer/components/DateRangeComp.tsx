@@ -10,6 +10,7 @@ interface DateRangeCompProps {
   endDate: string;
   setStartDate: React.Dispatch<React.SetStateAction<string>>;
   setEndDate: React.Dispatch<React.SetStateAction<string>>;
+  showTop?: boolean;
 }
 
 const DateRangeComp = ({
@@ -17,6 +18,7 @@ const DateRangeComp = ({
   endDate,
   setStartDate,
   setEndDate,
+  showTop = false,
 }: DateRangeCompProps) => {
   // Open or close
   const [open, setOpen] = useState(false);
@@ -64,7 +66,9 @@ const DateRangeComp = ({
       {open && (
         <div ref={refOne}>
           <DateRange
-            className="absolute top-[50px] left-0 z-[100]"
+            className={`absolute ${
+              showTop ? 'bottom-[60px]' : 'top-[50px]'
+            } left-0 z-[100]`}
             onChange={(items) => {
               const startDate = items.selection.startDate;
               const endDate = items.selection.endDate;

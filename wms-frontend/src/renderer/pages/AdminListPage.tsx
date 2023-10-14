@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { AiOutlineLoading3Quarters } from 'react-icons/ai';
 import { BiSolidTrash } from 'react-icons/bi';
 import { useNavigate } from 'react-router-dom';
-import { ToastContainer, toast } from 'react-toastify';
+import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { SingleTableItem } from 'renderer/components/TableComponents/SingleTableItem';
 import { TableHeader } from 'renderer/components/TableComponents/TableHeader';
@@ -19,8 +19,28 @@ export const AdminListPage = () => {
   const [loading, setLoading] = useState(false);
   const [modalLoading, setModalLoading] = useState(false);
   const navigate = useNavigate();
-  const successNotify = () => toast.success('Admin berhasil dihapus');
-  const failNotify = (e?: string) => toast.error(e ?? 'Admin gagal dihapus');
+  const successNotify = () =>
+    toast.success('Admin berhasil dihapus', {
+      position: 'top-right',
+      autoClose: 2000,
+      hideProgressBar: false,
+      closeOnClick: true,
+      pauseOnHover: true,
+      draggable: true,
+      progress: undefined,
+      theme: 'light',
+    });
+  const failNotify = (e?: string) =>
+    toast.error(e ?? 'Admin gagal dihapus', {
+      position: 'top-right',
+      autoClose: 2000,
+      hideProgressBar: false,
+      closeOnClick: true,
+      pauseOnHover: true,
+      draggable: true,
+      progress: undefined,
+      theme: 'light',
+    });
   const [modalOpen, setModalOpen] = useState(false);
   const [activeAdmin, setActiveAdmin] = useState<CustomUser | null>(null);
   const [confirmed, setConfirmed] = useState(false);
@@ -64,7 +84,6 @@ export const AdminListPage = () => {
     deleteDoc(purchaseRef)
       .then(() => {
         setAdminList(adminList.filter((adminList) => adminList.id !== adminId));
-        successNotify();
         setModalLoading(false);
         setModalOpen(false);
       })
@@ -72,6 +91,7 @@ export const AdminListPage = () => {
         failNotify(error.message);
         setModalLoading(false);
       });
+    successNotify();
     setConfirmed(false);
     setLoading(false);
   };
@@ -87,7 +107,7 @@ export const AdminListPage = () => {
           </TableTitle>
           <div className="overflow-y-auto h-full relative">
             {loading && (
-              <div className="absolute flex justify-center items-center py-2 px-3 top-0 left-0 w-full h-full bg-gray-50 rounded-lg z-0 bg-opacity-50">
+              <div className="absolute flex justify-center items-center py-2 px-3 top-0 left-0 w-full h-full bg-gray-50 rounded-lg z-50 bg-opacity-50">
                 <AiOutlineLoading3Quarters className="animate-spin flex justify-center text-4xl" />
               </div>
             )}
@@ -165,7 +185,7 @@ export const AdminListPage = () => {
                     <div className="relative shadow-md sm:rounded-lg overflow-auto h-full flex flex-col justify-between">
                       <div className="overflow-y-auto h-full relative">
                         {modalLoading && (
-                          <div className="absolute flex justify-center items-center py-2 px-3 top-0 left-0 w-full h-full bg-gray-50 rounded-lg z-0 bg-opacity-50">
+                          <div className="absolute flex justify-center items-center py-2 px-3 top-0 left-0 w-full h-full bg-gray-50 rounded-lg z-50 bg-opacity-50">
                             <AiOutlineLoading3Quarters className="animate-spin flex justify-center text-4xl" />
                           </div>
                         )}
@@ -239,18 +259,6 @@ export const AdminListPage = () => {
           </div>
         </div>
       </div>
-      <ToastContainer
-        position="top-right"
-        autoClose={2000}
-        hideProgressBar={false}
-        newestOnTop={false}
-        closeOnClick
-        rtl={false}
-        pauseOnFocusLoss
-        draggable
-        pauseOnHover
-        theme="light"
-      />
     </PageLayout>
   );
 };

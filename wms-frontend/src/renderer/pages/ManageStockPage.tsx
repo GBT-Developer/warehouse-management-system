@@ -18,7 +18,7 @@ import {
   AiOutlineReload,
 } from 'react-icons/ai';
 import { useNavigate } from 'react-router-dom';
-import { ToastContainer, toast } from 'react-toastify';
+import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { InputField } from 'renderer/components/InputField';
 import { SingleTableItem } from 'renderer/components/TableComponents/SingleTableItem';
@@ -72,8 +72,28 @@ export const ManageStockPage = () => {
   const [returnedProduct, setReturnedProduct] = useState(false);
   const [initialLoad, setInitialLoad] = useState(true);
 
-  const successNotify = () => toast.success('Stock berhasil diupdate');
-  const failNotify = (e?: string) => toast.error(e ?? 'Stock gagal diupdate');
+  const successNotify = () =>
+    toast.success('Stock berhasil diupdate', {
+      position: 'top-right',
+      autoClose: 2000,
+      hideProgressBar: false,
+      closeOnClick: true,
+      pauseOnHover: true,
+      draggable: true,
+      progress: undefined,
+      theme: 'light',
+    });
+  const failNotify = (e?: string) =>
+    toast.error(e ?? 'Stock gagal diupdate', {
+      position: 'top-right',
+      autoClose: 2000,
+      hideProgressBar: false,
+      closeOnClick: true,
+      pauseOnHover: true,
+      draggable: true,
+      progress: undefined,
+      theme: 'light',
+    });
   // If the input Field is Empty
   const [isEmpty, setIsEmpty] = useState(false);
 
@@ -378,6 +398,7 @@ export const ManageStockPage = () => {
               motor_type: acceptedProduct.motor_type,
               part: acceptedProduct.part,
               available_color: acceptedProduct.available_color,
+              purchase_price: acceptedProduct.purchase_price,
               sell_price: acceptedProduct.sell_price,
               count: acceptedProduct.count,
               supplier: acceptedProduct.supplier,
@@ -576,7 +597,7 @@ export const ManageStockPage = () => {
         }`}
       >
         {loading && (
-          <div className="absolute flex justify-center items-center py-2 px-3 top-0 left-0 w-full h-full bg-gray-50 rounded-lg z-0">
+          <div className="absolute flex justify-center items-center py-2 px-3 top-0 left-0 w-full h-full bg-gray-50 rounded-lg z-50">
             <AiOutlineLoading3Quarters className="animate-spin flex justify-center text-4xl" />
           </div>
         )}
@@ -729,7 +750,7 @@ export const ManageStockPage = () => {
               <button
                 disabled={loading}
                 type="button"
-                className="absolute right-2 text-white bg-gray-600 hover:bg-gray-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm p-[0.25rem]"
+                className="absolute top-0 right-0 h-full flex items-center justify-center px-3"
                 onClick={() => {
                   handleFetchDispatchNote().catch(() => console.log('error'));
                 }}
@@ -769,6 +790,15 @@ export const ManageStockPage = () => {
                           name="quantity"
                           className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
                           onChange={(e) => {
+                            if (Number(e.target.value) < 0) {
+                              setErrorMessage('Jumlah tidak valid');
+                              // Set e target value with the value without the last character
+                              e.target.value = e.target.value.slice(0, -1);
+                              setTimeout(() => {
+                                setErrorMessage(null);
+                              }, 3000);
+                              return;
+                            }
                             if (
                               Number(e.target.value) > Number(product.count)
                             ) {
@@ -857,7 +887,7 @@ export const ManageStockPage = () => {
                             Number(e.target.value) < 0 ||
                             e.target.value === ''
                           ) {
-                            setErrorMessage('Quantity must be positive');
+                            setErrorMessage('Jumlah tidak valid');
                             // Set e target value with the value without the last character
                             e.target.value = e.target.value.slice(0, -1);
                             setTimeout(() => {
@@ -1045,23 +1075,11 @@ export const ManageStockPage = () => {
         ) : (
           <tr className="border-b">
             <SingleTableItem>
-              <p className="flex justify-center">Produkt tidak ditemukan</p>
+              <p className="flex justify-center">Produk tidak ditemukan</p>
             </SingleTableItem>
           </tr>
         )}
       </TableModal>
-      <ToastContainer
-        position="top-right"
-        autoClose={2000}
-        hideProgressBar={false}
-        newestOnTop={false}
-        closeOnClick
-        rtl={false}
-        pauseOnFocusLoss
-        draggable
-        pauseOnHover
-        theme="light"
-      />
     </PageLayout>
   );
 };

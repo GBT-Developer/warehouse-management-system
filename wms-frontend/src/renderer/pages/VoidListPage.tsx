@@ -2,15 +2,21 @@ import { format } from 'date-fns';
 import {
   QueryStartAtConstraint,
   collection,
+  doc,
   getDocs,
   limit,
   orderBy,
   query,
+  runTransaction,
   startAfter,
   where,
 } from 'firebase/firestore';
+import { toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+
 import React, { useEffect, useState } from 'react';
 import { AiOutlineLoading3Quarters } from 'react-icons/ai';
+import { BiSolidTrash } from 'react-icons/bi';
 import DateRangeComp from 'renderer/components/DateRangeComp';
 import { SingleTableItem } from 'renderer/components/TableComponents/SingleTableItem';
 import { TableHeader } from 'renderer/components/TableComponents/TableHeader';
@@ -48,6 +54,29 @@ export default function VoidListPage() {
       'yyyy-MM-dd'
     )
   );
+  const successNotify = () =>
+    toast.success('Invoice berhasil dihapus', {
+      position: 'top-right',
+      autoClose: 2000,
+      hideProgressBar: false,
+      closeOnClick: true,
+      pauseOnHover: true,
+      draggable: true,
+      progress: undefined,
+      theme: 'light',
+    });
+  const failNotify = (e?: string) =>
+    toast.error(e ?? 'Invoice gagal dihapus', {
+      position: 'top-right',
+      autoClose: 2000,
+      hideProgressBar: false,
+      closeOnClick: true,
+      pauseOnHover: true,
+      draggable: true,
+      progress: undefined,
+      theme: 'light',
+    });
+
   // Take void list from firebase
   useEffect(() => {
     const fetchData = async () => {
@@ -69,6 +98,8 @@ export default function VoidListPage() {
         if (querySnapshot.docs.length === 0) {
           setVoidList([]);
           setLoading(false);
+          setNextPostsEmpty(true);
+          setNextPostsLoading(false);
           return;
         }
 
@@ -174,6 +205,27 @@ export default function VoidListPage() {
     }));
   };
 
+  const handleDeleteInvoice = async (theInvoice: Invoice) => {
+    setLoading(true);
+
+    await runTransaction(db, async (transaction) => {
+      if (!theInvoice.id) return;
+
+      // Delete the invoice
+      const purchaseRef = doc(db, 'void_invoice', theInvoice.id);
+      transaction.delete(purchaseRef);
+      setVoidList((prev) =>
+        prev.filter((invoice) => invoice.id !== theInvoice.id)
+      );
+      setFilteredVoidList((prev) =>
+        prev.filter((invoice) => invoice.id !== theInvoice.id)
+      );
+    });
+
+    setLoading(false);
+    successNotify();
+  };
+
   return (
     <PageLayout>
       <div className="w-full h-full bg-transparent overflow-hidden">
@@ -191,26 +243,20 @@ export default function VoidListPage() {
           </div>
           <div className="overflow-y-auto h-full relative">
             {loading && (
-              <div className="absolute flex justify-center items-center py-2 px-3 top-0 left-0 w-full h-full bg-gray-50 rounded-lg z-0 bg-opacity-50">
+              <div className="absolute flex justify-center items-center py-2 px-3 top-0 left-0 w-full h-full bg-gray-50 rounded-lg z-50 bg-opacity-50">
                 <AiOutlineLoading3Quarters className="animate-spin flex justify-center text-4xl" />
               </div>
             )}
             <table className="w-full text-sm text-left text-gray-500">
               <TableHeader>
                 <th className="py-3">Tanggal</th>
-                <th className="py-3">Void Invoice ID</th>
+                <th className="py-3">Nomor Void Invoice</th>
                 <th className="py-3">Nama Customer</th>
                 <th className="py-3">Metode Pembayaran</th>
                 <th className="py-3">Total Harga</th>
               </TableHeader>
               <tbody className="overflow-y-auto">
-                {voidList.length === 0 ? (
-                  <tr className="border-b">
-                    <td className="py-3" colSpan={6}>
-                      <p className="flex justify-center">Data tidak tersedia</p>
-                    </td>
-                  </tr>
-                ) : (
+                {voidList.length > 0 &&
                   filteredVoidList
                     .filter((void_list) => {
                       if (!void_list.id || !void_list.customer_name)
@@ -263,6 +309,20 @@ export default function VoidListPage() {
                           <SingleTableItem>
                             {formatCurrency(void_list.total_price)}
                           </SingleTableItem>
+                          <SingleTableItem>
+                            <button
+                              type="button"
+                              className="text-red-500 text-lg p-2 hover:text-red-700 cursor-pointer bg-transparent rounded-md"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleDeleteInvoice(void_list).catch((error) =>
+                                  failNotify(error)
+                                );
+                              }}
+                            >
+                              <BiSolidTrash />
+                            </button>
+                          </SingleTableItem>
                         </tr>
                         {void_list.id && showProductsMap[void_list.id] && (
                           <tr className="border-b">
@@ -286,8 +346,7 @@ export default function VoidListPage() {
                           </tr>
                         )}
                       </React.Fragment>
-                    ))
-                )}
+                    ))}
               </tbody>
             </table>
             {nextPosts_empty ? (

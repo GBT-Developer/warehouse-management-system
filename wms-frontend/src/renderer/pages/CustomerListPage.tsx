@@ -32,8 +32,28 @@ export default function CustomerListPage() {
   const [nextQuery, setNextQuery] = useState<QueryStartAtConstraint | null>(
     null
   );
-  const successNotify = () => toast.success('Customer berhasil dihapus');
-  const failNotify = (e?: string) => toast.error(e ?? 'Customer gagal dihapus');
+  const successNotify = () =>
+    toast.success('Customer berhasil dihapus', {
+      position: 'top-right',
+      autoClose: 2000,
+      hideProgressBar: false,
+      closeOnClick: true,
+      pauseOnHover: true,
+      draggable: true,
+      progress: undefined,
+      theme: 'light',
+    });
+  const failNotify = (e?: string) =>
+    toast.error(e ?? 'Customer gagal dihapus', {
+      position: 'top-right',
+      autoClose: 2000,
+      hideProgressBar: false,
+      closeOnClick: true,
+      pauseOnHover: true,
+      draggable: true,
+      progress: undefined,
+      theme: 'light',
+    });
 
   useEffect(() => {
     const fetchData = async () => {
@@ -44,6 +64,14 @@ export default function CustomerListPage() {
           limit(50)
         );
         const querySnapshot = await getDocs(q);
+
+        if (querySnapshot.empty) {
+          setNextPostsEmpty(true);
+          setNextPostsLoading(false);
+          setCustomerList([]);
+          setLoading(false);
+          return;
+        }
 
         const customerData: Customer[] = [];
         querySnapshot.forEach((theCustomer) => {
@@ -75,6 +103,7 @@ export default function CustomerListPage() {
       setNextPostsLoading(false);
       return;
     }
+
     setNextPostsLoading(true);
     try {
       const q = query(
@@ -116,7 +145,7 @@ export default function CustomerListPage() {
           </TableTitle>
           <div className="overflow-y-auto h-full relative">
             {loading && (
-              <div className="absolute flex justify-center items-center py-2 px-3 top-0 left-0 w-full h-full bg-gray-50 rounded-lg z-0 bg-opacity-50">
+              <div className="absolute flex justify-center items-center py-2 px-3 top-0 left-0 w-full h-full bg-gray-50 rounded-lg z-50 bg-opacity-50">
                 <AiOutlineLoading3Quarters className="animate-spin flex justify-center text-4xl" />
               </div>
             )}
@@ -129,13 +158,7 @@ export default function CustomerListPage() {
                 <th className=" py-3"></th>
               </TableHeader>
               <tbody className="overflow-y-auto">
-                {customerList.length === 0 ? (
-                  <tr className="border-b">
-                    <td className="py-3" colSpan={3}>
-                      <p className="flex justify-center">Data tidak tersedia</p>
-                    </td>
-                  </tr>
-                ) : (
+                {customerList.length > 0 &&
                   customerList
                     .filter((customer) => {
                       if (search === '') return customer;
@@ -201,8 +224,7 @@ export default function CustomerListPage() {
                           </button>
                         </SingleTableItem>
                       </tr>
-                    ))
-                )}
+                    ))}
               </tbody>
             </table>
             {nextPosts_empty ? (

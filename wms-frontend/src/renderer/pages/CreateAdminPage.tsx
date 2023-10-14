@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { AiOutlineLoading3Quarters } from 'react-icons/ai';
 import { useNavigate } from 'react-router-dom';
-import { ToastContainer, toast } from 'react-toastify';
+import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { InputField } from 'renderer/components/InputField';
 import { CustomUser } from 'renderer/interfaces/CustomUser';
@@ -20,7 +20,28 @@ export const CreateAdminPage = () => {
   const [loading, setLoading] = useState(false);
   const [newAdmin, setNewAdmin] = useState<CustomUser>(initNewAdmin);
   const [errorMessage, setErrorMessage] = useState('');
-  const successNotify = () => toast.success('Admin berhasil dibuat');
+  const successNotify = () =>
+    toast.success('Admin berhasil dibuat', {
+      position: 'top-right',
+      autoClose: 2000,
+      hideProgressBar: false,
+      closeOnClick: true,
+      pauseOnHover: true,
+      draggable: true,
+      progress: undefined,
+      theme: 'light',
+    });
+  const failNotify = (e?: string) =>
+    toast.error(e ?? 'Admin gagal dibuat', {
+      position: 'top-right',
+      autoClose: 2000,
+      hideProgressBar: false,
+      closeOnClick: true,
+      pauseOnHover: true,
+      draggable: true,
+      progress: undefined,
+      theme: 'light',
+    });
   const { register } = useAuth().actions;
   const [isEmpty, setIsEmpty] = useState(false);
 
@@ -65,10 +86,7 @@ export const CreateAdminPage = () => {
       })
       .catch((err) => {
         const errMessage = err as string;
-        setErrorMessage(errMessage);
-        setTimeout(() => {
-          setErrorMessage('');
-        }, 3000);
+        failNotify(errMessage);
       });
     setLoading(false);
   };
@@ -85,7 +103,7 @@ export const CreateAdminPage = () => {
         onSubmit={(e) => handleSubmit(e)}
       >
         {loading && (
-          <div className="absolute flex justify-center items-center py-2 px-3 top-0 left-0 w-full h-full bg-gray-50 rounded-lg z-0">
+          <div className="absolute flex justify-center items-center py-2 px-3 top-0 left-0 w-full h-full bg-gray-50 rounded-lg z-50">
             <AiOutlineLoading3Quarters className="animate-spin flex justify-center text-4xl" />
           </div>
         )}
@@ -188,18 +206,6 @@ export const CreateAdminPage = () => {
           <p className="text-red-500 text-sm ">{errorMessage}</p>
         )}
       </form>
-      <ToastContainer
-        position="top-right"
-        autoClose={2000}
-        hideProgressBar={false}
-        newestOnTop={false}
-        closeOnClick
-        rtl={false}
-        pauseOnFocusLoss
-        draggable
-        pauseOnHover
-        theme="light"
-      />
     </PageLayout>
   );
 };
