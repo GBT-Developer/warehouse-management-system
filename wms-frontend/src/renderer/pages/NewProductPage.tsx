@@ -127,14 +127,16 @@ export const NewProductPage = () => {
       newProduct.motor_type === '' ||
       newProduct.part === '' ||
       (newProduct.available_color === '' &&
-        warehousePosition !== 'Gudang Bahan') ||
+        warehousePosition !== 'Gudang Bahan' &&
+        newProduct.warehouse_position !== 'Gudang Bahan') ||
       newProduct.warehouse_position === ''
     ) {
       setIsEmpty(true);
       return;
     } else if (
       (newProduct.available_color !== '' ||
-        warehousePosition === 'Gudang Bahan') &&
+        warehousePosition === 'Gudang Bahan' ||
+        newProduct.warehouse_position === 'Gudang Bahan') &&
       newProduct.brand != '' &&
       newProduct.motor_type != '' &&
       newProduct.part != '' &&
@@ -158,7 +160,8 @@ export const NewProductPage = () => {
       newProduct.motor_type === '' ||
       newProduct.part === '' ||
       (newProduct.available_color === '' &&
-        warehousePosition !== 'Gudang Bahan') ||
+        warehousePosition !== 'Gudang Bahan' &&
+        newProduct.warehouse_position !== 'Gudang Bahan') ||
       newProduct.warehouse_position === ''
     ) {
       setErrorMessage('Tolong isi semua kolom');
