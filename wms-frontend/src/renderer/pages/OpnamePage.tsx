@@ -27,6 +27,10 @@ export default function OpnamePage() {
     daily_sales: Record<string, Record<string, number>>;
     month: number;
   }>();
+  const [filteredSalesStats, setFilteredSalesStats] = useState<{
+    daily_sales: Record<string, Record<string, number>>;
+    month: number;
+  }>();
   const { user } = useAuth();
   const [tax, setTax] = useState(10);
   const { warehousePosition } = useAuth();
@@ -148,6 +152,7 @@ export default function OpnamePage() {
         });
 
         setSalesStats(statsDocData);
+        setFilteredSalesStats(statsDocData);
         setTotalSales(currentTotalSales);
 
         setLoading(false);
@@ -173,7 +178,46 @@ export default function OpnamePage() {
         fetchInvoiceStats();
       })
       .catch(() => console.log('error'));
-  }, [startDate, endDate, warehousePosition]);
+  }, []);
+
+  useEffect(() => {
+    // Filter data based on the date and warehouse position
+
+    const filteredSalesStats: Record<string, Record<string, number>> = {
+      cash: {},
+      cashless: {},
+    };
+    const payment_methods = ['cash', 'cashless'];
+    let currentTotalSales = 0;
+    payment_methods.forEach((method) => {
+      for (
+        let date = new Date(startDate);
+        date <= new Date(endDate);
+        date.setDate(date.getDate() + 1)
+      ) {
+        // Take the date of the current iteration
+        const currentDate = format(date, 'dd');
+        if (!salesStats?.daily_sales[method]) {
+          filteredSalesStats[method] = {
+            [currentDate]: 0,
+          };
+        } else if (!salesStats?.daily_sales[method][currentDate]) {
+          filteredSalesStats[method][currentDate] = 0;
+        } else {
+          filteredSalesStats[method][currentDate] =
+            salesStats?.daily_sales[method][currentDate];
+        }
+        currentTotalSales += filteredSalesStats[method][currentDate];
+      }
+    });
+
+    setFilteredSalesStats({
+      daily_sales: filteredSalesStats,
+      month: new Date().getMonth(),
+    });
+    setTotalSales(currentTotalSales);
+    console.log('filtering');
+  }, [startDate, endDate, warehousePosition, salesStats]);
 
   const fetchMoreData = async () => {
     try {
@@ -226,7 +270,7 @@ export default function OpnamePage() {
           Opname
         </h1>
       </div>
-      <div className="relative flex flex-col w-2/3 h-[fit-content] pt-4">
+      <div className="relative flex flex-col w-full h-[fit-content] pt-4">
         {loading && (
           <div className="absolute flex justify-center items-center py-2 px-3 top-0 left-0 w-full h-full bg-gray-50 rounded-lg z-50 bg-opacity-50">
             <AiOutlineLoading3Quarters className="animate-spin flex justify-center text-4xl" />
@@ -240,7 +284,7 @@ export default function OpnamePage() {
         </div>
         <div className="w-full min-h-[30rem]">
           <BarChart
-            data={salesStats?.daily_sales}
+            data={filteredSalesStats?.daily_sales}
             chartTitle="Grafik Penjualan"
           />
         </div>
@@ -274,10 +318,13 @@ export default function OpnamePage() {
                         style: 'currency',
                         currency: 'IDR',
                       }).format(
-                        salesStats?.daily_sales['cash']
-                          ? Object.keys(salesStats?.daily_sales['cash']).reduce(
+                        filteredSalesStats?.daily_sales['cash']
+                          ? Object.keys(
+                              filteredSalesStats?.daily_sales['cash']
+                            ).reduce(
                               (prev, curr) =>
-                                prev + salesStats?.daily_sales['cash'][curr],
+                                prev +
+                                filteredSalesStats?.daily_sales['cash'][curr],
                               0
                             )
                           : 0
@@ -297,13 +344,15 @@ export default function OpnamePage() {
                         style: 'currency',
                         currency: 'IDR',
                       }).format(
-                        salesStats?.daily_sales['cashless']
+                        filteredSalesStats?.daily_sales['cashless']
                           ? Object.keys(
-                              salesStats?.daily_sales['cashless']
+                              filteredSalesStats?.daily_sales['cashless']
                             ).reduce(
                               (prev, curr) =>
                                 prev +
-                                salesStats?.daily_sales['cashless'][curr],
+                                filteredSalesStats?.daily_sales['cashless'][
+                                  curr
+                                ],
                               0
                             )
                           : 0
