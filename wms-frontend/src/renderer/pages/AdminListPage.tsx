@@ -207,7 +207,7 @@ export const AdminListPage = () => {
                             <p className="w-3/5">{activeAdmin?.email}</p>
                           </div>
                           <div className="flex">
-                            <p className="w-2/5 font-bold">Role:</p>
+                            <p className="w-2/5 font-bold">Peran:</p>
                             <p className="w-3/5">{activeAdmin?.role}</p>
                           </div>
                           {confirmed && (
