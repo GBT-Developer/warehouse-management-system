@@ -8,6 +8,7 @@ import {
 import { doc, getDoc, runTransaction } from 'firebase/firestore';
 import { getBlob, ref } from 'firebase/storage';
 import React, { useContext, useEffect, useMemo, useState } from 'react';
+import { AiOutlineLoading3Quarters } from 'react-icons/ai';
 import { useNavigate } from 'react-router-dom';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -71,6 +72,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [user, setUser] = useState<CustomUser | null>(null);
   const [warehouse, setWarehouse] = useState<string>('');
   const [companyInfo, setCompanyInfo] = useState<CompanyInfo | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
     // Firebase auth state change listener
@@ -88,6 +90,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
             if (!user_id) throw new Error('Token tidak valid');
 
             // Retrieving user role
+            setLoading(true);
             const userRef = doc(db, 'user', user_id);
             const userSnapshot = await getDoc(userRef);
             const userData = userSnapshot.data() as CustomUser | undefined;
@@ -126,6 +129,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
                 : theUser.role
             );
             setCompanyInfo(() => companyData ?? null);
+            setLoading(false);
             navigate('/profile');
           })
           .catch(() => {
@@ -299,6 +303,11 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
   return (
     <authContext.Provider value={authValue}>
+      {loading && (
+        <div className="absolute flex justify-center items-center py-2 px-3 top-0 left-0 w-full h-full bg-gray-50 rounded-lg z-50 bg-opacity-50">
+          <AiOutlineLoading3Quarters className="animate-spin flex justify-center text-4xl" />
+        </div>
+      )}
       {children}
       <ToastContainer
         position="top-right"
