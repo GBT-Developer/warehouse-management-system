@@ -216,7 +216,6 @@ export default function OpnamePage() {
       month: new Date().getMonth(),
     });
     setTotalSales(currentTotalSales);
-    console.log('filtering');
   }, [startDate, endDate, warehousePosition, salesStats]);
 
   const fetchMoreData = async () => {
