@@ -72,7 +72,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [user, setUser] = useState<CustomUser | null>(null);
   const [warehouse, setWarehouse] = useState<string>('');
   const [companyInfo, setCompanyInfo] = useState<CompanyInfo | null>(null);
-  const [loading, setLoading] = useState<boolean>(true);
+  const [loading, setLoading] = useState<boolean>(false);
 
   useEffect(() => {
     // Firebase auth state change listener
@@ -142,6 +142,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         setAccessToken(null);
         setUser(null);
         setCompanyInfo(null);
+        setLoading(false);
         navigate('/');
       }
     });
