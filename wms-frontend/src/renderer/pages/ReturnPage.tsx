@@ -211,6 +211,7 @@ export default function ReturnPage() {
           itemInInvoice.count -= selectedItem.count;
       });
 
+      const originalTotalPrice = invoice.total_price;
       // Reduce the total price
       if (invoice.total_price)
         invoice.total_price =
@@ -264,7 +265,13 @@ export default function ReturnPage() {
           return Promise.resolve();
         });
         // Reduce the sales stats
-        reduceSalesStats(invoice, false).catch((err) => console.log(err));
+        reduceSalesStats(
+          {
+            ...invoice,
+            total_price: originalTotalPrice,
+          },
+          false
+        ).catch((err) => console.log(err));
         return Promise.all(promises);
       });
     } else {
@@ -463,7 +470,6 @@ export default function ReturnPage() {
         if (invoiceMonth !== currentMonth) return Promise.resolve();
       }
 
-      const incrementTransaction = increment(positive ? 1 : -1);
       const statsDocRef = doc(db, 'invoice', '--stats--');
       const dailySales = new Map<string, FieldValue>();
       const datePriceMap = new Map<string, number>();
@@ -494,14 +500,13 @@ export default function ReturnPage() {
       transaction.set(
         statsDocRef,
         {
-          transaction_count: incrementTransaction,
           daily_sales:
             invoice.payment_method?.toLowerCase() === 'cash'
               ? {
-                  cash: dailySales,
+                  cash: Object.fromEntries(dailySales),
                 }
               : {
-                  cashless: dailySales,
+                  cashless: Object.fromEntries(dailySales),
                 },
         },
         { merge: true }
