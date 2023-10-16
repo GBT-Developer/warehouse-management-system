@@ -15,6 +15,8 @@ import React, { useEffect, useState } from 'react';
 import { AiOutlineLoading3Quarters } from 'react-icons/ai';
 import { IoChevronBackOutline } from 'react-icons/io5';
 import { useNavigate, useParams } from 'react-router-dom';
+import { toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import DateRangeComp from 'renderer/components/DateRangeComp';
 import { SingleTableItem } from 'renderer/components/TableComponents/SingleTableItem';
 import { TableHeader } from 'renderer/components/TableComponents/TableHeader';
@@ -26,6 +28,12 @@ import { useAuth } from 'renderer/providers/AuthProvider';
 
 export default function PurchaseHistoryPage() {
   const [loading, setLoading] = useState(false);
+  const [statusUpdateLoading, setStatusUpdateLoading] = useState<
+    {
+      isLoading: boolean;
+      purchaseId: string;
+    }[]
+  >([]);
   const param = useParams();
   const { warehousePosition, user } = useAuth();
   const [purchaseList, setPurchaseList] = useState<PurchaseHistory[]>([]);
@@ -42,6 +50,28 @@ export default function PurchaseHistoryPage() {
   const [nextQuery, setNextQuery] = useState<QueryStartAtConstraint | null>(
     null
   );
+  const successNotify = () =>
+    toast.success('Status pembayaran berhasil diubah', {
+      position: 'top-right',
+      autoClose: 2000,
+      hideProgressBar: false,
+      closeOnClick: true,
+      pauseOnHover: true,
+      draggable: true,
+      progress: undefined,
+      theme: 'light',
+    });
+  const failNotify = (e?: string) =>
+    toast.error(e ?? 'Terjadi Kesalahan', {
+      position: 'top-right',
+      autoClose: 2000,
+      hideProgressBar: false,
+      closeOnClick: true,
+      pauseOnHover: true,
+      draggable: true,
+      progress: undefined,
+      theme: 'light',
+    });
 
   const toggleShowProducts = (purchaseId: string) => {
     setShowProductsMap((prevState) => ({
@@ -134,6 +164,7 @@ export default function PurchaseHistoryPage() {
     });
     setFilteredPurchaseList(filteredPurchaseList);
   }, [startDate, endDate, purchaseList]);
+
   const fetchMoreData = async () => {
     try {
       if (nextQuery === null) return;
@@ -233,8 +264,8 @@ export default function PurchaseHistoryPage() {
                       new Date(a.created_at).getTime()
                     );
                   })
-                  .map((purchase_history, index) => (
-                    <React.Fragment key={index}>
+                  .map((purchase_history) => (
+                    <React.Fragment key={purchase_history.id}>
                       <tr
                         className="border-b hover:shadow-md cursor-pointer"
                         onClick={(e) => {
@@ -266,39 +297,114 @@ export default function PurchaseHistoryPage() {
                             onClick={(e) => {
                               e.stopPropagation();
                             }}
+                            className="relative w-[fit-content]"
                           >
+                            {
+                              // Loading status appears only on the current purchase history item
+                              statusUpdateLoading.find(
+                                (value) =>
+                                  value.purchaseId === purchase_history.id
+                              )?.isLoading && (
+                                <div className="absolute flex justify-center items-center py-2 px-3 top-0 left-0 w-full h-full bg-gray-50 rounded-lg z-50 bg-opacity-50">
+                                  <AiOutlineLoading3Quarters className="animate-spin flex justify-center text-2xl" />
+                                </div>
+                              )
+                            }
                             <select
-                              value={purchaseList[
-                                index
-                              ].payment_status.toLowerCase()} // Use purchaseList[index] instead of purchase_history
+                              value={
+                                purchaseList
+                                  .find(
+                                    (purchase) =>
+                                      purchase.id === purchase_history.id
+                                  )
+                                  ?.payment_status.toLowerCase() ?? 'unpaid'
+                              }
                               disabled={
                                 loading || user?.role.toLowerCase() !== 'owner'
                               }
-                              id={`purchase_history_${index}`} // Use a unique ID for each select element
-                              name={`purchase_history_${index}`} // Use a unique name for each select element
+                              id={`${purchase_history.id}`} // Use a unique ID for each select element
+                              name={`${purchase_history.id}`} // Use a unique name for each select element
                               onChange={(e) => {
                                 e.stopPropagation();
-                                const newPurchaseList = [...purchaseList];
-                                newPurchaseList[index].payment_status =
-                                  e.target.value;
-                                setPurchaseList(newPurchaseList);
-
                                 // Update the data in firebase for the specific purchase_history item
-                                const theId = purchaseList[index].id;
-                                if (!theId) return;
+                                const theId = purchase_history.id;
+                                if (!theId) {
+                                  failNotify(
+                                    'Terjadi kesalahan saat mengubah status pembayaran - ID tidak ditemukan'
+                                  );
+                                  return;
+                                }
                                 const purchaseRef = doc(
                                   db,
                                   'purchase_history',
                                   theId
                                 );
+                                const newPaymentStatus = e.target.value;
+                                setStatusUpdateLoading((prev) => {
+                                  const filtered = prev.filter(
+                                    (value) => value.purchaseId !== theId
+                                  );
+                                  return [
+                                    ...filtered,
+                                    {
+                                      isLoading: true,
+                                      purchaseId: theId,
+                                    },
+                                  ];
+                                });
                                 updateDoc(purchaseRef, {
-                                  payment_status: e.target.value,
-                                }).catch((error) => console.log(error));
+                                  payment_status: newPaymentStatus,
+                                })
+                                  .then(() => {
+                                    const updatedPurchaseHistory =
+                                      purchaseList.find(
+                                        (purchase) =>
+                                          purchase.id === purchase_history.id
+                                      );
+                                    if (!updatedPurchaseHistory)
+                                      throw 'Riwayat pembelian tidak ditemukan';
+
+                                    setPurchaseList((prev) => {
+                                      const filtered = prev.filter(
+                                        (purchase) =>
+                                          purchase.id !== purchase_history.id
+                                      );
+                                      return [
+                                        ...filtered,
+                                        {
+                                          ...updatedPurchaseHistory,
+                                          payment_status: newPaymentStatus,
+                                        },
+                                      ];
+                                    });
+                                    setStatusUpdateLoading((prev) => {
+                                      const filtered = prev.filter(
+                                        (value) => value.purchaseId !== theId
+                                      );
+                                      return [...filtered];
+                                    });
+                                    successNotify();
+                                  })
+                                  .catch((error) => {
+                                    failNotify(
+                                      'Terjadi kesalahan saat mengubah status pembayaran - ' +
+                                        error
+                                    );
+                                    setStatusUpdateLoading((prev) => {
+                                      const filtered = prev.filter(
+                                        (value) => value.purchaseId !== theId
+                                      );
+                                      return [...filtered];
+                                    });
+                                  });
                               }}
                               className={` ${
-                                purchaseList[
-                                  index
-                                ].payment_status.toLowerCase() === 'unpaid'
+                                purchaseList
+                                  .find(
+                                    (purchase) =>
+                                      purchase.id === purchase_history.id
+                                  )
+                                  ?.payment_status.toLowerCase() === 'unpaid'
                                   ? 'bg-red-400'
                                   : 'bg-green-400'
                               } border border-gray-300 text-gray-900 text-sm rounded-lg outline-none block w-fit p-2.5`}
