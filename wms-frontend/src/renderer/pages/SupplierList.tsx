@@ -127,9 +127,13 @@ export default function SupplierList() {
             <table className="w-full text-sm text-left text-gray-500">
               <TableHeader>
                 <th className=" py-3">Nama Perusahaan</th>
-                <th className=" py-3">Alamat</th>
-                <th className=" py-3">Telefon</th>
-                <th className=" py-3">Bank</th>
+                {user?.role.toLowerCase() === 'owner' && (
+                  <>
+                    <th className=" py-3">Alamat</th>
+                    <th className=" py-3">Telefon</th>
+                    <th className=" py-3">Bank</th>
+                  </>
+                )}
                 <th className=" py-3"></th>
               </TableHeader>
               <tbody className="overflow-y-auto">
@@ -166,41 +170,47 @@ export default function SupplierList() {
                         <SingleTableItem>
                           {supplier.company_name}{' '}
                         </SingleTableItem>
+                        {user?.role.toLowerCase() === 'owner' && (
+                          <>
+                            <SingleTableItem>
+                              {supplier.address}, {supplier.city}
+                            </SingleTableItem>
+                            <SingleTableItem>
+                              <span className="font-medium text-md">
+                                {supplier.phone_number}
+                                <br />
+                                <span className="text-sm font-normal text-gray-500">
+                                  {'a.n. ' + supplier.contact_person}
+                                </span>
+                              </span>
+                            </SingleTableItem>
+                            <SingleTableItem>
+                              <span className="font-medium text-md">
+                                {supplier.bank_number}
+                                <br />
+                                <span className="text-sm font-normal text-gray-500">
+                                  {'a.n. ' + supplier.bank_owner}
+                                </span>
+                              </span>
+                            </SingleTableItem>
+                          </>
+                        )}
                         <SingleTableItem>
-                          {supplier.address}, {supplier.city}
-                        </SingleTableItem>
-                        <SingleTableItem>
-                          <span className="font-medium text-md">
-                            {supplier.phone_number}
-                            <br />
-                            <span className="text-sm font-normal text-gray-500">
-                              {'a.n. ' + supplier.contact_person}
-                            </span>
-                          </span>
-                        </SingleTableItem>
-                        <SingleTableItem>
-                          <span className="font-medium text-md">
-                            {supplier.bank_number}
-                            <br />
-                            <span className="text-sm font-normal text-gray-500">
-                              {'a.n. ' + supplier.bank_owner}
-                            </span>
-                          </span>
-                        </SingleTableItem>
-                        <SingleTableItem>
-                          <button
-                            type="button"
-                            className="text-gray-500 p-2 hover:text-gray-700 cursor-pointer bg-gray-100 rounded-md"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              supplier.id &&
-                                navigate(
-                                  '/supplier-list/report/' + supplier.id
-                                );
-                            }}
-                          >
-                            Riwayat Pembelian
-                          </button>
+                          <div className="w-full flex justify-end pr-5">
+                            <button
+                              type="button"
+                              className="text-gray-500 p-2 hover:text-gray-700 cursor-pointer bg-gray-100 rounded-md"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                supplier.id &&
+                                  navigate(
+                                    '/supplier-list/report/' + supplier.id
+                                  );
+                              }}
+                            >
+                              Riwayat Pembelian
+                            </button>
+                          </div>
                         </SingleTableItem>
                       </tr>
                     ))}
