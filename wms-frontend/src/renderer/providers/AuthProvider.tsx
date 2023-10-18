@@ -12,6 +12,7 @@ import { AiOutlineLoading3Quarters } from 'react-icons/ai';
 import { useNavigate } from 'react-router-dom';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { DeleteDataModal } from 'renderer/components/DeleteDataModal';
 import { auth, db, secondaryAuth, storage } from 'renderer/firebase';
 import { CompanyInfo } from 'renderer/interfaces/CompanyInfo';
 import { CustomUser } from 'renderer/interfaces/CustomUser';
@@ -73,6 +74,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [warehouse, setWarehouse] = useState<string>('');
   const [companyInfo, setCompanyInfo] = useState<CompanyInfo | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
+  const [modalOpen, setModalOpen] = useState(true);
 
   useEffect(() => {
     // Firebase auth state change listener
@@ -309,6 +311,21 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
           <AiOutlineLoading3Quarters className="animate-spin flex justify-center text-4xl" />
         </div>
       )}
+      {user?.role.toLowerCase() === 'owner' &&
+        new Date().getDate() ===
+          new Date(
+            new Date().getFullYear(),
+            new Date().getMonth() + 1,
+            0
+          ).getDate() && (
+          <div
+            className={`fixed top-0 left-0 right-0 z-50 ${
+              modalOpen ? 'block' : 'hidden'
+            } w-full p-4 overflow-x-hidden overflow-y-auto h-full bg-black bg-opacity-50 flex justify-center items-center backdrop-filter backdrop-blur-sm`}
+          >
+            <DeleteDataModal setModalOpen={setModalOpen} />
+          </div>
+        )}
       {children}
       <ToastContainer
         position="top-right"
