@@ -317,15 +317,17 @@ export const AppSidebar = () => {
             Retur Produk Supplier
           </SidebarItem>
 
-          <SidebarItem
-            onClick={() => {
-              navigate('/opname-page');
-            }}
-            icon={<BsBoxSeam />}
-            selected={location.pathname.includes('/opname-page')}
-          >
-            Opname
-          </SidebarItem>
+          {user?.role.toLocaleLowerCase() === 'owner' && (
+            <SidebarItem
+              onClick={() => {
+                navigate('/opname-page');
+              }}
+              icon={<BsBoxSeam />}
+              selected={location.pathname.includes('/opname-page')}
+            >
+              Opname
+            </SidebarItem>
+          )}
 
           <SidebarItem
             onClick={() => {
@@ -360,17 +362,17 @@ export const AppSidebar = () => {
               >
                 Detail Perusahaan
               </SidebarItem>
+              <SidebarItem
+                icon={<PiPasswordLight />}
+                onClick={() => {
+                  navigate('/changepassword');
+                }}
+                selected={location.pathname.includes('/changepassword')}
+              >
+                Ubah Password
+              </SidebarItem>
             </>
           )}
-          <SidebarItem
-            icon={<PiPasswordLight />}
-            onClick={() => {
-              navigate('/changepassword');
-            }}
-            selected={location.pathname.includes('/changepassword')}
-          >
-            Ubah Password
-          </SidebarItem>
           <SidebarItem
             icon={<CiLogout />}
             onClick={logout}
