@@ -363,6 +363,7 @@ export const ManageProductPage = () => {
               <ProductPdf
                 products={downloadedProducts}
                 companyInfo={companyInfo}
+                warehousePosition={warehousePosition}
               />
             </PDFViewer>
           </div>
