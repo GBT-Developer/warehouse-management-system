@@ -20,7 +20,7 @@ export interface InvoiceProps {
 const styles = StyleSheet.create({
   page: {
     fontFamily: 'Helvetica',
-    fontSize: 11,
+    fontSize: 9,
     paddingTop: 55,
     paddingBottom: 90,
     paddingHorizontal: 55,
@@ -30,24 +30,24 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   logo: {
-    width: 150,
+    width: 125,
     padding: 2,
   },
 });
 
 const Invoice = ({ invoice, companyInfo, destinationName }: InvoiceProps) => (
   <Document title={`Invoice ${invoice.id ?? ''}`}>
-    <Page size="A4" style={styles.page}>
+    <Page size="B5" style={styles.page}>
       <View>
         <View>
           <Text
             style={{
               textAlign: 'left',
-              fontSize: 32,
+              fontSize: 16,
               fontWeight: 900,
             }}
           >
-            Invoice
+            INVOICE
           </Text>
         </View>
 
