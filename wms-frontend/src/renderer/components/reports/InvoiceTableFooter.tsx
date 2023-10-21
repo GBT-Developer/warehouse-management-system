@@ -8,7 +8,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     height: 'auto',
     fontWeight: 'extrabold',
-    fontSize: 13,
+    fontSize: 11,
   },
   description: {
     width: '80%',

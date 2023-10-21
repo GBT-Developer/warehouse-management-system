@@ -9,15 +9,16 @@ import {
 import { CompanyInfo } from 'renderer/interfaces/CompanyInfo';
 import { Product } from 'renderer/interfaces/Product';
 
-export interface ProductPdf {
+export interface ProductPdfProps {
   products: Product[];
   companyInfo: CompanyInfo | null;
+  warehousePosition: string;
 }
 
 const styles = StyleSheet.create({
   page: {
     fontFamily: 'Helvetica',
-    fontSize: 11,
+    fontSize: 9,
     paddingTop: 55,
     paddingBottom: 90,
     paddingHorizontal: 55,
@@ -27,7 +28,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   logo: {
-    width: 150,
+    width: 125,
     padding: 2,
   },
   tableContainer: {
@@ -80,25 +81,32 @@ const styles = StyleSheet.create({
   },
 });
 
-export const ProductPdf = ({ products, companyInfo }: ProductPdf) => (
+export const ProductPdf = ({
+  products,
+  companyInfo,
+  warehousePosition,
+}: ProductPdfProps) => (
   <Document
-    title={`Stok Produk ${new Date().toLocaleDateString('id-ID', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-    })}`}
+    title={`Stok Produk ${warehousePosition} - ${new Date().toLocaleDateString(
+      'id-ID',
+      {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+      }
+    )}`}
   >
-    <Page size="A4" style={styles.page}>
+    <Page size="B5" style={styles.page}>
       <View>
         <View>
           <Text
             style={{
               textAlign: 'left',
-              fontSize: 32,
+              fontSize: 16,
               fontWeight: 900,
             }}
           >
-            Stok Produk
+            STOK PRODUK
           </Text>
         </View>
         <View
@@ -169,6 +177,7 @@ export const ProductPdf = ({ products, companyInfo }: ProductPdf) => (
               gap: 10,
             }}
           >
+            <Text>Posisi Gudang: {warehousePosition}</Text>
             <Text>
               Tanggal:{' '}
               {new Date().toLocaleDateString('id-ID', {

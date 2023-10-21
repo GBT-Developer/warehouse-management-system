@@ -22,7 +22,7 @@ export interface DispatchProps {
 const styles = StyleSheet.create({
   page: {
     fontFamily: 'Helvetica',
-    fontSize: 11,
+    fontSize: 9,
     paddingTop: 55,
     paddingBottom: 90,
     paddingHorizontal: 55,
@@ -32,7 +32,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   logo: {
-    width: 150,
+    width: 125,
     padding: 2,
   },
 });
@@ -44,17 +44,17 @@ const DispatchNotePdf = ({
   destinationName,
 }: DispatchProps) => (
   <Document title={`Surat Jalan ${theDispatchNote?.id ?? ''}`}>
-    <Page size="A4" style={styles.page}>
+    <Page size="B5" style={styles.page}>
       <View>
         <View>
           <Text
             style={{
               textAlign: 'left',
-              fontSize: 24,
+              fontSize: 16,
               fontWeight: 900,
             }}
           >
-            Surat Jalan
+            SURAT JALAN
           </Text>
         </View>
 
