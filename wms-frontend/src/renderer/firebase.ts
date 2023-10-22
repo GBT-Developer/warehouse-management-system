@@ -11,7 +11,6 @@ const firebaseConfig = {
   storageBucket: window.process.env.FIREBASE_STORAGE_BUCKET,
   messagingSenderId: window.process.env.FIREBASE_MESSAGING_SENDER_ID,
   appId: window.process.env.FIREBASE_APP_ID,
-  measurementId: window.process.env.FIREBASE_MEASUREMENT_ID,
 };
 
 const stagingFirebaseConfig = {
