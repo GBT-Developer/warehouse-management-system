@@ -196,19 +196,20 @@ export default function ReturnPage() {
     else if (mode === 'return') {
       // Decrease the count of the item in the invoice
       // If count is 0, delete the item from the invoice
+      console.log('return');
       selectedItems.forEach((selectedItem) => {
         const itemInInvoice = invoice.items?.find(
           (item) => item.id === selectedItem.id
         );
-        if (itemInInvoice?.count === selectedItem.count)
+        if (itemInInvoice?.count === selectedItem.count) {
           // Delete the item
           invoice.items?.splice(
             invoice.items.findIndex((item) => item.id === selectedItem.id),
             1
           );
-        // Decrease the count
-        else if (itemInInvoice?.count)
+        } else if (itemInInvoice?.count) {
           itemInInvoice.count -= selectedItem.count;
+        }
       });
 
       const originalTotalPrice = invoice.total_price;
@@ -228,12 +229,16 @@ export default function ReturnPage() {
         const itemIndex = invoice.items?.findIndex(
           (item) => item.id === selectedItem.id
         );
-        if (itemIndex === -1 || itemIndex === undefined)
+        if (itemIndex === -1 || itemIndex === undefined) {
           invoice.items?.push(selectedItem);
-        else if (invoice.items)
+        } else if (invoice.items && invoice.items[itemIndex].is_returned) {
           invoice.items[itemIndex].count =
-            invoice.items[itemIndex].count - selectedItem.count;
+            invoice.items[itemIndex].count + selectedItem.count;
+        } else {
+          invoice.items?.push(selectedItem);
+        }
       });
+      console.log(invoice.items);
 
       // Update the invoice
       await runTransaction(db, (transaction) => {
@@ -673,7 +678,7 @@ export default function ReturnPage() {
                         (mode === 'return' || mode === 'exchange') && (
                           <div className="w-1/5">
                             <input
-                              disabled={loading || mode === 'return'}
+                              disabled={loading}
                               id={'amount'}
                               name={'amount'}
                               type="number"
@@ -681,22 +686,25 @@ export default function ReturnPage() {
                             "
                               value={
                                 // If mode is return, set the amount to the original amount
-                                mode === 'return'
-                                  ? item.count
-                                  : selectedItems.find(
-                                      (selectedItem) =>
-                                        selectedItem.id === item.id
-                                    )?.count
+                                selectedItems
+                                  .find(
+                                    (selectedItem) =>
+                                      selectedItem.id === item.id
+                                  )
+                                  ?.count.toString() ?? ''
                               }
                               onChange={(e) => {
-                                const newAmount = e.target.value;
+                                let newAmount = e.target.value;
+                                console.log(newAmount);
                                 // If amount is not a number > 0, set it to 1
                                 if (
                                   isNaN(parseInt(newAmount)) ||
-                                  parseInt(newAmount) <= 0
+                                  parseInt(newAmount) <= 0 ||
+                                  newAmount === ''
                                 ) {
-                                  e.target.value = '1';
-                                  return;
+                                  e.target.value = '0';
+                                  newAmount = '0';
+                                  console.log(e.target.value);
                                 }
                                 if (
                                   parseInt(newAmount) <=
@@ -710,6 +718,7 @@ export default function ReturnPage() {
                                         selectedItem.id === item.id
                                     );
                                   if (selectedItemIndex !== -1) {
+                                    console.log(newSelectedItems);
                                     newSelectedItems[selectedItemIndex] = {
                                       ...newSelectedItems[selectedItemIndex],
                                       count: Number(newAmount),
