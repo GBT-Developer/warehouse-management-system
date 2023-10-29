@@ -200,15 +200,15 @@ export default function ReturnPage() {
         const itemInInvoice = invoice.items?.find(
           (item) => item.id === selectedItem.id
         );
-        if (itemInInvoice?.count === selectedItem.count)
+        if (itemInInvoice?.count === selectedItem.count) {
           // Delete the item
           invoice.items?.splice(
             invoice.items.findIndex((item) => item.id === selectedItem.id),
             1
           );
-        // Decrease the count
-        else if (itemInInvoice?.count)
+        } else if (itemInInvoice?.count) {
           itemInInvoice.count -= selectedItem.count;
+        }
       });
 
       const originalTotalPrice = invoice.total_price;
@@ -225,14 +225,27 @@ export default function ReturnPage() {
       // But if the item is already in the invoice, just increase the count
       selectedItems.forEach((selectedItem) => {
         selectedItem.is_returned = true;
+        const filteredItems = invoice.items?.filter(
+          (item) => item.id === selectedItem.id
+        );
+        const productIsOnceReturnedIndex = filteredItems?.findIndex(
+          (item) => item.id === selectedItem.id && item.is_returned
+        );
         const itemIndex = invoice.items?.findIndex(
           (item) => item.id === selectedItem.id
         );
-        if (itemIndex === -1 || itemIndex === undefined)
+        let chosenIndex =
+          productIsOnceReturnedIndex && productIsOnceReturnedIndex !== -1
+            ? productIsOnceReturnedIndex
+            : itemIndex;
+        if (chosenIndex === -1 || chosenIndex === undefined) {
           invoice.items?.push(selectedItem);
-        else if (invoice.items)
-          invoice.items[itemIndex].count =
-            invoice.items[itemIndex].count - selectedItem.count;
+        } else if (invoice.items && invoice.items[chosenIndex].is_returned) {
+          invoice.items[chosenIndex].count =
+            invoice.items[chosenIndex].count + selectedItem.count;
+        } else {
+          invoice.items?.push(selectedItem);
+        }
       });
 
       // Update the invoice
@@ -673,7 +686,7 @@ export default function ReturnPage() {
                         (mode === 'return' || mode === 'exchange') && (
                           <div className="w-1/5">
                             <input
-                              disabled={loading || mode === 'return'}
+                              disabled={loading}
                               id={'amount'}
                               name={'amount'}
                               type="number"
@@ -681,22 +694,23 @@ export default function ReturnPage() {
                             "
                               value={
                                 // If mode is return, set the amount to the original amount
-                                mode === 'return'
-                                  ? item.count
-                                  : selectedItems.find(
-                                      (selectedItem) =>
-                                        selectedItem.id === item.id
-                                    )?.count
+                                selectedItems
+                                  .find(
+                                    (selectedItem) =>
+                                      selectedItem.id === item.id
+                                  )
+                                  ?.count.toString() ?? ''
                               }
                               onChange={(e) => {
-                                const newAmount = e.target.value;
+                                let newAmount = e.target.value;
                                 // If amount is not a number > 0, set it to 1
                                 if (
                                   isNaN(parseInt(newAmount)) ||
-                                  parseInt(newAmount) <= 0
+                                  parseInt(newAmount) <= 0 ||
+                                  newAmount === ''
                                 ) {
-                                  e.target.value = '1';
-                                  return;
+                                  e.target.value = '0';
+                                  newAmount = '0';
                                 }
                                 if (
                                   parseInt(newAmount) <=
