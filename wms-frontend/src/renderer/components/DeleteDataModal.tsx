@@ -1,3 +1,4 @@
+import { format } from 'date-fns';
 import { FirebaseError } from 'firebase/app';
 import {
   collection,
@@ -18,7 +19,6 @@ export const DeleteDataModal = ({
   setModalOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }) => {
   // Get current month on the current local time
-  const currentMonth = new Date().setDate(1);
   const toBeDeletedMonth = new Date().setMonth(new Date().getMonth() - 1, 1);
   const [loading, setLoading] = useState(false);
   const successNotify = () =>
@@ -55,17 +55,23 @@ export const DeleteDataModal = ({
         new Date(toBeDeletedMonth).getFullYear(),
         new Date(toBeDeletedMonth).getMonth(),
         1
-      ).toString();
+      );
       const lastDayOfToBeDeletedMonth = new Date(
         new Date(toBeDeletedMonth).getFullYear(),
         new Date(toBeDeletedMonth).getMonth() + 1,
         0
-      ).toString();
+      );
+
+      const formatedFirstDate = format(
+        firstDayOfToBeDeletedMonth,
+        'yyyy-MM-dd'
+      );
+      const formatedLastDate = format(lastDayOfToBeDeletedMonth, 'yyyy-MM-dd');
 
       const stockHistoryQuery = query(
         stockHistoryRef,
-        where('created_at', '>=', firstDayOfToBeDeletedMonth),
-        where('created_at', '<=', lastDayOfToBeDeletedMonth)
+        where('created_at', '>=', formatedFirstDate),
+        where('created_at', '<=', formatedLastDate)
       );
       const toBeDeletedStockHistory = await getDocs(stockHistoryQuery).catch(
         (error: FirebaseError) => {
@@ -78,8 +84,8 @@ export const DeleteDataModal = ({
 
       const voidInvoiceQuery = query(
         voidRef,
-        where('date', '>=', firstDayOfToBeDeletedMonth),
-        where('date', '<=', lastDayOfToBeDeletedMonth)
+        where('date', '>=', formatedFirstDate),
+        where('date', '<=', formatedLastDate)
       );
       const toBeDeletedVoidInvoice = await getDocs(voidInvoiceQuery).catch(
         (error: FirebaseError) => {
@@ -92,8 +98,8 @@ export const DeleteDataModal = ({
 
       const invoiceQuery = query(
         invoiceRef,
-        where('date', '>=', firstDayOfToBeDeletedMonth),
-        where('date', '<=', lastDayOfToBeDeletedMonth)
+        where('date', '>=', formatedFirstDate),
+        where('date', '<=', formatedLastDate)
       );
       const toBeDeletedInvoice = await getDocs(invoiceQuery).catch(
         (error: FirebaseError) => {
