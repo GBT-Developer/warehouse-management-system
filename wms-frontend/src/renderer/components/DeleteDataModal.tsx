@@ -17,8 +17,9 @@ export const DeleteDataModal = ({
 }: {
   setModalOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }) => {
-  const currentMonth = new Date().getMonth();
-  const toBeDeletedMonth = new Date().setMonth(currentMonth - 1);
+  // Get current month on the current local time
+  const currentMonth = new Date().setDate(1);
+  const toBeDeletedMonth = new Date().setMonth(new Date().getMonth() - 1, 1);
   const [loading, setLoading] = useState(false);
   const successNotify = () =>
     toast.success('Data berhasil dihapus', {
