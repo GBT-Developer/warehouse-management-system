@@ -1,5 +1,11 @@
 import { collection, getDocs, query } from '@firebase/firestore';
-import { addDoc, and, or, where } from 'firebase/firestore';
+import {
+  QueryFieldFilterConstraint,
+  addDoc,
+  and,
+  orderBy,
+  where,
+} from 'firebase/firestore';
 import { FormEvent, useEffect, useState } from 'react';
 import { AiOutlineLoading3Quarters } from 'react-icons/ai';
 import { IoRemoveCircleOutline } from 'react-icons/io5';
@@ -8,11 +14,15 @@ import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { InputField } from 'renderer/components/InputField';
 import { SingleTableItem } from 'renderer/components/TableComponents/SingleTableItem';
-import { TableModal } from 'renderer/components/TableComponents/TableModal';
+import {
+  SearchProps,
+  TableModal,
+} from 'renderer/components/TableComponents/TableModal';
 import { db } from 'renderer/firebase';
 import { Customer } from 'renderer/interfaces/Customer';
 import { Product } from 'renderer/interfaces/Product';
 import { PageLayout } from 'renderer/layout/PageLayout';
+import { useAuth } from 'renderer/providers/AuthProvider';
 
 const newCustomerInitialState = {
   name: '',
@@ -31,6 +41,7 @@ function InputCustomerPage() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [selectedProducts, setSelectedProducts] = useState<Product[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
+  const { warehousePosition } = useAuth();
   const successNotify = () =>
     toast.success('Customer baru berhasil ditambahkan', {
       position: 'top-right',
@@ -122,34 +133,28 @@ function InputCustomerPage() {
       });
   }
 
-  const handleSearch = async (search: string) => {
+  const handleSearch = async (search: SearchProps) => {
+    const whereClause: QueryFieldFilterConstraint[] = [];
+
+    if (search.motor_type !== '')
+      whereClause.push(where('motor_type', '==', search.motor_type));
+    if (search.part !== '') whereClause.push(where('part', '==', search.part));
+    if (search.color !== '')
+      whereClause.push(where('available_color', '==', search.color));
+
     const productsQuery = query(
       collection(db, 'product'),
-      or(
-        // Query as-is:
-        and(
-          where('brand', '>=', search),
-          where('brand', '<=', search + '\uf8ff')
-        ),
-        // Capitalize first letter:
-        and(
-          where(
-            'brand',
-            '>=',
-            search.charAt(0).toUpperCase() + search.slice(1)
-          ),
-          where(
-            'brand',
-            '<=',
-            search.charAt(0).toUpperCase() + search.slice(1) + '\uf8ff'
-          )
-        ),
-        // Lowercase:
-        and(
-          where('brand', '>=', search.toLowerCase()),
-          where('brand', '<=', search.toLowerCase() + '\uf8ff')
-        )
-      )
+      and(
+        warehousePosition !== 'Semua Gudang'
+          ? where('warehouse_position', '==', warehousePosition)
+          : where('warehouse_position', 'in', ['Gudang Bahan', 'Gudang Jadi']),
+        ...whereClause,
+        where('count', '>', 0)
+      ),
+      orderBy('count', 'desc'),
+      orderBy('brand', 'asc'),
+      orderBy('motor_type', 'asc'),
+      orderBy('part', 'asc')
     );
     const querySnapshot = await getDocs(productsQuery);
 
@@ -326,10 +331,12 @@ function InputCustomerPage() {
         )}
       </form>
       <TableModal
-        placeholder="Cari berdasarkan merek produk"
+        motor_type_placeholder="Tipe motor"
+        part_placeholder="Part motor"
+        color_placeholder="Warna produk"
         modalOpen={modalOpen}
-        handleSearch={handleSearch}
         setModalOpen={setModalOpen}
+        handleSearch={handleSearch}
         title={'Pilih Produk'}
         headerList={
           products.length > 0
