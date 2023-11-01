@@ -1,12 +1,13 @@
 import { format } from 'date-fns';
 import {
   FieldValue,
+  QueryFieldFilterConstraint,
   and,
   collection,
   doc,
   getDocs,
   increment,
-  or,
+  orderBy,
   query,
   runTransaction,
   where,
@@ -20,7 +21,10 @@ import 'react-toastify/dist/ReactToastify.css';
 import { InputField } from 'renderer/components/InputField';
 import { PdfViewer } from 'renderer/components/PdfViewer';
 import { SingleTableItem } from 'renderer/components/TableComponents/SingleTableItem';
-import { TableModal } from 'renderer/components/TableComponents/TableModal';
+import {
+  SearchProps,
+  TableModal,
+} from 'renderer/components/TableComponents/TableModal';
 import { db } from 'renderer/firebase';
 import { Customer } from 'renderer/interfaces/Customer';
 import { Invoice } from 'renderer/interfaces/Invoice';
@@ -257,39 +261,28 @@ export const TransactionPage = () => {
     }
   };
 
-  const handleSearch = async (search: string) => {
+  const handleSearch = async (search: SearchProps) => {
+    const whereClause: QueryFieldFilterConstraint[] = [];
+
+    if (search.motor_type !== '')
+      whereClause.push(where('motor_type', '==', search.motor_type));
+    if (search.part !== '') whereClause.push(where('part', '==', search.part));
+    if (search.color !== '')
+      whereClause.push(where('available_color', '==', search.color));
+
     const productsQuery = query(
       collection(db, 'product'),
       and(
-        or(
-          // Query as-is:
-          and(
-            where('brand', '>=', search),
-            where('brand', '<=', search + '\uf8ff')
-          ),
-          // Capitalize first letter:
-          and(
-            where(
-              'brand',
-              '>=',
-              search.charAt(0).toUpperCase() + search.slice(1)
-            ),
-            where(
-              'brand',
-              '<=',
-              search.charAt(0).toUpperCase() + search.slice(1) + '\uf8ff'
-            )
-          ),
-          // Lowercase:
-          and(
-            where('brand', '>=', search.toLowerCase()),
-            where('brand', '<=', search.toLowerCase() + '\uf8ff')
-          )
-        ),
         warehousePosition !== 'Semua Gudang'
           ? where('warehouse_position', '==', warehousePosition)
-          : where('warehouse_position', 'in', ['Gudang Bahan', 'Gudang Jadi'])
-      )
+          : where('warehouse_position', 'in', ['Gudang Bahan', 'Gudang Jadi']),
+        ...whereClause,
+        where('count', '>', 0)
+      ),
+      orderBy('count', 'desc'),
+      orderBy('brand', 'asc'),
+      orderBy('motor_type', 'asc'),
+      orderBy('part', 'asc')
     );
     const querySnapshot = await getDocs(productsQuery);
     const products: Product[] = [];
@@ -566,7 +559,9 @@ export const TransactionPage = () => {
         />
       )}
       <TableModal
-        placeholder="Cari berdasarkan merek produk"
+        motor_type_placeholder="Tipe motor"
+        part_placeholder="Part motor"
+        color_placeholder="Warna produk"
         modalOpen={modalOpen}
         setModalOpen={setModalOpen}
         handleSearch={handleSearch}
