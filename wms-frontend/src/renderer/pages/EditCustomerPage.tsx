@@ -360,33 +360,45 @@ function EditCustomerPage() {
               className="border-b hover:shadow-md cursor-pointer"
               onClick={() => {
                 if (
-                  !selectedProducts.some(
+                  !selectedProducts.find(
                     (sp) => sp.product_id === product.product_id
                   )
                 ) {
-                  setSelectedProducts([...selectedProducts, product]);
-                  if (product.id)
-                    newCustomer.SpecialPrice = [
-                      ...newCustomer.SpecialPrice,
-                      product,
-                    ];
+                  setSelectedProducts(() => {
+                    return [...selectedProducts, product];
+                  });
+                  if (product.product_id) {
+                    setNewCustomer((cust) => {
+                      return {
+                        ...cust,
+                        SpecialPrice: [...cust.SpecialPrice, product],
+                      };
+                    });
+                  }
                 } else {
                   setSelectedProducts(
                     selectedProducts.filter((p) => p !== product)
                   );
                   if (product.id)
-                    newCustomer.SpecialPrice = newCustomer.SpecialPrice.filter(
-                      (sp) => sp.product_id !== product.id
-                    );
+                    setNewCustomer((cust) => {
+                      return {
+                        ...cust,
+                        SpecialPrice: cust.SpecialPrice.filter(
+                          (sp) => sp.product_id !== product.id
+                        ),
+                      };
+                    });
                 }
               }}
             >
               <SingleTableItem>
                 <input
                   type="checkbox"
-                  checked={selectedProducts.some(
-                    (sp) => sp.product_id === product.product_id
-                  )}
+                  checked={
+                    selectedProducts.find(
+                      (sp) => sp.product_id === product.product_id
+                    ) !== undefined
+                  }
                 />
               </SingleTableItem>
               <SingleTableItem key={index}>
