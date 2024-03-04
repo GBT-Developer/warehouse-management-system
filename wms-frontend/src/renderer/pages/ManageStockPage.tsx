@@ -191,20 +191,29 @@ export const ManageStockPage = () => {
         setErrorMessage('Terjadi kesalahan saat mengambil data supplier');
       });
     }
+
     if (warehousePosition === 'Gudang Bahan') {
       setSelectedWarehouse('Gudang Bahan');
     } else if (warehousePosition === 'Gudang Jadi') {
       setSelectedWarehouse('Gudang Jadi');
     }
+
     const fetchProductList = async (
-      supplier_id: string,
-      the_warehouse: string
+      the_warehouse: string,
+      supplier_id?: string
     ) => {
-      const productQuery = query(
-        collection(db, 'product'),
-        where('supplier', '==', supplier_id),
-        where('warehouse_position', '==', the_warehouse)
-      );
+      const productQuery =
+        supplier_id !== undefined && supplier_id !== ''
+          ? query(
+              collection(db, 'product'),
+              where('supplier', '==', supplier_id),
+              where('warehouse_position', '==', the_warehouse)
+            )
+          : query(
+              collection(db, 'product'),
+              where('warehouse_position', '==', the_warehouse)
+            );
+
       const res = await getDocs(productQuery);
       const productList: Product[] = [];
 
@@ -221,10 +230,12 @@ export const ManageStockPage = () => {
       setProducts(productList);
     };
 
-    if (selectedSupplier?.id && selectedWarehouse)
-      fetchProductList(selectedSupplier.id, selectedWarehouse).catch(() => {
-        setErrorMessage('Terjadi kesalahan saat mengambil data produk');
-      });
+    if (selectedWarehouse)
+      fetchProductList(selectedWarehouse, selectedSupplier?.id ?? '').catch(
+        () => {
+          setErrorMessage('Terjadi kesalahan saat mengambil data produk');
+        }
+      );
 
     setLoading(false);
   }, [manageStockMode, selectedSupplier, selectedWarehouse]);
@@ -704,7 +715,8 @@ export const ManageStockPage = () => {
             <div className="flex justify-between">
               <div className="w-1/3 flex items-center">
                 <label htmlFor={'supplier-id'} className="text-md">
-                  Pilih Supplier
+                  Pilih Supplier{' '}
+                  {manageStockMode === 'force-change' ? '(Opsional)' : ''}
                 </label>
               </div>
               <div className="w-2/3">
@@ -724,7 +736,10 @@ export const ManageStockPage = () => {
                   }}
                   className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
                 >
-                  <option value={''} disabled>
+                  <option
+                    value={''}
+                    disabled={manageStockMode !== 'force-change'}
+                  >
                     Pilih Supplier
                   </option>
                   {supplierList.map((supplier) => (
