@@ -140,6 +140,20 @@ export const ManageStockPage = () => {
             return;
           }
         });
+    } else if (manageStockMode === 'force-change') {
+      if (newPurchase.products.length === 0 || !selectedWarehouse) {
+        setIsEmpty(true);
+        return;
+      } else if (newPurchase.products.length > 0)
+        newPurchase.products.map((product) => {
+          if (product.quantity === 0 || !product.quantity) {
+            setIsEmpty(true);
+            return;
+          } else {
+            setIsEmpty(false);
+            return;
+          }
+        });
     } else if (
       selectedSupplier === null ||
       newPurchase.products.length === 0 ||
@@ -147,7 +161,7 @@ export const ManageStockPage = () => {
     ) {
       setIsEmpty(true);
       return;
-    } else if (newPurchase.products.length > 0)
+    } else if (newPurchase.products.length > 0) {
       newPurchase.products.map((product) => {
         if (product.quantity === 0 || !product.quantity.toString()) {
           setIsEmpty(true);
@@ -157,6 +171,7 @@ export const ManageStockPage = () => {
           return;
         }
       });
+    }
   }, [
     newPurchase,
     manageStockMode,
@@ -202,8 +217,15 @@ export const ManageStockPage = () => {
       the_warehouse: string,
       supplier_id?: string
     ) => {
+      if (
+        manageStockMode === 'purchase' &&
+        (supplier_id === '' || supplier_id === undefined)
+      )
+        return;
       const productQuery =
-        supplier_id !== undefined && supplier_id !== ''
+        supplier_id !== undefined &&
+        supplier_id !== '' &&
+        manageStockMode === 'purchase'
           ? query(
               collection(db, 'product'),
               where('supplier', '==', supplier_id),
@@ -252,8 +274,7 @@ export const ManageStockPage = () => {
       selectedWarehouse === '' ||
       ((manageStockMode === 'purchase' || manageStockMode === 'force-change') &&
         newPurchase.products.length === 0) ||
-      ((manageStockMode === 'purchase' || manageStockMode === 'force-change') &&
-        selectedSupplier === null) ||
+      (manageStockMode === 'purchase' && selectedSupplier === null) ||
       ((manageStockMode === 'purchase' || manageStockMode === 'force-change') &&
         newPurchase.purchase_price === 0 &&
         manageStockMode != 'force-change' &&
@@ -275,13 +296,22 @@ export const ManageStockPage = () => {
 
     if (manageStockMode === 'purchase' || manageStockMode === 'force-change')
       await runTransaction(db, async (transaction) => {
-        if (newPurchase.products.length === 0 || selectedSupplier === null)
+        if (
+          newPurchase.products.length === 0 ||
+          (selectedSupplier === null && manageStockMode === 'purchase')
+        ) {
+          failNotify('Tidak ada produk atau supplier yang dipilih');
+          setLoading(false);
           return Promise.reject();
+        }
 
         const productsPromises = newPurchase.products.map(async (product) => {
           if (!product.id) return Promise.reject();
           const productRef = doc(db, 'product', product.id);
-          const updateStock = increment(product.quantity);
+          const updateStock =
+            manageStockMode === 'force-change'
+              ? product.quantity
+              : increment(product.quantity);
 
           transaction.update(productRef, {
             count: updateStock,
@@ -295,6 +325,7 @@ export const ManageStockPage = () => {
             return Promise.reject('Detail produk tidak ditemukan');
 
           const newStockHistoryDocRef = doc(collection(db, 'stock_history'));
+
           transaction.set(newStockHistoryDocRef, {
             product: product.id,
             product_name:
@@ -305,7 +336,11 @@ export const ManageStockPage = () => {
               productDetail.part +
               ' ' +
               productDetail.available_color,
-            count: product.quantity + productDetail.count,
+            count:
+              manageStockMode === 'force-change'
+                ? product.quantity
+                : product.quantity + productDetail.count,
+            // count: product.quantity + productDetail.count,
             old_count: productDetail.count,
             difference: product.quantity,
             warehouse_position: selectedWarehouse,
@@ -316,7 +351,11 @@ export const ManageStockPage = () => {
         });
 
         // If not returned product, create new purchase history
-        if (!returnedProduct && manageStockMode === 'purchase') {
+        if (
+          !returnedProduct &&
+          manageStockMode === 'purchase' &&
+          selectedSupplier
+        ) {
           const newPurchaseHistoryDocRef = doc(
             collection(db, 'purchase_history')
           );
