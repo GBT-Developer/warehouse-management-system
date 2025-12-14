@@ -21,6 +21,7 @@ import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { InputField } from 'renderer/components/InputField';
+import { SearchBar } from 'renderer/components/SearchBar';
 import { SingleTableItem } from 'renderer/components/TableComponents/SingleTableItem';
 import { TableModal } from 'renderer/components/TableComponents/TableModal';
 import { db } from 'renderer/firebase';
@@ -71,6 +72,7 @@ export const ManageStockPage = () => {
   const selectedWarehouseRef = useRef<HTMLSelectElement>(null);
   const [returnedProduct, setReturnedProduct] = useState(false);
   const [initialLoad, setInitialLoad] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
 
   const successNotify = () =>
     toast.success('Stock berhasil diupdate', {
@@ -1064,72 +1066,99 @@ export const ManageStockPage = () => {
             : []
         }
       >
+        <tr>
+          <td colSpan={4} className="p-4">
+            <div className="flex justify-end">
+              <SearchBar
+                handleSearch={(value: string) => setSearchQuery(value)}
+                placeholder="Telusuri..."
+              />
+            </div>
+          </td>
+        </tr>
         {products.length > 0 ? (
-          products.map((product, index) => (
-            <tr
-              key={index}
-              className="hover:bg-gray-100 cursor-pointer"
-              onClick={() => {
-                // If product is already in newPurchase, remove it
-                if (newPurchase.products.some((p) => p.id === product.id)) {
-                  setNewPurchase(() => ({
-                    ...newPurchase,
-                    products: newPurchase.products.filter(
-                      (p) => p.id !== product.id
-                    ),
-                  }));
-                  return;
-                }
+          products
+            .filter((product) => {
+              const productName = (
+                product.brand +
+                ' ' +
+                product.motor_type +
+                ' ' +
+                product.part +
+                ' ' +
+                product.available_color
+              ).toLowerCase();
+              return productName.includes(searchQuery.toLowerCase());
+            })
+            .map((product, index) => (
+              <tr
+                key={index}
+                className="hover:bg-gray-100 cursor-pointer"
+                onClick={() => {
+                  // If product is already in newPurchase, remove it
+                  if (newPurchase.products.some((p) => p.id === product.id)) {
+                    setNewPurchase(() => ({
+                      ...newPurchase,
+                      products: newPurchase.products.filter(
+                        (p) => p.id !== product.id
+                      ),
+                    }));
+                    return;
+                  }
 
-                // If product is not in newPurchase, add it
-                if (product.id === undefined) return;
-                const productId = product.id;
-                setNewPurchase((prev) => ({
-                  ...prev,
-                  products: [
-                    ...prev.products,
-                    {
-                      id: productId,
-                      name:
-                        product.brand +
-                        ' ' +
-                        product.motor_type +
-                        ' ' +
-                        product.part +
-                        ' ' +
-                        product.available_color,
-                      quantity: 0,
-                    },
-                  ],
-                }));
-              }}
-            >
-              <SingleTableItem>
-                <input
-                  type="checkbox"
-                  checked={newPurchase.products.some(
-                    (p) => p.id === product.id
-                  )}
-                  readOnly
-                />
-              </SingleTableItem>
-              <SingleTableItem key={index}>
-                {product.brand +
-                  ' ' +
-                  product.motor_type +
-                  ' ' +
-                  product.part +
-                  ' ' +
-                  product.available_color}
-              </SingleTableItem>
-              <SingleTableItem>{product.warehouse_position}</SingleTableItem>
-              <SingleTableItem>{product.count}</SingleTableItem>
-            </tr>
-          ))
+                  // If product is not in newPurchase, add it
+                  if (product.id === undefined) return;
+                  const productId = product.id;
+                  setNewPurchase((prev) => ({
+                    ...prev,
+                    products: [
+                      ...prev.products,
+                      {
+                        id: productId,
+                        name:
+                          product.brand +
+                          ' ' +
+                          product.motor_type +
+                          ' ' +
+                          product.part +
+                          ' ' +
+                          product.available_color,
+                        quantity: 0,
+                      },
+                    ],
+                  }));
+                }}
+              >
+                <SingleTableItem>
+                  <input
+                    type="checkbox"
+                    checked={newPurchase.products.some(
+                      (p) => p.id === product.id
+                    )}
+                    readOnly
+                  />
+                </SingleTableItem>
+                <SingleTableItem key={index}>
+                  {product.brand +
+                    ' ' +
+                    product.motor_type +
+                    ' ' +
+                    product.part +
+                    ' ' +
+                    product.available_color}
+                </SingleTableItem>
+                <SingleTableItem>{product.warehouse_position}</SingleTableItem>
+                <SingleTableItem>{product.count}</SingleTableItem>
+              </tr>
+            ))
         ) : (
           <tr className="border-b">
             <SingleTableItem>
-              <p className="flex justify-center">Produk tidak ditemukan</p>
+              <p className="flex justify-center">
+                {searchQuery
+                  ? 'Produk tidak ditemukan'
+                  : 'Produk tidak ditemukan'}
+              </p>
             </SingleTableItem>
           </tr>
         )}
